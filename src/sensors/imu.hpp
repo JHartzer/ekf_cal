@@ -32,6 +32,14 @@
 class IMU : public Sensor
 {
 public:
+  typedef struct Variance
+  {
+    double pos {1e-9};
+    double ang {1e-9};
+    double acc_bias {1e-9};
+    double gyr_bias {1e-9};
+  } Variance;
+
   ///
   /// @brief IMU initialization parameters structure
   ///
@@ -49,8 +57,7 @@ public:
     double omg_bias_stability {1e-9};            ///< @brief Gyroscope bias stability
     double motion_detection_threshold{1.0};      ///< @brief Motion detection chi-Squared threshold
     double noise_scale_factor{1.0};              ///< @brief Stationary noise scale factor
-    /// @brief Initial state variance
-    Eigen::VectorXd variance {{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}};
+    Variance variance;                           ///< @brief Initial state variance
   } Parameters;
 
   ///

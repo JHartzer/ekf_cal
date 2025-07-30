@@ -292,7 +292,10 @@ int main(int argc, char * argv[])
     LoadSensorParams(imu_params, imu_node, imus[i], log_directory, ekf, debug_logger);
     imu_params.is_extrinsic = imu_node["is_extrinsic"].as<bool>(false);
     imu_params.is_intrinsic = imu_node["is_intrinsic"].as<bool>(false);
-    imu_params.variance = StdToEigVec(imu_node["variance"].as<std::vector<double>>(def_vec));
+    imu_params.variance.pos = imu_node["variance"]["pos"].as<double>(0.0);
+    imu_params.variance.ang = imu_node["variance"]["ang"].as<double>(0.0);
+    imu_params.variance.acc_bias = imu_node["variance"]["acc_bias"].as<double>(0.0);
+    imu_params.variance.gyr_bias = imu_node["variance"]["gyr_bias"].as<double>(0.0);
     imu_params.pos_i_in_b = StdToEigVec(imu_node["pos_i_in_b"].as<std::vector<double>>(def_vec));
     imu_params.ang_i_to_b = StdToEigQuat(imu_node["ang_i_to_b"].as<std::vector<double>>(def_quat));
     imu_params.acc_bias = StdToEigVec(imu_node["acc_bias"].as<std::vector<double>>(def_vec));

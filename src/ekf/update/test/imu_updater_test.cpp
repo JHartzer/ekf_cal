@@ -235,7 +235,7 @@ TEST(test_imu_updater, jacobian) {
   imu_state.SetIsExtrinsic(is_extrinsic);
   imu_state.SetIsIntrinsic(is_intrinsic);
 
-  Eigen::Matrix3d covariance = Eigen::Matrix3d::Identity();
+  Eigen::MatrixXd covariance = Eigen::MatrixXd::Identity(12, 12);
 
   auto debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
   EKF::Parameters ekf_params;

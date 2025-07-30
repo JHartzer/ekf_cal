@@ -94,12 +94,11 @@
                 is_intrinsic: false                      # Flag to calibrate IMU intrinsics
                 rate: 1000.0                             # Measurement update rate
                 topic: "/imu_1"                          # ROS topic to subscribe to
-                variance: [
-                    0.01, 0.01, 0.01,                    # Position
-                    0.01, 0.01, 0.01,                    # Orientation
-                    0.01, 0.01, 0.01,                    # Accelerometer bias
-                    0.01, 0.01, 0.01                     # Gyroscope bias
-                ]
+                variance:
+                    pos: 1.0e-3                          # Position variance
+                    ang: 1.0e-3                          # Orientation variance
+                    acc_bias: 1.0e-3                     # Accelerometer bias variance
+                    gyr_bias: 1.0e-3                     # Gyroscope bias variance
                 pos_i_in_b: [0.0, 0.0, 0.0]              # Initial position offset estimate
                 ang_i_to_b: [1.0, 0.0, 0.0, 0.0]         # Initial angular offset estimate
                 acc_bias: [0.0, 0.0, 0.0]                # Initial accelerometer bias estimate

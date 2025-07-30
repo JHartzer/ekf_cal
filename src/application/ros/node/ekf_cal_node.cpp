@@ -212,8 +212,10 @@ void EkfCalNode::DeclareImuParameters(const std::string & imu_name)
   DeclareSensorParameters(imu_prefix);
   declare_parameter(imu_prefix + ".is_extrinsic", false);
   declare_parameter(imu_prefix + ".is_intrinsic", false);
-  declare_parameter(
-    imu_prefix + ".variance", std::vector<double>{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1});
+  declare_parameter(imu_prefix + ".variance.pos", 1e-9);
+  declare_parameter(imu_prefix + ".variance.ang", 1e-9);
+  declare_parameter(imu_prefix + ".variance.acc_bias", 1e-9);
+  declare_parameter(imu_prefix + ".variance.gyr_bias", 1e-9);
   declare_parameter(imu_prefix + ".pos_i_in_b", std::vector<double>{0, 0, 0});
   declare_parameter(imu_prefix + ".ang_i_to_b", std::vector<double>{1, 0, 0, 0});
   declare_parameter(imu_prefix + ".acc_bias", std::vector<double>{0, 0, 0});
@@ -230,7 +232,10 @@ IMU::Parameters EkfCalNode::GetImuParameters(const std::string & imu_name)
   std::string imu_prefix = "imu." + imu_name;
   bool is_extrinsic = get_parameter(imu_prefix + ".is_extrinsic").as_bool();
   bool is_intrinsic = get_parameter(imu_prefix + ".is_intrinsic").as_bool();
-  std::vector<double> variance = get_parameter(imu_prefix + ".variance").as_double_array();
+  double pos_var = get_parameter(imu_prefix + ".variance.pos").as_double();
+  double ang_var = get_parameter(imu_prefix + ".variance.ang").as_double();
+  double acc_bias_var = get_parameter(imu_prefix + ".variance.acc_bias").as_double();
+  double gyr_bias_var = get_parameter(imu_prefix + ".variance.gyr_bias").as_double();
   std::vector<double> pos_i_in_b = get_parameter(imu_prefix + ".pos_i_in_b").as_double_array();
   std::vector<double> ang_i_to_b = get_parameter(imu_prefix + ".ang_i_to_b").as_double_array();
   std::vector<double> acc_bias = get_parameter(imu_prefix + ".acc_bias").as_double_array();
@@ -245,7 +250,10 @@ IMU::Parameters EkfCalNode::GetImuParameters(const std::string & imu_name)
   LoadSensorParameters(imu_params, imu_prefix, imu_name);
   imu_params.is_extrinsic = is_extrinsic;
   imu_params.is_intrinsic = is_intrinsic;
-  imu_params.variance = StdToEigVec(variance);
+  imu_params.variance.pos = pos_var;
+  imu_params.variance.ang = ang_var;
+  imu_params.variance.acc_bias = acc_bias_var;
+  imu_params.variance.gyr_bias = gyr_bias_var;
   imu_params.pos_i_in_b = StdToEigVec(pos_i_in_b);
   imu_params.ang_i_to_b = StdToEigQuat(ang_i_to_b);
   imu_params.acc_bias = StdToEigVec(acc_bias);

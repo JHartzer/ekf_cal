@@ -27,7 +27,6 @@
 
 Eigen::VectorXd StdToEigVec(std::vector<double> const & std_vec)
 {
-  assert(std_vec.size() == 3);
   Eigen::VectorXd eig_vec(std_vec.size());
   for (unsigned int i = 0; i < std_vec.size(); ++i) {
     eig_vec(i) = std_vec[i];

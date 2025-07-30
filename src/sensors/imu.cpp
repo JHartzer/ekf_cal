@@ -47,13 +47,19 @@ IMU::IMU(IMU::Parameters params)
   imu_state.ang_i_to_b = params.ang_i_to_b;
   imu_state.acc_bias = params.acc_bias;
   imu_state.omg_bias = params.omg_bias;
-  MinBoundVector(params.variance, 1e-6);
 
-  Eigen::MatrixXd cov;
+  Eigen::MatrixXd cov = Eigen::MatrixXd::Zero(imu_state.size, imu_state.size);
   if (imu_state.GetIsExtrinsic() && imu_state.GetIsIntrinsic()) {
-    cov = params.variance.segment<12>(0).asDiagonal();
-  } else if (imu_state.GetIsExtrinsic() || imu_state.GetIsIntrinsic()) {
-    cov = params.variance.segment<6>(0).asDiagonal();
+    cov.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity() * params.variance.pos;
+    cov.block<3, 3>(3, 3) = Eigen::Matrix3d::Identity() * params.variance.ang;
+    cov.block<3, 3>(6, 6) = Eigen::Matrix3d::Identity() * params.variance.acc_bias;
+    cov.block<3, 3>(9, 9) = Eigen::Matrix3d::Identity() * params.variance.gyr_bias;
+  } else if (imu_state.GetIsExtrinsic()) {
+    cov.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity() * params.variance.pos;
+    cov.block<3, 3>(3, 3) = Eigen::Matrix3d::Identity() * params.variance.ang;
+  } else if (imu_state.GetIsIntrinsic()) {
+    cov.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity() * params.variance.acc_bias;
+    cov.block<3, 3>(3, 3) = Eigen::Matrix3d::Identity() * params.variance.gyr_bias;
   }
 
   m_ekf->RegisterIMU(m_id, imu_state, cov);

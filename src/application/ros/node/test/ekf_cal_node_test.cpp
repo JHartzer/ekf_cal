@@ -60,10 +60,10 @@ TEST_F(EkfCalNode_test, hello_world)
   node.set_parameter(rclcpp::Parameter("imu.imu_1.is_intrinsic", false));
   node.set_parameter(rclcpp::Parameter("imu.imu_1.rate", 400.0));
   node.set_parameter(rclcpp::Parameter("imu.imu_1.topic", "/ImuTopic"));
-  node.set_parameter(
-    rclcpp::Parameter(
-      "imu.imu_1.variance",
-      std::vector<double>{0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01}));
+  node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.pos", 1e-3));
+  node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.ang", 1e-3));
+  node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.acc_bias", 1e-3));
+  node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.gyr_bias", 1e-3));
   node.set_parameter(
     rclcpp::Parameter("imu.imu_1.pos_i_in_b", std::vector<double>{0.0, 0.0, 0.0}));
   node.set_parameter(
