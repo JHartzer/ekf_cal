@@ -72,8 +72,11 @@
                 topic:  "/cam_1"
                 pos_c_in_b: [0.0, 0.0, 0.0]
                 ang_c_to_b: [-0.5, 0.5, -0.5, 0.5]
-                variance: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+                variance:
+                    pos: 0.1
+                    ang: 0.1
                 tracker: "orb"
+                is_extrinsic: true
                 pos_stability: 1.0e-9
                 ang_stability: 1.0e-9
                 sim_params:

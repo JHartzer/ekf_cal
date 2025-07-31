@@ -51,6 +51,9 @@
                 topic: "/imu_2"
                 pos_i_in_b: [0.0, 0.0, 0.0]
                 ang_i_to_b: [1.0, 0.0, 0.0, 0.0]
+                variance:
+                    pos: 0.1
+                    ang: 0.1
                 sim_params:
                     data_log_rate: 10.0
                     pos_error: [0.0, 0.0, 0.0]

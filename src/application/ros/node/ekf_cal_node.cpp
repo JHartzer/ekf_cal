@@ -212,8 +212,8 @@ void EkfCalNode::DeclareImuParameters(const std::string & imu_name)
   DeclareSensorParameters(imu_prefix);
   declare_parameter(imu_prefix + ".is_extrinsic", false);
   declare_parameter(imu_prefix + ".is_intrinsic", false);
-  declare_parameter(imu_prefix + ".variance.pos", 1e-9);
-  declare_parameter(imu_prefix + ".variance.ang", 1e-9);
+  declare_parameter(imu_prefix + ".variance.pos", 0.1);
+  declare_parameter(imu_prefix + ".variance.ang", 0.1);
   declare_parameter(imu_prefix + ".variance.acc_bias", 1e-9);
   declare_parameter(imu_prefix + ".variance.gyr_bias", 1e-9);
   declare_parameter(imu_prefix + ".pos_i_in_b", std::vector<double>{0, 0, 0});
@@ -302,7 +302,8 @@ void EkfCalNode::DeclareCameraParameters(const std::string & camera_name)
   DeclareSensorParameters(cam_prefix);
   declare_parameter(cam_prefix + ".pos_c_in_b", std::vector<double>{0, 0, 0});
   declare_parameter(cam_prefix + ".ang_c_to_b", std::vector<double>{1, 0, 0, 0});
-  declare_parameter(cam_prefix + ".variance", std::vector<double>{1, 1, 1, 1, 1, 1});
+  declare_parameter(cam_prefix + ".variance.pos", 0.1);
+  declare_parameter(cam_prefix + ".variance.ang", 0.1);
   declare_parameter(cam_prefix + ".tracker", "");
   declare_parameter(cam_prefix + ".fiducial", "");
   declare_parameter(cam_prefix + ".pos_stability", 1e-9);
@@ -317,7 +318,8 @@ Camera::Parameters EkfCalNode::GetCameraParameters(const std::string & camera_na
   std::string cam_prefix = "camera." + camera_name;
   std::vector<double> pos_c_in_b = get_parameter(cam_prefix + ".pos_c_in_b").as_double_array();
   std::vector<double> ang_c_to_b = get_parameter(cam_prefix + ".ang_c_to_b").as_double_array();
-  std::vector<double> variance = get_parameter(cam_prefix + ".variance").as_double_array();
+  double pos_var = get_parameter(cam_prefix + ".variance.pos").as_double();
+  double ang_var = get_parameter(cam_prefix + ".variance.ang").as_double();
   std::string tracker_name = get_parameter(cam_prefix + ".tracker").as_string();
   std::string fiducial_name = get_parameter(cam_prefix + ".fiducial").as_string();
   double pos_stability = get_parameter(cam_prefix + ".pos_stability").as_double();
@@ -329,7 +331,8 @@ Camera::Parameters EkfCalNode::GetCameraParameters(const std::string & camera_na
   LoadSensorParameters(camera_params, cam_prefix, camera_name);
   camera_params.pos_c_in_b = StdToEigVec(pos_c_in_b);
   camera_params.ang_c_to_b = StdToEigQuat(ang_c_to_b);
-  camera_params.variance = StdToEigVec(variance);
+  camera_params.variance.pos = pos_var;
+  camera_params.variance.ang = ang_var;
   camera_params.tracker = tracker_name;
   camera_params.fiducial = fiducial_name;
   camera_params.pos_stability = pos_stability;

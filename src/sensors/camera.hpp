@@ -40,6 +40,12 @@
 class Camera : public Sensor
 {
 public:
+  typedef struct Variance
+  {
+    double pos {1e-9};
+    double ang {1e-9};
+  } Variance;
+
   ///
   /// @brief Camera initialization parameters structure
   ///
@@ -50,7 +56,7 @@ public:
     Eigen::Quaterniond ang_c_to_b{1.0, 0.0, 0.0, 0.0};  ///< @brief Camera initial angular offset
     double pos_stability {1e-9};                        ///< @brief Position stability
     double ang_stability {1e-9};                        ///< @brief Angular stability
-    Eigen::VectorXd variance {{0, 0, 0, 0, 0, 0}};      ///< @brief Initial state variance
+    Variance variance;                                  ///< @brief Initial state variance
     std::string tracker;                                ///< @brief Tracker name
     std::string fiducial;                               ///< @brief Fiducial name
     Intrinsics intrinsics;                              ///< @brief Camera intrinsics

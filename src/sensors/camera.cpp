@@ -47,9 +47,10 @@ Camera::Camera(Camera::Parameters cam_params)
   cam_state.ang_stability = cam_params.ang_stability;
   cam_state.intrinsics = cam_params.intrinsics;
   cam_state.SetIsExtrinsic(cam_params.is_extrinsic);
-  MinBoundVector(cam_params.variance, 1e-6);
 
-  Eigen::MatrixXd cov = cam_params.variance.asDiagonal();
+  Eigen::MatrixXd cov = Eigen::MatrixXd::Zero(6, 6);
+  cov.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity() * cam_params.variance.pos;
+  cov.block<3, 3>(3, 3) = Eigen::Matrix3d::Identity() * cam_params.variance.ang;
 
   m_ekf->RegisterCamera(m_id, cam_state, cov);
 }

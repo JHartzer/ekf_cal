@@ -37,8 +37,8 @@
                 rate: 400.0
                 topic: "/imu_1"
                 variance:
-                    pos: 1.0e-3
-                    ang: 1.0e-3
+                    pos: 0.1
+                    ang: 0.1
                     acc_bias: 1.0e-3
                     gyr_bias: 1.0e-3
                 pos_i_in_b: [0.0, 0.0, 0.0]

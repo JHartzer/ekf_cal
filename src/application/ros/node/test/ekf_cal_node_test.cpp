@@ -60,8 +60,8 @@ TEST_F(EkfCalNode_test, hello_world)
   node.set_parameter(rclcpp::Parameter("imu.imu_1.is_intrinsic", false));
   node.set_parameter(rclcpp::Parameter("imu.imu_1.rate", 400.0));
   node.set_parameter(rclcpp::Parameter("imu.imu_1.topic", "/ImuTopic"));
-  node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.pos", 1e-3));
-  node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.ang", 1e-3));
+  node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.pos", 0.1));
+  node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.ang", 0.1));
   node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.acc_bias", 1e-3));
   node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.gyr_bias", 1e-3));
   node.set_parameter(
@@ -79,8 +79,8 @@ TEST_F(EkfCalNode_test, hello_world)
     rclcpp::Parameter("camera.cam_2.pos_c_in_b", std::vector<double>{0.0, 0.0, 0.0}));
   node.set_parameter(
     rclcpp::Parameter("camera.cam_2.ang_c_to_b", std::vector<double>{1.0, 0.0, 0.0, 0.0}));
-  node.set_parameter(
-    rclcpp::Parameter("camera.cam_2.variance", std::vector<double>{0.1, 0.1, 0.1, 0.1, 0.1, 0.1}));
+  node.set_parameter(rclcpp::Parameter("camera.cam_2.variance.pos", 0.1));
+  node.set_parameter(rclcpp::Parameter("camera.cam_2.variance.ang", 0.1));
   node.set_parameter(rclcpp::Parameter("camera.cam_2.tracker", "tracker_3"));
   node.set_parameter(rclcpp::Parameter("camera.cam_2.fiducial", "fiducial_5"));
 

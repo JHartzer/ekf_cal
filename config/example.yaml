@@ -95,8 +95,8 @@
                 rate: 1000.0                             # Measurement update rate
                 topic: "/imu_1"                          # ROS topic to subscribe to
                 variance:
-                    pos: 1.0e-3                          # Position variance
-                    ang: 1.0e-3                          # Orientation variance
+                    pos: 0.1                             # Position variance
+                    ang: 0.1                             # Orientation variance
                     acc_bias: 1.0e-3                     # Accelerometer bias variance
                     gyr_bias: 1.0e-3                     # Gyroscope bias variance
                 pos_i_in_b: [0.0, 0.0, 0.0]              # Initial position offset estimate
@@ -125,10 +125,9 @@
                 topic:  "/cam_1"                    # ROS topic
                 pos_c_in_b: [0.0, 0.0, 0.0]         # Position in body frame
                 ang_c_to_b: [-0.5, 0.5, -0.5, 0.5]  # Orientation in body frame
-                variance: [
-                    0.1, 0.1, 0.1,                  # Position
-                    0.1, 0.1, 0.1                   # Orientation
-                    ]
+                variance:
+                    pos: 0.1                        # Position variance
+                    ang: 0.1                        # Orientation variance
                 tracker: "orb"                      # Tracker to use
                 # fiducial: "charuco"                 # Fiducial to use
                 pos_stability: 1.0e-9               # Position stability
