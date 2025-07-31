@@ -41,7 +41,7 @@ GPS::GPS(GPS::Parameters params)
   gps_state.pos_a_in_b = params.pos_a_in_b;
   gps_state.pos_stability = params.pos_stability;
   gps_state.SetIsExtrinsic(params.is_extrinsic);
-  Eigen::Matrix3d gps_cov = params.variance.asDiagonal();
+  Eigen::Matrix3d gps_cov = Eigen::Matrix3d::Identity() * params.variance.pos;
   m_ekf->RegisterGPS(m_id, gps_state, gps_cov);
 }
 

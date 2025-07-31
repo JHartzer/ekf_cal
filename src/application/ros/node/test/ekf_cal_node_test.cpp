@@ -91,10 +91,9 @@ TEST_F(EkfCalNode_test, hello_world)
 
   node.set_parameter(rclcpp::Parameter("gps.gps_4.topic", "/gps1"));
   node.set_parameter(rclcpp::Parameter("gps.gps_4.rate", 10.0));
-  node.set_parameter(rclcpp::Parameter("gps.gps_4.variance", std::vector<double>{1.0, 1.0, 1.0}));
+  node.set_parameter(rclcpp::Parameter("gps.gps_4.variance.pos", 0.1));
   node.set_parameter(
     rclcpp::Parameter("gps.gps_4.pos_a_in_b", std::vector<double>{0.0, 0.0, 0.0}));
-
 
   node.set_parameter(rclcpp::Parameter("fiducial.fiducial_5.fiducial_type", 1));
   node.set_parameter(rclcpp::Parameter("fiducial.fiducial_5.squares_x", 5));

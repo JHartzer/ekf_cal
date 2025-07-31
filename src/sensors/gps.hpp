@@ -35,13 +35,18 @@
 class GPS : public Sensor
 {
 public:
+  typedef struct Variance
+  {
+    double pos {0.1};
+  } Variance;
+
   ///
   /// @brief GPS initialization parameters structure
   ///
   typedef struct Parameters : public Sensor::Parameters
   {
     Eigen::Vector3d pos_a_in_b {0, 0, 0};           ///< @brief GPS antenna position offset vector
-    Eigen::Vector3d variance {{1, 1, 1}};           ///< @brief Initial state variance
+    Variance variance;                              ///< @brief Initial state variance
     bool is_extrinsic {false};                      ///< @brief Online extrinsic calibration flag
     double pos_stability {1e-9};                    ///< @brief Position stability
   } Parameters;

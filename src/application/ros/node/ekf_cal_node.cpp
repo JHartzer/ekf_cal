@@ -451,7 +451,7 @@ void EkfCalNode::DeclareGpsParameters(const std::string & gps_name)
   DeclareSensorParameters(gps_prefix);
   declare_parameter(gps_prefix + ".pos_a_in_b", std::vector<double>{0, 0, 0});
   declare_parameter(gps_prefix + ".pos_stability", 1e-9);
-  declare_parameter(gps_prefix + ".variance", std::vector<double>{1, 1, 1});
+  declare_parameter(gps_prefix + ".variance.pos", 0.1);
 }
 
 GPS::Parameters EkfCalNode::GetGpsParameters(const std::string & gps_name)
@@ -459,14 +459,12 @@ GPS::Parameters EkfCalNode::GetGpsParameters(const std::string & gps_name)
   // Get parameters
   std::string gps_prefix = "gps." + gps_name;
   std::vector<double> pos_a_in_b = get_parameter(gps_prefix + ".pos_a_in_b").as_double_array();
-  std::vector<double> variance = get_parameter(gps_prefix + ".variance").as_double_array();
-  double pos_stability = get_parameter(gps_prefix + ".pos_stability").as_double();
+  double pos_var = get_parameter(gps_prefix + ".variance.pos").as_double();
 
   GPS::Parameters gps_params;
   LoadSensorParameters(gps_params, gps_prefix, gps_name);
   gps_params.pos_a_in_b = StdToEigVec(pos_a_in_b);
-  gps_params.variance = StdToEigVec(variance);
-  gps_params.pos_stability = pos_stability;
+  gps_params.variance.pos = pos_var;
   return gps_params;
 }
 

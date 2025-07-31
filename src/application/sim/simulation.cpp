@@ -467,9 +467,8 @@ int main(int argc, char * argv[])
     YAML::Node sim_node = gps_node["sim_params"];
 
     GPS::Parameters gps_params;
-    LoadSensorParams(
-      gps_params, gps_node, gps_list[i], log_directory, ekf, debug_logger);
-    gps_params.variance = StdToEigVec(gps_node["variance"].as<std::vector<double>>(def_vec));
+    LoadSensorParams(gps_params, gps_node, gps_list[i], log_directory, ekf, debug_logger);
+    gps_params.variance.pos = gps_node["variance"]["pos"].as<double>(0.1);
     gps_params.pos_a_in_b = StdToEigVec(gps_node["pos_a_in_b"].as<std::vector<double>>(def_vec));
     gps_params.pos_stability = gps_node["pos_stability"].as<double>(0.0);
     gps_params.is_extrinsic = gps_node["is_extrinsic"].as<bool>(false);

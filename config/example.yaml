@@ -207,7 +207,8 @@
                 rate: 5.0                            # Sensor Rate
                 topic: "/gps_1"                      # ROS topic
                 pos_a_in_b: [0.0, 0.0, 0.0]          # Antenna position in body frame
-                variance: [5.0, 5.0, 5.0]            # Antenna position variance
+                variance:
+                    pos: 0.1                         # Antenna position variance
                 data_log_rate: 5.0                   # Data log rate
                 is_extrinsic: false                  # Flag to calibrate GPS extrinsics
                 sim_params:

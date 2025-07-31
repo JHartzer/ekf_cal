@@ -32,7 +32,7 @@ TEST(test_SimIMU, Constructor) {
   gps_params.topic = "GPS_1";
   gps_params.rate = 5.0;
   gps_params.pos_a_in_b = Eigen::Vector3d{0, 0, 0};
-  gps_params.variance = Eigen::Vector3d{5.0, 5.0, 5.0};
+  gps_params.variance.pos = 5.0;
   gps_params.ekf = ekf;
   gps_params.logger = ekf_params.debug_logger;
 
