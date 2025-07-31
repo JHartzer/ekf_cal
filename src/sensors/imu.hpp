@@ -32,12 +32,15 @@
 class IMU : public Sensor
 {
 public:
+  ///
+  /// @brief IMU variance structure
+  ///
   typedef struct Variance
   {
-    double pos {1e-9};
-    double ang {1e-9};
-    double acc_bias {1e-9};
-    double gyr_bias {1e-9};
+    double pos {1e-9};       ///< @brief Position variance
+    double ang {1e-9};       ///< @brief Angular variance
+    double acc_bias {1e-9};  ///< @brief Accelerometer bias variance
+    double gyr_bias {1e-9};  ///< @brief Gyroscope bias variance
   } Variance;
 
   ///

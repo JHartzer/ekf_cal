@@ -35,9 +35,12 @@
 class GPS : public Sensor
 {
 public:
+  ///
+  /// @brief GPS variance structure
+  ///
   typedef struct Variance
   {
-    double pos {0.1};
+    double pos {0.1};  ///< @brief Position variance
   } Variance;
 
   ///

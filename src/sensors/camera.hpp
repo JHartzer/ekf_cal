@@ -40,10 +40,13 @@
 class Camera : public Sensor
 {
 public:
+  ///
+  /// @brief Camera variance structure
+  ///
   typedef struct Variance
   {
-    double pos {1e-9};
-    double ang {1e-9};
+    double pos {1e-9};  ///< @brief Position variance
+    double ang {1e-9};  ///< @brief Angular variance
   } Variance;
 
   ///

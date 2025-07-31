@@ -5,7 +5,6 @@
             "extensions": [
                 "fabiospampinato.vscode-todo-plus",
                 "mhutchie.git-graph",
-                "ms-iot.vscode-ros",
                 "ms-python.flake8",
                 "ms-python.python",
                 "ms-vscode.cpptools-extension-pack",

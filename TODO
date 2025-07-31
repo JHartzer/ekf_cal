@@ -13,7 +13,6 @@ Simulation:
     - Add data drops to input file
     - Add extrinsic step disturbance
     - Add IMU bias instability
-    - Use named variance terms
     - Switch to H5 data logging, save errors off in real time
     - Create Simulated Camera video feed
         - Circles for points, radius based on distance
