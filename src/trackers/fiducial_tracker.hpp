@@ -47,23 +47,29 @@ enum class FiducialType
 class FiducialTracker : public Tracker
 {
 public:
+  typedef struct Variance
+  {
+    double pos {1e-9};
+    double ang {1e-9};
+  } Variance;
+
   ///
   /// @brief Feature Tracker Initialization parameters structure
   ///
   typedef struct Parameters : public Tracker::Parameters
   {
-    FiducialType detector_type;                     ///< @brief Detector type
-    unsigned int predefined_dict{0};                ///< @brief Predefined dictionary
-    unsigned int squares_x {1};                     ///< @brief Number of squares in the x direction
-    unsigned int squares_y {1};                     ///< @brief Number of squares in the y direction
-    double square_length {1.0};                     ///< @brief Checkerboard square length
-    double marker_length {1.0};                     ///< @brief Marker length
-    unsigned int id{0};                             ///< @brief Initial ID
-    Eigen::Vector3d pos_f_in_l;                     ///< @brief Fiducial position
-    Eigen::Quaterniond ang_f_to_l;                  ///< @brief Fiducial orientation
-    bool is_extrinsic{false};                       ///< @brief Perform extrinsic calibration
-    Eigen::VectorXd variance {{1, 1, 1, 1, 1, 1}};  ///< @brief Fiducial marker variance
-    bool is_cam_extrinsic{false};  ///< @brief Flag for extrinsic camera calibration
+    FiducialType detector_type;       ///< @brief Detector type
+    unsigned int predefined_dict{0};  ///< @brief Predefined dictionary
+    unsigned int squares_x {1};       ///< @brief Number of squares in the x direction
+    unsigned int squares_y {1};       ///< @brief Number of squares in the y direction
+    double square_length {1.0};       ///< @brief Checkerboard square length
+    double marker_length {1.0};       ///< @brief Marker length
+    unsigned int id{0};               ///< @brief Initial ID
+    Eigen::Vector3d pos_f_in_l;       ///< @brief Fiducial position
+    Eigen::Quaterniond ang_f_to_l;    ///< @brief Fiducial orientation
+    bool is_extrinsic{false};         ///< @brief Perform extrinsic calibration
+    Variance variance;                ///< @brief Fiducial marker variance
+    bool is_cam_extrinsic{false};     ///< @brief Flag for extrinsic camera calibration
   } Parameters;
 
   ///

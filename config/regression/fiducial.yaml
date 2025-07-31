@@ -78,8 +78,10 @@
                 marker_length: 0.02
                 pos_f_in_l: [0.0, 0.0, 0.0]
                 ang_f_to_l: [1.0, 0.0, 0.0, 0.0]
-                variance: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-                is_extrinsic: false
+                is_extrinsic: true
+                variance:
+                    pos: 0.1
+                    ang: 0.1
                 sim_params:
                     t_vec_error: [1.0e-1, 1.0e-1, 1.0e-1]
                     r_vec_error: [1.0e-2, 1.0e-2, 1.0e-2]

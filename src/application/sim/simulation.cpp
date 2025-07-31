@@ -370,7 +370,8 @@ int main(int argc, char * argv[])
       StdToEigVec(fid_node["pos_f_in_l"].as<std::vector<double>>(def_vec));
     fiducial_params.ang_f_to_l =
       StdToEigQuat(fid_node["ang_f_to_l"].as<std::vector<double>>(def_quat));
-    fiducial_params.variance = StdToEigVec(fid_node["variance"].as<std::vector<double>>(def_vec));
+    fiducial_params.variance.pos = fid_node["variance.pos"].as<double>(0.1);
+    fiducial_params.variance.ang = fid_node["variance.ang"].as<double>(0.1);
     fiducial_params.squares_x = fid_node["squares_x"].as<unsigned int>(1);
     fiducial_params.squares_y = fid_node["squares_y"].as<unsigned int>(1);
     fiducial_params.square_length = fid_node["square_length"].as<double>(0.0);

@@ -402,7 +402,8 @@ void EkfCalNode::DeclareFiducialParameters(const std::string & fid_name)
   declare_parameter(fiducial_prefix + ".id", 0);
   declare_parameter(fiducial_prefix + ".pos_f_in_l", std::vector<double>{0, 0, 0});
   declare_parameter(fiducial_prefix + ".ang_f_to_l", std::vector<double>{1, 0, 0, 0});
-  declare_parameter(fiducial_prefix + ".variance", std::vector<double>{0, 0, 0, 0, 0, 0});
+  declare_parameter(fiducial_prefix + ".variance.pos", 0.1);
+  declare_parameter(fiducial_prefix + ".variance.ang", 0.1);
   declare_parameter(fiducial_prefix + ".min_track_length", 2);
   declare_parameter(fiducial_prefix + ".max_track_length", 20);
   declare_parameter(fiducial_prefix + ".is_extrinsic", false);
@@ -420,7 +421,8 @@ FiducialTracker::Parameters EkfCalNode::GetFiducialParameters(const std::string 
   auto fid_id = get_parameter(fiducial_prefix + ".id").as_int();
   auto pos_f_in_l = get_parameter(fiducial_prefix + ".pos_f_in_l").as_double_array();
   auto ang_f_to_l = get_parameter(fiducial_prefix + ".ang_f_to_l").as_double_array();
-  auto variance = get_parameter(fiducial_prefix + ".variance").as_double_array();
+  auto pos_var = get_parameter(fiducial_prefix + ".variance.pos").as_double();
+  auto ang_var = get_parameter(fiducial_prefix + ".variance.ang").as_double();
   auto min_track_length = get_parameter(fiducial_prefix + ".min_track_length").as_int();
   auto max_track_length = get_parameter(fiducial_prefix + ".max_track_length").as_int();
   auto is_extrinsic = get_parameter(fiducial_prefix + ".is_extrinsic").as_bool();
@@ -434,7 +436,8 @@ FiducialTracker::Parameters EkfCalNode::GetFiducialParameters(const std::string 
   fiducial_params.id = static_cast<unsigned int>(fid_id);
   fiducial_params.pos_f_in_l = StdToEigVec(pos_f_in_l);
   fiducial_params.ang_f_to_l = StdToEigQuat(ang_f_to_l);
-  fiducial_params.variance = StdToEigVec(variance);
+  fiducial_params.variance.pos = pos_var;
+  fiducial_params.variance.ang = ang_var;
   fiducial_params.min_track_length = static_cast<unsigned int>(min_track_length);
   fiducial_params.max_track_length = static_cast<unsigned int>(max_track_length);
   fiducial_params.is_extrinsic = is_extrinsic;

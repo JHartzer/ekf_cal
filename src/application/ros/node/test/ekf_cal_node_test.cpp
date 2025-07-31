@@ -107,10 +107,8 @@ TEST_F(EkfCalNode_test, hello_world)
     rclcpp::Parameter("fiducial.fiducial_5.pos_f_in_l", std::vector<double>{0.0, 0.0, 0.0}));
   node.set_parameter(
     rclcpp::Parameter("fiducial.fiducial_5.ang_f_to_l", std::vector<double>{1.0, 0.0, 0.0, 0.0}));
-  node.set_parameter(
-    rclcpp::Parameter(
-      "fiducial.fiducial_5.variance",
-      std::vector<double>{0.1, 0.1, 0.1, 0.1, 0.1, 0.1}));
+  node.set_parameter(rclcpp::Parameter("fiducial.fiducial_5.variance.pos", 0.1));
+  node.set_parameter(rclcpp::Parameter("fiducial.fiducial_5.variance.pos", 0.1));
 
   node.LoadSensors();
   auto imu_msg = std::make_shared<sensor_msgs::msg::Imu>();

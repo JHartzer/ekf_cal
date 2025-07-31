@@ -36,8 +36,8 @@ FiducialTracker::FiducialTracker(FiducialTracker::Parameters params)
   ),
   m_detector_type(params.detector_type)
 {
-  m_pos_error = params.variance.segment<3>(0);
-  m_ang_error = params.variance.segment<3>(3);
+  m_pos_error = Eigen::Vector3d::Ones() * params.variance.pos;
+  m_ang_error = Eigen::Vector3d::Ones() * params.variance.ang;
 
   auto dict_name = static_cast<cv::aruco::PREDEFINED_DICTIONARY_NAME>(params.predefined_dict);
   m_dict = cv::aruco::getPredefinedDictionary(dict_name);
@@ -64,7 +64,8 @@ FiducialTracker::FiducialTracker(FiducialTracker::Parameters params)
   fid_state.ang_f_to_l = params.ang_f_to_l;
   fid_state.id = params.id;
   Eigen::MatrixXd covariance(g_fid_extrinsic_state_size, g_fid_extrinsic_state_size);
-  covariance = params.variance.asDiagonal();
+  covariance.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity() * params.variance.pos;
+  covariance.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity() * params.variance.ang;
 
   m_ekf->RegisterFiducial(fid_state, covariance);
 }
