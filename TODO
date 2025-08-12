@@ -35,3 +35,4 @@ Test:
     - Test Aprilgrid detection
     - Test multiple fiducial detection
     - Numerical Jacobian tests
+    - Consolidate perf script to use example

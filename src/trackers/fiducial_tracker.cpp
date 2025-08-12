@@ -34,7 +34,7 @@ FiducialTracker::FiducialTracker(FiducialTracker::Parameters params)
     params.data_log_rate,
     params.logger
   ),
-  m_detector_type(params.detector_type)
+  m_fiducial_type(params.fiducial_type)
 {
   m_pos_error = Eigen::Vector3d::Ones() * params.variance.pos;
   m_ang_error = Eigen::Vector3d::Ones() * params.variance.ang;

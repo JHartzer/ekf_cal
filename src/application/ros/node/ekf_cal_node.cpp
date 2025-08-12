@@ -431,7 +431,7 @@ FiducialTracker::Parameters EkfCalNode::GetFiducialParameters(const std::string 
   auto is_extrinsic = get_parameter(fiducial_prefix + ".is_extrinsic").as_bool();
 
   FiducialTracker::Parameters fiducial_params;
-  fiducial_params.detector_type = static_cast<FiducialType>(fiducial_type);
+  fiducial_params.fiducial_type = static_cast<FiducialType>(fiducial_type);
   fiducial_params.squares_x = static_cast<unsigned int>(squares_x);
   fiducial_params.squares_y = static_cast<unsigned int>(squares_y);
   fiducial_params.square_length = square_length;
@@ -521,9 +521,9 @@ void EkfCalNode::LoadCamera(const std::string & camera_name)
     fid_params.data_log_rate = camera_params.data_log_rate;
 
     std::shared_ptr<FiducialTracker> fid_ptr;
-    if (fid_params.detector_type == FiducialType::ARUCO_BOARD) {
+    if (fid_params.fiducial_type == FiducialType::ARUCO_BOARD) {
       fid_ptr = std::make_shared<ArucoBoardTracker>(fid_params);
-    } else if (fid_params.detector_type == FiducialType::CHARUCO_BOARD) {
+    } else if (fid_params.fiducial_type == FiducialType::CHARUCO_BOARD) {
       fid_ptr = std::make_shared<CharucoBoardTracker>(fid_params);
     }
 

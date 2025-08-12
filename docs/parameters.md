@@ -236,9 +236,10 @@ The following is an example of a fiducial input configuration.
 
         fiducial:
             charuco:
-                fiducial_type: 1                            # fiducial_type:
-                                                            #   0: ARUCO_BOARD
-                                                            #   1: CHARUCO_BOARD
+                fiducial_type: 2                            # fiducial_type:
+                                                            #   0: APRIL_GRID
+                                                            #   1: ARUCO_BOARD
+                                                            #   2: CHARUCO_BOARD
                 squares_x: 5                                # Board squares in x
                 squares_y: 7                                # Board squares in y
                 square_length: 0.04                         # Square length

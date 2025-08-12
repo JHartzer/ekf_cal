@@ -36,6 +36,7 @@
 ///
 enum class FiducialType
 {
+  APRIL_GRID,
   ARUCO_BOARD,
   CHARUCO_BOARD
 };
@@ -61,7 +62,7 @@ public:
   ///
   typedef struct Parameters : public Tracker::Parameters
   {
-    FiducialType detector_type;       ///< @brief Detector type
+    FiducialType fiducial_type;       ///< @brief Fiducial detector type
     unsigned int predefined_dict{0};  ///< @brief Predefined dictionary
     unsigned int squares_x {1};       ///< @brief Number of squares in the x direction
     unsigned int squares_y {1};       ///< @brief Number of squares in the y direction
@@ -133,7 +134,7 @@ public:
 
 protected:
   FiducialUpdater m_fiducial_updater;  ///< @brief MSCKF updater object
-  FiducialType m_detector_type;        ///< @brief Detector type
+  FiducialType m_fiducial_type;        ///< @brief Detector type
 
 private:
   Eigen::Vector3d m_pos_error;

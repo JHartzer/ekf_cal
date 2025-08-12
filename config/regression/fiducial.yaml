@@ -71,7 +71,7 @@
 
         fiducial:
             charuco:
-                fiducial_type: 1
+                fiducial_type: 2
                 squares_x: 5
                 squares_y: 7
                 square_length: 0.04
