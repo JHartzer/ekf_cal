@@ -74,6 +74,9 @@ public:
     bool is_extrinsic{false};         ///< @brief Perform extrinsic calibration
     Variance variance;                ///< @brief Fiducial marker variance
     bool is_cam_extrinsic{false};     ///< @brief Flag for extrinsic camera calibration
+    unsigned int border_bits{2};      ///< @brief Aprilgrid number of border bits
+    unsigned int separation_bits{3};  ///< @brief Aprilgrid number of separation bits
+    unsigned int starting_id{0};      ///< @brief Aprilgrid starting ID
   } Parameters;
 
   ///
@@ -124,8 +127,8 @@ public:
   virtual bool EstimatePoseBoard(
     const cv::Mat & img_in,
     cv::Mat & img_out,
-    cv::InputArray & camera_matrix,
-    cv::InputArray & dist_coefficients,
+    cv::Mat & camera_matrix,
+    cv::Mat & dist_coefficients,
     cv::Vec3d & r_vec,
     cv::Vec3d & t_vec
   ) const = 0;

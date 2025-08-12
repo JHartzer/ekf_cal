@@ -31,11 +31,11 @@ list(APPEND CMAKE_PREFIX_PATH /opt/ros/${ROS_DISTRO}/)
 
 set(ROS_PKGS
     ament_cmake
-    ament_cmake_flake8
     ament_cmake_copyright
-    ament_cmake_cpplint
-    ament_cmake_uncrustify
     ament_cmake_cppcheck
+    ament_cmake_cpplint
+    ament_cmake_flake8
+    ament_cmake_uncrustify
     cv_bridge
     geometry_msgs
     OpenCV
@@ -48,6 +48,8 @@ set(ROS_PKGS
 foreach(pkg ${ROS_PKGS})
     find_package(${pkg} REQUIRED)
 endforeach()
+
+find_package(aprilgrid)
 
 set(SIM_PKGS
     yaml-cpp
@@ -113,6 +115,7 @@ set(EKF_SRCS
     src/sensors/sensor.cpp
     src/trackers/feature_tracker.cpp
     src/trackers/fiducial_tracker.cpp
+    src/trackers/fiducials/april_grid_tracker.cpp
     src/trackers/fiducials/aruco_board_tracker.cpp
     src/trackers/fiducials/charuco_board_tracker.cpp
     src/trackers/tracker.cpp

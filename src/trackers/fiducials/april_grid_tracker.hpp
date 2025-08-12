@@ -13,24 +13,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef TRACKERS__FIDUCIALS__CHARUCO_BOARD_TRACKER_HPP_
-#define TRACKERS__FIDUCIALS__CHARUCO_BOARD_TRACKER_HPP_
+#ifndef TRACKERS__FIDUCIALS__APRIL_GRID_TRACKER_HPP_
+#define TRACKERS__FIDUCIALS__APRIL_GRID_TRACKER_HPP_
 
 #include "trackers/fiducial_tracker.hpp"
 
-#include <opencv2/aruco/charuco.hpp>
-
+#include <aprilgrid.hpp>
+#include <opencv2/aruco.hpp>
 
 ///
-/// @class CharucoBoardTracker
-/// @brief CharucoBoardTracker Tracker Class
+/// @class AprilGridTracker
+/// @brief AprilGridTracker Tracker Class
 ///
-class CharucoBoardTracker : public FiducialTracker
+class AprilGridTracker : public FiducialTracker
 {
 public:
-  explicit CharucoBoardTracker(FiducialTracker::Parameters params);
+  explicit AprilGridTracker(FiducialTracker::Parameters params);
 
-  cv::Ptr<cv::aruco::CharucoBoard> m_board;
+  AprilGrid m_board;
 
 private:
   bool EstimatePoseBoard(
@@ -42,4 +42,4 @@ private:
     cv::Vec3d & t_vec) const;
 };
 
-#endif  // TRACKERS__FIDUCIALS__CHARUCO_BOARD_TRACKER_HPP_
+#endif  // TRACKERS__FIDUCIALS__APRIL_GRID_TRACKER_HPP_
