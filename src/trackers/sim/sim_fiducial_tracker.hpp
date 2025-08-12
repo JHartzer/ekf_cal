@@ -85,6 +85,14 @@ public:
   void Callback(const double time, const SimFiducialTrackerMessage & msg);
 
 private:
+  bool EstimatePoseBoard(
+    const cv::Mat & img_in,
+    cv::Mat & img_out,
+    cv::InputArray & camera_matrix,
+    cv::InputArray & dist_coefficients,
+    cv::Vec3d & r_vec,
+    cv::Vec3d & t_vec) const;
+
   Eigen::Vector3d m_pos_error;
   Eigen::Vector3d m_ang_error;
   Eigen::Vector3d m_t_vec_error;

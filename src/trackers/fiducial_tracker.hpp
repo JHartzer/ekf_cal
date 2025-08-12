@@ -96,28 +96,6 @@ public:
   );
 
   ///
-  /// @brief Function to interpolate corners of charuco boards
-  /// @param marker_corners Input marker corners
-  /// @param marker_ids Input marker IDs
-  /// @param image Image on which to perform interpolation
-  /// @param board Fiducial board
-  /// @param corners Output corners
-  /// @param ids Output ids
-  /// @param camera_matrix Input camera matrix
-  /// @param dist_coefficients Input camera distortion coefficients
-  ///
-  int InterpolateCorners(
-    std::vector<std::vector<cv::Point2f>> & marker_corners,
-    std::vector<int> & marker_ids,
-    cv::Mat image,
-    cv::Ptr<cv::aruco::Board> & board,
-    std::vector<cv::Point2f> & corners,
-    std::vector<int> & ids,
-    cv::Mat camera_matrix,
-    cv::Mat dist_coefficients
-  ) const;
-
-  ///
   /// @brief DrawDetectedCorners
   /// @param image Image on which to draw corners
   /// @param marker_corners Input aruco corners
@@ -125,38 +103,33 @@ public:
   /// @param ids Detected IDs
   /// @param corner_color Colors for drawing
   ///
-  void DrawDetectedCorners(
-    cv::Mat image,
-    std::vector<std::vector<cv::Point2f>> & marker_corners,
-    std::vector<cv::Point2f> & corners,
-    std::vector<int> & ids,
-    cv::Scalar corner_color
-  ) const;
+  // virtual void DrawDetectedCorners(
+  //   cv::Mat image,
+  //   std::vector<std::vector<cv::Point2f>> & marker_corners,
+  //   std::vector<cv::Point2f> & corners,
+  //   std::vector<int> & ids,
+  //   cv::Scalar corner_color
+  // ) const = 0;
 
   ///
   /// @brief Estimate pose of board
-  /// @param marker_corners Input aruco corners
-  /// @param corners Input charuco corners
-  /// @param ids Fiducial IDs
-  /// @param board Fiducial board
+  /// @param img_in Input frame
+  /// @param img_out Output frame with drawn track lines
   /// @param camera_matrix Input camera matrix
   /// @param dist_coefficients Input camera distortion coefficients
   /// @param r_vec Output rotation vector of board
   /// @param t_vec Output translation vector of board
   ///
-  bool EstimatePoseBoard(
-    std::vector<std::vector<cv::Point2f>> & marker_corners,
-    cv::InputArray & corners,
-    cv::InputArray & ids,
-    cv::Ptr<cv::aruco::Board> board,
+  virtual bool EstimatePoseBoard(
+    const cv::Mat & img_in,
+    cv::Mat & img_out,
     cv::InputArray & camera_matrix,
     cv::InputArray & dist_coefficients,
     cv::Vec3d & r_vec,
     cv::Vec3d & t_vec
-  ) const;
+  ) const = 0;
 
   cv::Ptr<cv::aruco::Dictionary> m_dict;  ///< @brief Fiducial board dictionary
-  cv::Ptr<cv::aruco::Board> m_board;      ///< @brief Fiducial board
 
 protected:
   FiducialUpdater m_fiducial_updater;  ///< @brief MSCKF updater object

@@ -156,3 +156,15 @@ void SimFiducialTracker::Callback(const double time, const SimFiducialTrackerMes
     m_fiducial_updater.UpdateEKF(*m_ekf, time, msg.board_detection);
   }
 }
+
+bool SimFiducialTracker::EstimatePoseBoard(
+  const cv::Mat & img_in,
+  cv::Mat & img_out,
+  cv::InputArray & camera_matrix,
+  cv::InputArray & dist_coefficients,
+  cv::Vec3d & r_vec,
+  cv::Vec3d & t_vec
+) const
+{
+  return true;
+}

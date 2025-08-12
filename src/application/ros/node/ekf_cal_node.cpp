@@ -46,6 +46,9 @@
 #include "sensors/ros/ros_gps.hpp"
 #include "sensors/ros/ros_imu_message.hpp"
 #include "sensors/ros/ros_imu.hpp"
+#include "trackers/fiducial_tracker.hpp"
+#include "trackers/fiducials/aruco_board_tracker.hpp"
+#include "trackers/fiducials/charuco_board_tracker.hpp"
 #include "utility/string_helper.hpp"
 #include "utility/type_helper.hpp"
 
@@ -516,7 +519,14 @@ void EkfCalNode::LoadCamera(const std::string & camera_name)
     FiducialTracker::Parameters fid_params = GetFiducialParameters(camera_params.fiducial);
     fid_params.camera_id = camera_ptr->GetId();
     fid_params.data_log_rate = camera_params.data_log_rate;
-    std::shared_ptr<FiducialTracker> fid_ptr = std::make_shared<FiducialTracker>(fid_params);
+
+    std::shared_ptr<FiducialTracker> fid_ptr;
+    if (fid_params.detector_type == FiducialType::ARUCO_BOARD) {
+      fid_ptr = std::make_shared<ArucoBoardTracker>(fid_params);
+    } else if (fid_params.detector_type == FiducialType::CHARUCO_BOARD) {
+      fid_ptr = std::make_shared<CharucoBoardTracker>(fid_params);
+    }
+
     camera_ptr->AddFiducial(fid_ptr);
   }
 

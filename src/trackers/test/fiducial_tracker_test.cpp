@@ -20,9 +20,11 @@
 #include <opencv2/aruco/charuco.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "trackers/fiducial_tracker.hpp"
-#include "sensors/imu.hpp"
 #include "sensors/camera.hpp"
+#include "sensors/imu.hpp"
+#include "trackers/fiducial_tracker.hpp"
+#include "trackers/fiducials/aruco_board_tracker.hpp"
+#include "trackers/fiducials/charuco_board_tracker.hpp"
 
 TEST(test_fiducial_tracker, charuco_track) {
   EKF::Parameters ekf_params;
@@ -51,7 +53,7 @@ TEST(test_fiducial_tracker, charuco_track) {
   fid_params.logger = ekf_params.debug_logger;
   fid_params.max_track_length = 1;
 
-  auto fid_tracker = std::make_shared<FiducialTracker>(fid_params);
+  auto fid_tracker = std::make_shared<CharucoBoardTracker>(fid_params);
   cam.AddFiducial(fid_tracker);
 
   auto board = fid_tracker->m_board.staticCast<cv::aruco::CharucoBoard>();
@@ -91,7 +93,7 @@ TEST(test_fiducial_tracker, aruco_track) {
   fid_params.logger = ekf_params.debug_logger;
   fid_params.max_track_length = 1;
 
-  auto fid_tracker = std::make_shared<FiducialTracker>(fid_params);
+  auto fid_tracker = std::make_shared<ArucoBoardTracker>(fid_params);
 
   cam.AddFiducial(fid_tracker);
 

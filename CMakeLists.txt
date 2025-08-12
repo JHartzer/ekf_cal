@@ -111,9 +111,11 @@ set(EKF_SRCS
     src/sensors/gps.cpp
     src/sensors/imu.cpp
     src/sensors/sensor.cpp
-    src/trackers/tracker.cpp
     src/trackers/feature_tracker.cpp
     src/trackers/fiducial_tracker.cpp
+    src/trackers/fiducials/aruco_board_tracker.cpp
+    src/trackers/fiducials/charuco_board_tracker.cpp
+    src/trackers/tracker.cpp
 )
 add_library(EKF_LIB ${EKF_SRCS})
 target_link_libraries(EKF_LIB ROS_INF EKF_UTL)

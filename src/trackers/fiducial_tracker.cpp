@@ -42,22 +42,6 @@ FiducialTracker::FiducialTracker(FiducialTracker::Parameters params)
   auto dict_name = static_cast<cv::aruco::PREDEFINED_DICTIONARY_NAME>(params.predefined_dict);
   m_dict = cv::aruco::getPredefinedDictionary(dict_name);
 
-  if (params.detector_type == FiducialType::ARUCO_BOARD) {
-    m_board = cv::aruco::GridBoard::create(
-      static_cast<int>(params.squares_x),
-      static_cast<int>(params.squares_y),
-      static_cast<float>(params.square_length),
-      static_cast<float>(params.marker_length),
-      m_dict);
-  } else if (params.detector_type == FiducialType::CHARUCO_BOARD) {
-    m_board = cv::aruco::CharucoBoard::create(
-      static_cast<int>(params.squares_x),
-      static_cast<int>(params.squares_y),
-      static_cast<float>(params.square_length),
-      static_cast<float>(params.marker_length),
-      m_dict);
-  }
-
   FidState fid_state;
   fid_state.SetIsExtrinsic(params.is_extrinsic);
   fid_state.pos_f_in_l = params.pos_f_in_l;
@@ -68,67 +52,6 @@ FiducialTracker::FiducialTracker(FiducialTracker::Parameters params)
   covariance.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity() * params.variance.ang;
 
   m_ekf->RegisterFiducial(fid_state, covariance);
-}
-
-int FiducialTracker::InterpolateCorners(
-  std::vector<std::vector<cv::Point2f>> & marker_corners,
-  std::vector<int> & marker_ids,
-  cv::Mat image,
-  cv::Ptr<cv::aruco::Board> & board,
-  std::vector<cv::Point2f> & corners,
-  std::vector<int> & ids,
-  cv::Mat camera_matrix,
-  cv::Mat dist_coefficients
-) const
-{
-  int corners_found{0};
-  if (m_detector_type == FiducialType::CHARUCO_BOARD) {
-    auto temp_board = board.staticCast<cv::aruco::CharucoBoard>();
-    corners_found = cv::aruco::interpolateCornersCharuco(
-      marker_corners, marker_ids, image, temp_board,
-      corners, ids, camera_matrix, dist_coefficients);
-  } else if (m_detector_type == FiducialType::ARUCO_BOARD) {
-    corners_found = static_cast<int>(marker_ids.size());
-  }
-  return corners_found;
-}
-
-void FiducialTracker::DrawDetectedCorners(
-  cv::Mat image,
-  std::vector<std::vector<cv::Point2f>> & marker_corners,
-  std::vector<cv::Point2f> & corners,
-  std::vector<int> & ids,
-  cv::Scalar corner_color
-) const
-{
-  if (m_detector_type == FiducialType::CHARUCO_BOARD) {
-    cv::aruco::drawDetectedCornersCharuco(image, corners, ids, corner_color);
-  } else if (m_detector_type == FiducialType::ARUCO_BOARD) {
-    cv::aruco::drawDetectedMarkers(image, marker_corners, ids, corner_color);
-  }
-}
-
-bool FiducialTracker::EstimatePoseBoard(
-  std::vector<std::vector<cv::Point2f>> & marker_corners,
-  cv::InputArray & corners,
-  cv::InputArray & ids,
-  cv::Ptr<cv::aruco::Board> board,
-  cv::InputArray & camera_matrix,
-  cv::InputArray & dist_coefficients,
-  cv::Vec3d & r_vec,
-  cv::Vec3d & t_vec
-) const
-{
-  bool is_valid{false};
-  if (m_detector_type == FiducialType::CHARUCO_BOARD) {
-    auto temp_board = board.staticCast<cv::aruco::CharucoBoard>();
-    is_valid = cv::aruco::estimatePoseCharucoBoard(
-      corners, ids, temp_board, camera_matrix, dist_coefficients, r_vec, t_vec);
-  } else if (m_detector_type == FiducialType::ARUCO_BOARD) {
-    is_valid = cv::aruco::estimatePoseBoard(
-      marker_corners, ids, board, camera_matrix, dist_coefficients, r_vec, t_vec) != 0;
-  }
-  return is_valid;
 }
 
 void FiducialTracker::Track(
@@ -142,43 +65,24 @@ void FiducialTracker::Track(
   cv::Mat camera_matrix = m_ekf->m_state.cam_states[m_camera_id].intrinsics.ToCameraMatrix();
   cv::Mat distortion = m_ekf->m_state.cam_states[m_camera_id].intrinsics.ToDistortionVector();
 
-  std::vector<std::vector<cv::Point2f>> marker_corners;
-  cv::aruco::detectMarkers(img_in, m_dict, marker_corners, marker_ids, params);
+  cv::Vec3d r_vec, t_vec;
+  bool valid = EstimatePoseBoard(
+    img_in, img_out, camera_matrix, distortion, r_vec, t_vec);
 
-  // if at least one marker detected
-  if (!marker_ids.empty()) {
-    cv::aruco::drawDetectedMarkers(img_out, marker_corners, marker_ids);
-    std::vector<cv::Point2f> corners;
-    std::vector<int> ids;
+  // if marker pose is valid
+  if (valid) {
+    cv::drawFrameAxes(img_out, camera_matrix, distortion, r_vec, t_vec, 0.5);
 
-    FiducialTracker::InterpolateCorners(
-      marker_corners, marker_ids, img_in, m_board, corners, ids, camera_matrix, distortion);
+    Eigen::Vector3d pos_f_in_c = CvVectorToEigen(t_vec);
+    Eigen::Quaterniond ang_f_to_c = RodriguesToQuat(r_vec);
 
-    // If at least one corner detected
-    if (!ids.empty()) {
-      cv::Scalar color = cv::Scalar(255, 0, 0);
-      FiducialTracker::DrawDetectedCorners(img_out, marker_corners, corners, ids, color);
-      cv::Vec3d r_vec;
-      cv::Vec3d t_vec;
-      bool valid = FiducialTracker::EstimatePoseBoard(
-        marker_corners, corners, ids, m_board, camera_matrix, distortion, r_vec, t_vec);
+    BoardDetection board_detection;
+    board_detection.frame_id = frame_id;
+    board_detection.pos_f_in_c = pos_f_in_c;
+    board_detection.ang_f_to_c = ang_f_to_c;
+    board_detection.pos_error = m_pos_error;
+    board_detection.ang_error = m_ang_error;
 
-      // if marker pose is valid
-      if (valid) {
-        cv::drawFrameAxes(img_out, camera_matrix, distortion, r_vec, t_vec, 0.5);
-      }
-
-      Eigen::Vector3d pos_f_in_c = CvVectorToEigen(t_vec);
-      Eigen::Quaterniond ang_f_to_c = RodriguesToQuat(r_vec);
-
-      BoardDetection board_detection;
-      board_detection.frame_id = frame_id;
-      board_detection.pos_f_in_c = pos_f_in_c;
-      board_detection.ang_f_to_c = ang_f_to_c;
-      board_detection.pos_error = m_pos_error;
-      board_detection.ang_error = m_ang_error;
-
-      m_fiducial_updater.UpdateEKF(*m_ekf, time, board_detection);
-    }
+    m_fiducial_updater.UpdateEKF(*m_ekf, time, board_detection);
   }
 }
