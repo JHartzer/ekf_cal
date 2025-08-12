@@ -7,6 +7,7 @@ Package Features:
     - Use emplace_back where appropriate
     - Multi-Threading in EKF std::lock_guard lock(mutex);
     - Reduce state with single IMU
+    - Use modern cmake organization
 
 Simulation:
     - Show track images from simulation

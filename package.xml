@@ -2,9 +2,9 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>ekf_cal</name>
-  <version>0.4.0</version>
-  <description>Kalman Filter-Base Sensor Calibration</description>
-  <maintainer email="JacobHartzer@gmail.com">jacob</maintainer>
+  <version>0.7.0</version>
+  <description>Extended Kalman Filter Calibration and Localization</description>
+  <maintainer email="JacobHartzer@gmail.com">Jacob Hartzer</maintainer>
   <license>GPLv3</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
