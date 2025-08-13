@@ -1,8 +1,7 @@
 Package Features:
     - Implement filter status output
     - Outlier rejection by gating / Mahalanobis distance
-    - Play rosbags through as fast as possible given yaml
-    - Implement AprilGridTracker
+    - Play rosbag through as fast as possible given yaml
     - Multiple Single-IMU filters to a multi-sensor filter
     - Use emplace_back where appropriate
     - Multi-Threading in EKF std::lock_guard lock(mutex);
@@ -32,7 +31,6 @@ Documentation:
     - Add page for Multi-IMU Filter
 
 Test:
-    - Test Aprilgrid detection
     - Test multiple fiducial detection
     - Numerical Jacobian tests
     - Consolidate perf script to use example

@@ -376,6 +376,9 @@ int main(int argc, char * argv[])
     fiducial_params.squares_y = fid_node["squares_y"].as<unsigned int>(1);
     fiducial_params.square_length = fid_node["square_length"].as<double>(0.0);
     fiducial_params.marker_length = fid_node["marker_length"].as<double>(0.0);
+    fiducial_params.starting_id = fid_node["starting_id"].as<int>(0);
+    fiducial_params.border_bits = fid_node["border_bits"].as<int>(0);
+    fiducial_params.separation_bits = fid_node["separation_bits"].as<int>(0);
     fiducial_params.id = fid_node["id"].as<unsigned int>(0);
     fiducial_params.is_extrinsic = fid_node["is_extrinsic"].as<bool>(false);
     fiducial_params.ekf = ekf;

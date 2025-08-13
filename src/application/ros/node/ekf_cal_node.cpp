@@ -47,6 +47,7 @@
 #include "sensors/ros/ros_imu_message.hpp"
 #include "sensors/ros/ros_imu.hpp"
 #include "trackers/fiducial_tracker.hpp"
+#include "trackers/fiducials/april_grid_tracker.hpp"
 #include "trackers/fiducials/aruco_board_tracker.hpp"
 #include "trackers/fiducials/charuco_board_tracker.hpp"
 #include "utility/string_helper.hpp"
@@ -402,6 +403,9 @@ void EkfCalNode::DeclareFiducialParameters(const std::string & fid_name)
   declare_parameter(fiducial_prefix + ".squares_y", 0);
   declare_parameter(fiducial_prefix + ".square_length", 0.0);
   declare_parameter(fiducial_prefix + ".marker_length", 0.0);
+  declare_parameter(fiducial_prefix + ".starting_id", 0);
+  declare_parameter(fiducial_prefix + ".border_bits", 2);
+  declare_parameter(fiducial_prefix + ".separation_bits", 3);
   declare_parameter(fiducial_prefix + ".id", 0);
   declare_parameter(fiducial_prefix + ".pos_f_in_l", std::vector<double>{0, 0, 0});
   declare_parameter(fiducial_prefix + ".ang_f_to_l", std::vector<double>{1, 0, 0, 0});
@@ -421,6 +425,9 @@ FiducialTracker::Parameters EkfCalNode::GetFiducialParameters(const std::string 
   auto squares_y = get_parameter(fiducial_prefix + ".squares_y").as_int();
   auto square_length = get_parameter(fiducial_prefix + ".square_length").as_double();
   auto marker_length = get_parameter(fiducial_prefix + ".marker_length").as_double();
+  auto starting_id = get_parameter(fiducial_prefix + ".starting_id").as_int();
+  auto border_bits = get_parameter(fiducial_prefix + ".border_bits").as_int();
+  auto separation_bits = get_parameter(fiducial_prefix + ".separation_bits").as_int();
   auto fid_id = get_parameter(fiducial_prefix + ".id").as_int();
   auto pos_f_in_l = get_parameter(fiducial_prefix + ".pos_f_in_l").as_double_array();
   auto ang_f_to_l = get_parameter(fiducial_prefix + ".ang_f_to_l").as_double_array();
@@ -436,6 +443,9 @@ FiducialTracker::Parameters EkfCalNode::GetFiducialParameters(const std::string 
   fiducial_params.squares_y = static_cast<unsigned int>(squares_y);
   fiducial_params.square_length = square_length;
   fiducial_params.marker_length = marker_length;
+  fiducial_params.starting_id = starting_id;
+  fiducial_params.border_bits = border_bits;
+  fiducial_params.separation_bits = separation_bits;
   fiducial_params.id = static_cast<unsigned int>(fid_id);
   fiducial_params.pos_f_in_l = StdToEigVec(pos_f_in_l);
   fiducial_params.ang_f_to_l = StdToEigQuat(ang_f_to_l);
@@ -521,7 +531,9 @@ void EkfCalNode::LoadCamera(const std::string & camera_name)
     fid_params.data_log_rate = camera_params.data_log_rate;
 
     std::shared_ptr<FiducialTracker> fid_ptr;
-    if (fid_params.fiducial_type == FiducialType::ARUCO_BOARD) {
+    if (fid_params.fiducial_type == FiducialType::APRIL_GRID) {
+      fid_ptr = std::make_shared<AprilGridTracker>(fid_params);
+    } else if (fid_params.fiducial_type == FiducialType::ARUCO_BOARD) {
       fid_ptr = std::make_shared<ArucoBoardTracker>(fid_params);
     } else if (fid_params.fiducial_type == FiducialType::CHARUCO_BOARD) {
       fid_ptr = std::make_shared<CharucoBoardTracker>(fid_params);

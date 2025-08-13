@@ -158,12 +158,12 @@ void SimFiducialTracker::Callback(const double time, const SimFiducialTrackerMes
 }
 
 bool SimFiducialTracker::EstimatePoseBoard(
-  const cv::Mat & img_in,
-  cv::Mat & img_out,
-  cv::Mat & camera_matrix,
-  cv::Mat & dist_coefficients,
-  cv::Vec3d & r_vec,
-  cv::Vec3d & t_vec
+  __attribute__((unused)) const cv::Mat & img_in,
+  __attribute__((unused)) cv::Mat & img_out,
+  __attribute__((unused)) cv::Mat & camera_matrix,
+  __attribute__((unused)) cv::Mat & dist_coefficients,
+  __attribute__((unused)) cv::Vec3d & r_vec,
+  __attribute__((unused)) cv::Vec3d & t_vec
 ) const
 {
   return true;

@@ -187,6 +187,9 @@
                 square_length: 0.04                         # Square length
                 marker_length: 0.02                         # Marker length
                 id: 0                                       # Initial marker ID
+                starting_id: 0                              # Aprilgrid starting ID
+                border_bits: 2                              # Aprilgrid number of border bits
+                separation_bits: 3                          # Aprilgrid number of separation bits
                 pos_f_in_l: [5.0, 0.0, 0.0]                 # Board position in local frame
                 ang_f_to_l: [1.0, 0.0, 0.0, 0.0]            # Board orientation in local frame
                 variance:
