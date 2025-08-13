@@ -9,7 +9,7 @@ Extended Kalman Filter Calibration and Localization: ekf_cal is a package focuse
 
 The full [project documentation](https://www.unmannedlab.org/ekf_cal/) is available online.
 
-<img src="docs/doxygen/html/images/setup.svg" alt="setup" width="80%"/>
+![setup](docs/doxygen/html/images/setup.svg)
 
 ## Quick Start
 
@@ -78,6 +78,7 @@ python3 eval/evaluate.py config/example.yaml
 This will generate and run the requested number of simulation runs for the specified run time and produce plots of the Monte Carlo data. For example, the report generates plots of the body acceleration estimates and the true error in those acceleration estimates.
 
 ![acceleration](docs/doxygen/html/images/acceleration.png)
+
 ![acceleration-error](docs/doxygen/html/images/acceleration-error.png)
 
 ### Launch ROS2 Node
@@ -140,7 +141,28 @@ A single pdf can be generated of the documentation using the following command
 doxygen .doxyfile && cd docs/doxygen/latex && make
 ```
 
+## Citation
+
+Please cite this software as
+
+```bibtex
+@article{2025_EKF_CAL,
+  title = {EKF_CAL: Extended Kalman Filter-based Calibration and Localization},
+  author = {Hartzer, Jacob and Saripalli, Srikanth},
+  journal = {Journal of Open Source Software},
+  publisher = {The Open Journal},
+  url = {https://doi.org/10.21105/joss.07793},
+  doi = {10.21105/joss.07793},
+  year = {2025},
+  volume = {10},
+  number = {109},
+  pages = {7793},
+}
+```
+
 ## References
+
+For technical reference, please see the following
 
 ```bibtex
 @inproceedings{2023_Multi_IMU,

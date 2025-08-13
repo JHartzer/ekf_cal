@@ -27,8 +27,13 @@
 class ArucoBoardTracker : public FiducialTracker
 {
 public:
+  ///
+  /// @brief ArucoBoardTracker constructor
+  /// @param params Parameter struct for feature tracker
+  ///
   explicit ArucoBoardTracker(FiducialTracker::Parameters params);
 
+  /// @brief ArucoBoard pointer
   cv::Ptr<cv::aruco::GridBoard> m_board;
 
 private:

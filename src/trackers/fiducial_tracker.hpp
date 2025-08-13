@@ -100,22 +100,6 @@ public:
   );
 
   ///
-  /// @brief DrawDetectedCorners
-  /// @param image Image on which to draw corners
-  /// @param marker_corners Input aruco corners
-  /// @param corners Input charuco corners
-  /// @param ids Detected IDs
-  /// @param corner_color Colors for drawing
-  ///
-  // virtual void DrawDetectedCorners(
-  //   cv::Mat image,
-  //   std::vector<std::vector<cv::Point2f>> & marker_corners,
-  //   std::vector<cv::Point2f> & corners,
-  //   std::vector<int> & ids,
-  //   cv::Scalar corner_color
-  // ) const = 0;
-
-  ///
   /// @brief Estimate pose of board
   /// @param img_in Input frame
   /// @param img_out Output frame with drawn track lines

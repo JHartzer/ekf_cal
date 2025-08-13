@@ -27,8 +27,13 @@
 class AprilGridTracker : public FiducialTracker
 {
 public:
+  ///
+  /// @brief AprilGridTracker constructor
+  /// @param params Parameter struct for feature tracker
+  ///
   explicit AprilGridTracker(FiducialTracker::Parameters params);
 
+  /// @brief Aprilgrid object
   AprilGrid m_board;
 
 private:

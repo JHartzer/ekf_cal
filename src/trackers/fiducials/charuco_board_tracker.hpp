@@ -28,8 +28,13 @@
 class CharucoBoardTracker : public FiducialTracker
 {
 public:
+  ///
+  /// @brief CharucoBoardTracker constructor
+  /// @param params Parameter struct for feature tracker
+  ///
   explicit CharucoBoardTracker(FiducialTracker::Parameters params);
 
+  /// @brief CharucoBoard pointer
   cv::Ptr<cv::aruco::CharucoBoard> m_board;
 
 private:
