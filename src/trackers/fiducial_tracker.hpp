@@ -64,10 +64,10 @@ public:
   {
     FiducialType fiducial_type;       ///< @brief Fiducial detector type
     unsigned int predefined_dict{0};  ///< @brief Predefined dictionary
-    unsigned int squares_x {1};       ///< @brief Number of squares in the x direction
-    unsigned int squares_y {1};       ///< @brief Number of squares in the y direction
-    double square_length {1.0};       ///< @brief Checkerboard square length
-    double marker_length {1.0};       ///< @brief Marker length
+    int squares_x {1};                ///< @brief Number of squares in the x direction
+    int squares_y {1};                ///< @brief Number of squares in the y direction
+    float square_length {1.0};        ///< @brief Checkerboard square length
+    float marker_length {1.0};        ///< @brief Marker length
     unsigned int id{0};               ///< @brief Initial ID
     Eigen::Vector3d pos_f_in_l;       ///< @brief Fiducial position
     Eigen::Quaterniond ang_f_to_l;    ///< @brief Fiducial orientation

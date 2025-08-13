@@ -49,7 +49,7 @@ foreach(pkg ${ROS_PKGS})
     find_package(${pkg} REQUIRED)
 endforeach()
 
-find_package(aprilgrid)
+find_package(aprilgrid REQUIRED)
 
 set(SIM_PKGS
     yaml-cpp
@@ -121,7 +121,7 @@ set(EKF_SRCS
     src/trackers/tracker.cpp
 )
 add_library(EKF_LIB ${EKF_SRCS})
-target_link_libraries(EKF_LIB ROS_INF EKF_UTL)
+target_link_libraries(EKF_LIB ROS_INF EKF_UTL aprilgrid)
 
 # Simulation Sources
 set(SIM_SRCS

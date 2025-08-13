@@ -27,10 +27,10 @@ ArucoBoardTracker::ArucoBoardTracker(FiducialTracker::Parameters params)
 : FiducialTracker(params)
 {
   m_board = cv::aruco::GridBoard::create(
-    static_cast<int>(params.squares_x),
-    static_cast<int>(params.squares_y),
-    static_cast<float>(params.square_length),
-    static_cast<float>(params.marker_length),
+    params.squares_x,
+    params.squares_y,
+    params.square_length,
+    params.marker_length,
     m_dict
   );
 }

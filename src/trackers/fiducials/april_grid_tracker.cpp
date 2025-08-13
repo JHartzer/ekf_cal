@@ -18,7 +18,6 @@
 #include <vector>
 
 #include <aprilgrid.hpp>
-#include <opencv2/aruco.hpp>
 #include <opencv2/calib3d.hpp>
 
 #include "trackers/fiducial_tracker.hpp"
@@ -44,13 +43,11 @@ bool AprilGridTracker::EstimatePoseBoard(
   cv::Vec3d & t_vec
 ) const
 {
-
   std::vector<std::vector<cv::Point2f>> corners;
   std::vector<int> ids;
   m_board.detectAprilTags(img_in, corners, ids);
 
   if (ids.size() > 0) {
-
     std::vector<cv::Point3f> obj_points;
     std::vector<cv::Point2f> img_points;
     m_board.matchImagePoints(corners, ids, obj_points, img_points);

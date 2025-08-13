@@ -19,7 +19,6 @@
 #include "trackers/fiducial_tracker.hpp"
 
 #include <aprilgrid.hpp>
-#include <opencv2/aruco.hpp>
 
 ///
 /// @class AprilGridTracker

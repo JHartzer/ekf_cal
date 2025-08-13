@@ -17,14 +17,59 @@
 
 #include <memory>
 
+#include <aprilgrid.hpp>
+#include <opencv2/aruco.hpp>
 #include <opencv2/aruco/charuco.hpp>
 #include <opencv2/opencv.hpp>
 
 #include "sensors/camera.hpp"
 #include "sensors/imu.hpp"
 #include "trackers/fiducial_tracker.hpp"
+#include "trackers/fiducials/april_grid_tracker.hpp"
 #include "trackers/fiducials/aruco_board_tracker.hpp"
 #include "trackers/fiducials/charuco_board_tracker.hpp"
+
+TEST(test_fiducial_tracker, aprilgrid_track) {
+  EKF::Parameters ekf_params;
+  ekf_params.debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  auto ekf = std::make_shared<EKF>(ekf_params);
+
+  IMU::Parameters imu_params;
+  imu_params.ekf = ekf;
+  imu_params.logger = ekf_params.debug_logger;
+  IMU imu(imu_params);
+
+  Camera::Parameters cam_params;
+  cam_params.ekf = ekf;
+  cam_params.logger = ekf_params.debug_logger;
+  Camera cam(cam_params);
+
+  FiducialTracker::Parameters fid_params;
+  fid_params.fiducial_type = FiducialType::APRIL_GRID;
+  fid_params.predefined_dict = cv::aruco::DICT_APRILTAG_36h11;
+  fid_params.squares_x = 5;
+  fid_params.squares_y = 7;
+  fid_params.marker_length = 0.02;
+  fid_params.border_bits = 2;
+  fid_params.separation_bits = 3;
+  fid_params.starting_id = 0;
+  fid_params.camera_id = cam.GetId();
+  fid_params.ekf = ekf;
+  fid_params.logger = ekf_params.debug_logger;
+  fid_params.max_track_length = 1;
+
+  auto fid_tracker = std::make_shared<AprilGridTracker>(fid_params);
+
+  cam.AddFiducial(fid_tracker);
+
+  cv::Mat board_img;
+  fid_tracker->m_board.draw(800, board_img);
+
+  CameraMessage cam_msg(board_img);
+  cam.Callback(cam_msg);
+
+  cv::imwrite("../../src/ekf_cal/src/trackers/test/images/aprilgrid_track.png", cam.m_out_img);
+}
 
 TEST(test_fiducial_tracker, charuco_track) {
   EKF::Parameters ekf_params;
