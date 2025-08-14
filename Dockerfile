@@ -36,3 +36,13 @@ ENV LC_ALL en_US.UTF-8
 
 # Source ROS2
 RUN echo "source /opt/ros/jazzy/setup.bash" >> /root/.bashrc
+
+# Install Aprilgrid
+RUN mkdir -p /ekf_cal_ws/src && \
+    cd /ekf_cal_ws/src && \
+    git clone https://github.com/JHartzer/aprilgrid.git && \
+    mkdir /ekf_cal_ws/src/aprilgrid/build -p && \
+    cd /ekf_cal_ws/src/aprilgrid/build && \
+    cmake .. && \
+    cmake --build . && \
+    make install
