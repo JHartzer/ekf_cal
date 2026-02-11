@@ -15,6 +15,7 @@ RUN apt-get update && apt-get -y install \
     git \
     lcov \
     libopencv-dev \
+    linux-tools-generic \
     locales \
     python3 python3-pip python3-venv \
     unzip \
