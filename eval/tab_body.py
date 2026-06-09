@@ -145,9 +145,12 @@ class tab_body:
         if body_pos_err_list and len(body_pos_err_list) == len(self.body_state_dfs):
             for err_df in body_pos_err_list:
                 time = err_df['time']
-                fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
-                fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
-                fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(time, err_df['x'], alpha=self.alpha,
+                         color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'], alpha=self.alpha,
+                         color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'], alpha=self.alpha,
+                         color=self.colors[2], legend_label='Z')
         else:
             for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
                 true_time = body_truth['time']
@@ -177,9 +180,12 @@ class tab_body:
         if body_vel_err_list and len(body_vel_err_list) == len(self.body_state_dfs):
             for err_df in body_vel_err_list:
                 time = err_df['time']
-                fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
-                fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
-                fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(time, err_df['x'], alpha=self.alpha,
+                         color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'], alpha=self.alpha,
+                         color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'], alpha=self.alpha,
+                         color=self.colors[2], legend_label='Z')
         else:
             for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
                 true_time = body_truth['time']
@@ -209,9 +215,12 @@ class tab_body:
         if body_acc_err_list and len(body_acc_err_list) == len(self.body_state_dfs):
             for err_df in body_acc_err_list:
                 time = err_df['time']
-                fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
-                fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
-                fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(time, err_df['x'], alpha=self.alpha,
+                         color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'], alpha=self.alpha,
+                         color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'], alpha=self.alpha,
+                         color=self.colors[2], legend_label='Z')
         else:
             for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
                 true_time = body_truth['time']
@@ -241,9 +250,12 @@ class tab_body:
         if body_ang_err_list and len(body_ang_err_list) == len(self.body_state_dfs):
             for err_df in body_ang_err_list:
                 time = err_df['time']
-                fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
-                fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
-                fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(time, err_df['x'], alpha=self.alpha,
+                         color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'], alpha=self.alpha,
+                         color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'], alpha=self.alpha,
+                         color=self.colors[2], legend_label='Z')
         else:
             for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
                 true_time = body_truth['time']
@@ -286,9 +298,12 @@ class tab_body:
         if body_ang_vel_err_list and len(body_ang_vel_err_list) == len(self.body_state_dfs):
             for err_df in body_ang_vel_err_list:
                 time = err_df['time']
-                fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
-                fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
-                fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(time, err_df['x'], alpha=self.alpha,
+                         color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'], alpha=self.alpha,
+                         color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'], alpha=self.alpha,
+                         color=self.colors[2], legend_label='Z')
         else:
             for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
                 true_time = body_truth['time']
@@ -319,9 +334,12 @@ class tab_body:
         if body_ang_acc_err_list and len(body_ang_acc_err_list) == len(self.body_state_dfs):
             for err_df in body_ang_acc_err_list:
                 time = err_df['time']
-                fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
-                fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
-                fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(time, err_df['x'], alpha=self.alpha,
+                         color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'], alpha=self.alpha,
+                         color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'], alpha=self.alpha,
+                         color=self.colors[2], legend_label='Z')
         else:
             for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
                 true_time = body_truth['time']

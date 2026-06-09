@@ -85,7 +85,9 @@ def plot_sim_results(config_sets, args):
             body_state_dfs = body_state_dfs_dict[key]
             aug_state_dfs = aug_state_dfs_dict[key]
             body_truth_dfs = body_truth_dfs_dict[key]
-            tabs.append(tab_body(body_state_dfs, aug_state_dfs, body_truth_dfs, args, err_dfs=body_err_dfs).get_tab())
+            tabs.append(tab_body(
+                body_state_dfs, aug_state_dfs, body_truth_dfs, args,
+                err_dfs=body_err_dfs).get_tab())
 
         # Load IMU errors
         imu_pos_err_dfs_dict = find_and_read_data_frames(data_dirs, 'imu_pos_err')
@@ -121,7 +123,9 @@ def plot_sim_results(config_sets, args):
                 'cam_pos_err': cam_pos_err_dfs_dict.get(key, []),
                 'cam_ang_err': cam_ang_err_dfs_dict.get(key, []),
             }
-            tabs.append(tab_msckf(mskcf_dfs, tri_dfs, feat_dfs, body_truth_dfs, args, err_dfs=cam_err_dfs).get_tab())
+            tabs.append(tab_msckf(
+                mskcf_dfs, tri_dfs, feat_dfs, body_truth_dfs, args,
+                err_dfs=cam_err_dfs).get_tab())
 
         fiducial_dfs_dict = find_and_read_data_frames(data_dirs, 'fiducial')
         board_truth_dfs_dict = find_and_read_data_frames(data_dirs, 'board_truth')

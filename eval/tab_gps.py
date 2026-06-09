@@ -80,9 +80,12 @@ class tab_gps:
         if gps_pos_err_list and len(gps_pos_err_list) == len(self.gps_dfs):
             for err_df in gps_pos_err_list:
                 time = err_df['time']
-                fig.line(time, err_df['x'] * 1e3, alpha=self.alpha, color=self.colors[0], legend_label='X')
-                fig.line(time, err_df['y'] * 1e3, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-                fig.line(time, err_df['z'] * 1e3, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(time, err_df['x'] * 1e3, alpha=self.alpha,
+                         color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'] * 1e3, alpha=self.alpha,
+                         color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'] * 1e3, alpha=self.alpha,
+                         color=self.colors[2], legend_label='Z')
         else:
             for gps_df, body_truth in zip(self.gps_dfs, self.body_truth_dfs):
                 true_t = body_truth['time']
@@ -99,9 +102,12 @@ class tab_gps:
                 err_pos_1 = np.array(interpolate_error(true_t, true_p1, t_gps, est_p1)) * 1e3
                 err_pos_2 = np.array(interpolate_error(true_t, true_p2, t_gps, est_p2)) * 1e3
 
-                fig.line(t_gps, err_pos_0, alpha=self.alpha, color=self.colors[0], legend_label='X')
-                fig.line(t_gps, err_pos_1, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-                fig.line(t_gps, err_pos_2, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(t_gps, err_pos_0, alpha=self.alpha,
+                         color=self.colors[0], legend_label='X')
+                fig.line(t_gps, err_pos_1, alpha=self.alpha,
+                         color=self.colors[1], legend_label='Y')
+                fig.line(t_gps, err_pos_2, alpha=self.alpha,
+                         color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_gps_cov(self):

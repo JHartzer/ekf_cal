@@ -17,12 +17,12 @@
 
 import collections
 import glob
-import h5py
 import math
 import os
 import re
 
 from bokeh.plotting import figure
+import h5py
 import numpy as np
 import pandas as pd
 from scipy.spatial.transform import Rotation
@@ -186,9 +186,13 @@ def parse_yaml(config):
 
 
 def find_and_read_data_frames(directories, prefix):
-    """Find matching dataframes and read using pandas (supporting single HDF5, run-specific HDF5, and CSV)."""
+    """
+    Find matching dataframes and read using pandas.
+
+    Supports single HDF5, run-specific HDF5, and CSV.
+    """
     data_frame_sets = collections.defaultdict(list)
-    
+
     # 1. Try to find a single/merged HDF5 file in the parent directory
     single_h5_path = None
     if directories:
@@ -200,16 +204,16 @@ def find_and_read_data_frames(directories, prefix):
             h5_files = [f for f in os.listdir(grandparent_dir) if f.endswith('.h5')]
             if h5_files:
                 single_h5_path = os.path.join(grandparent_dir, h5_files[0])
-                
+
     # If the single merged HDF5 file exists, read from it
     if single_h5_path and os.path.exists(single_h5_path):
         with h5py.File(single_h5_path, 'r') as f:
             if prefix in ['body_truth', 'board_truth', 'feature_points']:
                 # Read truth directly from root /truth group
                 ds_name_map = {
-                    "body_truth": "truth/body",
-                    "board_truth": "truth/board",
-                    "feature_points": "truth/feature_points"
+                    'body_truth': 'truth/body',
+                    'board_truth': 'truth/board',
+                    'feature_points': 'truth/feature_points'
                 }
                 ds_path = ds_name_map[prefix]
                 if ds_path in f:
@@ -219,12 +223,12 @@ def find_and_read_data_frames(directories, prefix):
                     if isinstance(cols_attr, bytes):
                         cols_attr = cols_attr.decode('utf-8')
                     cols = cols_attr.split(',') if cols_attr else None
-                    
+
                     df = pd.DataFrame(data, columns=cols)
                     df.dropna(inplace=True)
                     df.attrs['prefix'] = format_prefix(prefix)
                     df.attrs['id'] = 0
-                    
+
                     # Replicate the truth dataset for each run directory
                     for _ in range(len(directories)):
                         data_frame_sets[0].append(df.copy())
@@ -234,43 +238,48 @@ def find_and_read_data_frames(directories, prefix):
                     run_name = os.path.basename(directory.rstrip(os.sep))
                     matches = re.findall(r'[0-9]+$', run_name)
                     if matches:
-                        run_group_name = f"run_{int(matches[-1])}"
+                        run_group_name = f'run_{int(matches[-1])}'
                     else:
                         run_group_name = run_name
-                        
+
                     if run_group_name in f:
                         run_group = f[run_group_name]
                         datasets = []
+
                         def visit(name, node):
                             if isinstance(node, h5py.Dataset):
                                 matched = False
-                                if prefix == "body_truth":
-                                    matched = (name == "truth/body")
-                                elif prefix == "board_truth":
-                                    matched = (name == "truth/board")
-                                elif prefix == "feature_points":
-                                    matched = (name == "truth/feature_points")
+                                if prefix == 'body_truth':
+                                    matched = (name == 'truth/body')
+                                elif prefix == 'board_truth':
+                                    matched = (name == 'truth/board')
+                                elif prefix == 'feature_points':
+                                    matched = (name == 'truth/feature_points')
                                 else:
                                     base = os.path.basename(name)
-                                    matched = (base == prefix or re.match(rf"^{prefix}_[0-9]+$", base))
+                                    matched = (
+                                        base == prefix or
+                                        re.match(rf'^{prefix}_[0-9]+$', base)
+                                    )
                                 if matched:
                                     datasets.append(name)
+
                         run_group.visititems(visit)
-                        
+
                         datasets.sort()
                         for ds_path in datasets:
                             dataset = run_group[ds_path]
                             data = dataset[:]
-                            
+
                             cols_attr = dataset.attrs.get('column_names', '')
                             if isinstance(cols_attr, bytes):
                                 cols_attr = cols_attr.decode('utf-8')
                             cols = cols_attr.split(',') if cols_attr else None
-                            
+
                             df = pd.DataFrame(data, columns=cols)
                             df.dropna(inplace=True)
                             df.attrs['prefix'] = format_prefix(prefix)
-                            
+
                             # Extract sensor ID (not run ID!)
                             base = os.path.basename(ds_path)
                             sensor_id_matches = re.findall(r'_[0-9]+$', base)
@@ -279,49 +288,60 @@ def find_and_read_data_frames(directories, prefix):
                             else:
                                 sensor_id = 0
                             df.attrs['id'] = sensor_id
-                            
+
                             data_frame_sets[sensor_id].append(df)
-                    
+
     else:
         # 2. Fallback to individual run HDF5 files or CSVs
         for directory in directories:
             # Find any .h5 file in the directory
-            h5_files = [f for f in os.listdir(directory) if f.endswith('.h5')] if os.path.exists(directory) else []
-            h5_path = os.path.join(directory, h5_files[0]) if h5_files else os.path.join(directory, "simulation_data.h5")
-            
+            if os.path.exists(directory):
+                h5_files = [f for f in os.listdir(directory) if f.endswith('.h5')]
+            else:
+                h5_files = []
+            if h5_files:
+                h5_path = os.path.join(directory, h5_files[0])
+            else:
+                h5_path = os.path.join(directory, 'simulation_data.h5')
+
             if os.path.exists(h5_path):
                 with h5py.File(h5_path, 'r') as f:
                     datasets = []
+
                     def visit(name, node):
                         if isinstance(node, h5py.Dataset):
                             matched = False
-                            if prefix == "body_truth":
-                                matched = (name == "truth/body")
-                            elif prefix == "board_truth":
-                                matched = (name == "truth/board")
-                            elif prefix == "feature_points":
-                                matched = (name == "truth/feature_points")
+                            if prefix == 'body_truth':
+                                matched = (name == 'truth/body')
+                            elif prefix == 'board_truth':
+                                matched = (name == 'truth/board')
+                            elif prefix == 'feature_points':
+                                matched = (name == 'truth/feature_points')
                             else:
                                 base = os.path.basename(name)
-                                matched = (base == prefix or re.match(rf"^{prefix}_[0-9]+$", base))
+                                matched = (
+                                    base == prefix or
+                                    re.match(rf'^{prefix}_[0-9]+$', base)
+                                )
                             if matched:
                                 datasets.append(name)
+
                     f.visititems(visit)
-                    
+
                     datasets.sort()
                     for ds_path in datasets:
                         dataset = f[ds_path]
                         data = dataset[:]
-                        
+
                         cols_attr = dataset.attrs.get('column_names', '')
                         if isinstance(cols_attr, bytes):
                             cols_attr = cols_attr.decode('utf-8')
                         cols = cols_attr.split(',') if cols_attr else None
-                        
+
                         df = pd.DataFrame(data, columns=cols)
                         df.dropna(inplace=True)
                         df.attrs['prefix'] = format_prefix(prefix)
-                        
+
                         base = os.path.basename(ds_path)
                         matches = re.findall(r'_[0-9]+$', base)
                         if matches:
@@ -357,61 +377,60 @@ def find_and_read_data_frames(directories, prefix):
 
 
 def merge_mc_hdf5_files(config_set, input_file):
-    """Merge individual run HDF5 files into a single top-level HDF5 file with shared truth at root."""
+    """Merge individual run HDF5 files into a single HDF5 file with shared truth at root."""
     if len(config_set) <= 1:
         return
-        
+
     top_name = os.path.basename(input_file).split('.yaml')[0]
     top_dir = input_file.split('.yaml')[0]
-    output_h5_path = os.path.join(top_dir, f"{top_name}.h5")
-    
+    output_h5_path = os.path.join(top_dir, f'{top_name}.h5')
+
     # Ensure directory of output file exists
     os.makedirs(top_dir, exist_ok=True)
-    
+
     # Open target file
     with h5py.File(output_h5_path, 'w') as out_f:
         for config_path in config_set:
             run_dir = config_path.split('.yaml')[0]
             if not os.path.exists(run_dir):
                 continue
-                
+
             run_name = os.path.basename(run_dir.rstrip(os.sep))
             # Find any .h5 file in the directory
             h5_files = [f for f in os.listdir(run_dir) if f.endswith('.h5')]
             if not h5_files:
                 continue
-                
+
             src_h5_path = os.path.join(run_dir, h5_files[0])
             try:
                 with h5py.File(src_h5_path, 'r') as in_f:
                     # Group name like run_0, run_1, etc.
                     matches = re.findall(r'[0-9]+$', run_name)
                     if matches:
-                        group_name = f"run_{int(matches[-1])}"
+                        group_name = f'run_{int(matches[-1])}'
                     else:
                         group_name = run_name
-                        
-                    run_group = out_f.create_group(group_name)
-                    
+
+                    out_f.create_group(group_name)
+
                     # Copy all datasets and groups from source
                     def copy_item(name, obj):
                         if isinstance(obj, h5py.Dataset):
-                            if name.startswith("truth/"):
+                            if name.startswith('truth/'):
                                 # Copy truth datasets directly to root /truth
                                 dest_path = name
                                 if dest_path not in out_f:
                                     out_f.copy(obj, dest_path)
                             else:
                                 # Copy other datasets under run group
-                                dest_path = f"{group_name}/{name}"
+                                dest_path = f'{group_name}/{name}'
                                 out_f.copy(obj, dest_path)
                     in_f.visititems(copy_item)
-                
+
                 # Delete individual HDF5 file after copy
                 os.remove(src_h5_path)
             except Exception as e:
-                print(f"Warning: Failed to copy or remove temporary file {src_h5_path}: {e}")
-
+                print(f'Warning: Failed to copy or remove temporary file {src_h5_path}: {e}')
 
 
 def generate_mc_lists(args):

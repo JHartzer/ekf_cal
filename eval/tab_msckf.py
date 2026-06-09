@@ -88,9 +88,12 @@ class tab_msckf:
         if cam_pos_err_list and len(cam_pos_err_list) == len(self.msckf_dfs):
             for err_df in cam_pos_err_list:
                 time = err_df['time']
-                fig.line(time, err_df['x'] * 1e3, alpha=self.alpha, color=self.colors[0], legend_label='X')
-                fig.line(time, err_df['y'] * 1e3, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-                fig.line(time, err_df['z'] * 1e3, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(time, err_df['x'] * 1e3, alpha=self.alpha,
+                         color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'] * 1e3, alpha=self.alpha,
+                         color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'] * 1e3, alpha=self.alpha,
+                         color=self.colors[2], legend_label='Z')
         else:
             for msckf_df, body_truth in zip(self.msckf_dfs, self.body_truth_dfs):
                 true_t = body_truth['time']
@@ -124,9 +127,12 @@ class tab_msckf:
         if cam_ang_err_list and len(cam_ang_err_list) == len(self.msckf_dfs):
             for err_df in cam_ang_err_list:
                 time = err_df['time']
-                fig.line(time, err_df['x'] * 1e3, alpha=self.alpha, color=self.colors[0], legend_label='X')
-                fig.line(time, err_df['y'] * 1e3, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-                fig.line(time, err_df['z'] * 1e3, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(time, err_df['x'] * 1e3, alpha=self.alpha,
+                         color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'] * 1e3, alpha=self.alpha,
+                         color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'] * 1e3, alpha=self.alpha,
+                         color=self.colors[2], legend_label='Z')
         else:
             for msckf_df, body_truth in zip(self.msckf_dfs, self.body_truth_dfs):
                 time = msckf_df['time']
