@@ -40,6 +40,8 @@ find_package(OpenCV REQUIRED)
 find_package(aprilgrid REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
+find_package(HDF5 REQUIRED COMPONENTS C CXX)
+
 if(BUILD_WITH_ROS)
     set(ROS_PKGS
         ament_cmake
@@ -64,6 +66,7 @@ endif()
 include_directories(PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:include>
+    ${HDF5_INCLUDE_DIRS}
 )
 
 # SIM Infrastructure
@@ -77,8 +80,8 @@ set(SIM_INF_SRCS
     src/infrastructure/sim/truth_engine.cpp
 )
 add_library(SIM_INF ${SIM_INF_SRCS})
+target_link_libraries(SIM_INF HDF5::HDF5)
 
-# ROS Infrastructure
 if(BUILD_WITH_ROS)
     set(ROS_INF_SRCS
         src/infrastructure/data_logger.cpp
@@ -86,6 +89,7 @@ if(BUILD_WITH_ROS)
         src/infrastructure/ros/ros_debug_logger.cpp
     )
     add_library(ROS_INF ${ROS_INF_SRCS})
+    target_link_libraries(ROS_INF HDF5::HDF5)
 
     # ROS Utilities
     set(ROS_UTL_SRCS

@@ -31,9 +31,12 @@ python3 eval/stats.py --help
 
 import os
 
+import h5py
 from input_parser import InputParser
 import numpy as np
-from utilities import find_and_read_data_frames, generate_mc_lists, interpolate_error
+from utilities import (calculate_rotation_errors, find_and_read_data_frames,
+                       generate_mc_lists, interpolate_error,
+                       interpolate_quat_error, lists_to_rot)
 
 
 def RMSE_from_vectors(x_list, y_list, z_list):
@@ -312,6 +315,282 @@ def write_summary(directory, stats):
     return
 
 
+def save_errors_to_hdf5(data_dirs, body_state_dfs_dict, body_truth_dfs_dict, imu_dfs_dict, mskcf_dfs_dict, gps_dfs_dict):
+    """Calculate and write error time series back to the HDF5 file."""
+    # Find the single merged HDF5 file in the parent directory
+    single_h5_path = None
+    if data_dirs:
+        parent_dir = os.path.dirname(data_dirs[0].rstrip(os.sep))
+        grandparent_dir = os.path.dirname(parent_dir)
+        if os.path.exists(grandparent_dir):
+            h5_files = [f for f in os.listdir(grandparent_dir) if f.endswith('.h5')]
+            if h5_files:
+                single_h5_path = os.path.join(grandparent_dir, h5_files[0])
+
+    if not single_h5_path or not os.path.exists(single_h5_path):
+        return
+
+    try:
+        with h5py.File(single_h5_path, 'a') as f:
+            for i, data_dir in enumerate(data_dirs):
+                run_name = os.path.basename(data_dir.rstrip(os.sep))
+                import re
+                matches = re.findall(r'[0-9]+$', run_name)
+                group_name = f"run_{int(matches[-1])}" if matches else run_name
+                
+                if group_name not in f:
+                    continue
+                run_group = f[group_name]
+                errors_group = run_group.require_group("errors")
+                
+                # 1. Body Errors
+                if 0 in body_state_dfs_dict and 0 in body_truth_dfs_dict:
+                    body_state = body_state_dfs_dict[0][i]
+                    body_truth = body_truth_dfs_dict[0][i]
+                    true_time = body_truth['time'].to_list()
+                    est_time = body_state['time'].to_list()
+                    
+                    # Helper to stack and write a 3D error dataset
+                    def write_3d_error(name, true_cols, est_cols):
+                        err_x = interpolate_error(true_time, body_truth[true_cols[0]].to_list(), est_time, body_state[est_cols[0]].to_list())
+                        err_y = interpolate_error(true_time, body_truth[true_cols[1]].to_list(), est_time, body_state[est_cols[1]].to_list())
+                        err_z = interpolate_error(true_time, body_truth[true_cols[2]].to_list(), est_time, body_state[est_cols[2]].to_list())
+                        data = np.column_stack((est_time, err_x, err_y, err_z))
+                        if name in errors_group:
+                            del errors_group[name]
+                        ds = errors_group.create_dataset(name, data=data)
+                        ds.attrs['column_names'] = "time,x,y,z"
+                        
+                    write_3d_error("body_pos_err", ['body_pos_0', 'body_pos_1', 'body_pos_2'], ['body_pos_0', 'body_pos_1', 'body_pos_2'])
+                    write_3d_error("body_vel_err", ['body_vel_0', 'body_vel_1', 'body_vel_2'], ['body_vel_0', 'body_vel_1', 'body_vel_2'])
+                    write_3d_error("body_acc_err", ['body_acc_0', 'body_acc_1', 'body_acc_2'], ['body_acc_0', 'body_acc_1', 'body_acc_2'])
+                    write_3d_error("body_ang_vel_err", ['body_ang_vel_0', 'body_ang_vel_1', 'body_ang_vel_2'], ['body_ang_vel_0', 'body_ang_vel_1', 'body_ang_vel_2'])
+                    write_3d_error("body_ang_acc_err", ['body_ang_acc_0', 'body_ang_acc_1', 'body_ang_acc_2'], ['body_ang_acc_0', 'body_ang_acc_1', 'body_ang_acc_2'])
+
+                    # Body Angular Error (Quaternion/rotation error in radians)
+                    true_w = body_truth['body_ang_pos_0'].to_list()
+                    true_x = body_truth['body_ang_pos_1'].to_list()
+                    true_y = body_truth['body_ang_pos_2'].to_list()
+                    true_z = body_truth['body_ang_pos_3'].to_list()
+                    
+                    est_w = body_state['body_ang_pos_0'].to_list()
+                    est_x = body_state['body_ang_pos_1'].to_list()
+                    est_y = body_state['body_ang_pos_2'].to_list()
+                    est_z = body_state['body_ang_pos_3'].to_list()
+                    
+                    interp_w = np.interp(est_time, true_time, true_w)
+                    interp_x = np.interp(est_time, true_time, true_x)
+                    interp_y = np.interp(est_time, true_time, true_y)
+                    interp_z = np.interp(est_time, true_time, true_z)
+                    
+                    interp_r = lists_to_rot(interp_w, interp_x, interp_y, interp_z)
+                    est_ang_pos_r = lists_to_rot(est_w, est_x, est_y, est_z)
+                    
+                    err_ax, err_ay, err_az = calculate_rotation_errors(est_ang_pos_r, interp_r)
+                    data = np.column_stack((est_time, err_ax, err_ay, err_az))
+                    name = "body_ang_err"
+                    if name in errors_group:
+                        del errors_group[name]
+                    ds = errors_group.create_dataset(name, data=data)
+                    ds.attrs['column_names'] = "time,x,y,z"
+
+                # 2. IMU Errors
+                body_truth = body_truth_dfs_dict[0][i]
+                true_time = body_truth['time'].to_list()
+                for sensor_id in imu_dfs_dict.keys():
+                    imu_df = imu_dfs_dict[sensor_id][i]
+                    est_time = imu_df['time'].to_list()
+                    
+                    # IMU Position Error
+                    if 'imu_pos_0' in imu_df:
+                        true_pos_0 = body_truth[f'imu_pos_{sensor_id}_0'].to_list()
+                        true_pos_1 = body_truth[f'imu_pos_{sensor_id}_1'].to_list()
+                        true_pos_2 = body_truth[f'imu_pos_{sensor_id}_2'].to_list()
+                        err_x = interpolate_error(true_time, true_pos_0, est_time, imu_df['imu_pos_0'].to_list())
+                        err_y = interpolate_error(true_time, true_pos_1, est_time, imu_df['imu_pos_1'].to_list())
+                        err_z = interpolate_error(true_time, true_pos_2, est_time, imu_df['imu_pos_2'].to_list())
+                        name = f"imu_pos_err_{sensor_id}"
+                        if name in errors_group:
+                            del errors_group[name]
+                        ds = errors_group.create_dataset(name, data=np.column_stack((est_time, err_x, err_y, err_z)))
+                        ds.attrs['column_names'] = "time,x,y,z"
+                    
+                    # IMU Angular Error (in radians)
+                    if 'imu_ang_pos_0' in imu_df:
+                        true_w = body_truth[f'imu_ang_pos_{sensor_id}_0'].to_list()
+                        true_x = body_truth[f'imu_ang_pos_{sensor_id}_1'].to_list()
+                        true_y = body_truth[f'imu_ang_pos_{sensor_id}_2'].to_list()
+                        true_z = body_truth[f'imu_ang_pos_{sensor_id}_3'].to_list()
+                        
+                        est_w = imu_df['imu_ang_pos_0'].to_list()
+                        est_x = imu_df['imu_ang_pos_1'].to_list()
+                        est_y = imu_df['imu_ang_pos_2'].to_list()
+                        est_z = imu_df['imu_ang_pos_3'].to_list()
+                        
+                        err_ax, err_ay, err_az = interpolate_quat_error(
+                            true_time, true_w, true_x, true_y, true_z,
+                            est_time, est_w, est_x, est_y, est_z
+                        )
+                        # Convert to radians since interpolate_quat_error returns milliradians
+                        err_ax = err_ax / 1e3
+                        err_ay = err_ay / 1e3
+                        err_az = err_az / 1e3
+                        name = f"imu_ang_err_{sensor_id}"
+                        if name in errors_group:
+                            del errors_group[name]
+                        ds = errors_group.create_dataset(name, data=np.column_stack((est_time, err_ax, err_ay, err_az)))
+                        ds.attrs['column_names'] = "time,x,y,z"
+                    
+                    # IMU Bias Errors
+                    if 'imu_acc_bias_0' in imu_df:
+                        true_acc_b0 = body_truth[f'imu_acc_bias_{sensor_id}_0'].to_list()
+                        true_acc_b1 = body_truth[f'imu_acc_bias_{sensor_id}_1'].to_list()
+                        true_acc_b2 = body_truth[f'imu_acc_bias_{sensor_id}_2'].to_list()
+                        err_abx = interpolate_error(true_time, true_acc_b0, est_time, imu_df['imu_acc_bias_0'].to_list())
+                        err_aby = interpolate_error(true_time, true_acc_b1, est_time, imu_df['imu_acc_bias_1'].to_list())
+                        err_abz = interpolate_error(true_time, true_acc_b2, est_time, imu_df['imu_acc_bias_2'].to_list())
+                        name = f"imu_acc_bias_err_{sensor_id}"
+                        if name in errors_group:
+                            del errors_group[name]
+                        ds = errors_group.create_dataset(name, data=np.column_stack((est_time, err_abx, err_aby, err_abz)))
+                        ds.attrs['column_names'] = "time,x,y,z"
+                    
+                    if 'imu_gyr_bias_0' in imu_df:
+                        true_gyr_b0 = body_truth[f'imu_gyr_bias_{sensor_id}_0'].to_list()
+                        true_gyr_b1 = body_truth[f'imu_gyr_bias_{sensor_id}_1'].to_list()
+                        true_gyr_b2 = body_truth[f'imu_gyr_bias_{sensor_id}_2'].to_list()
+                        err_gbx = interpolate_error(true_time, true_gyr_b0, est_time, imu_df['imu_gyr_bias_0'].to_list())
+                        err_gby = interpolate_error(true_time, true_gyr_b1, est_time, imu_df['imu_gyr_bias_1'].to_list())
+                        err_gbz = interpolate_error(true_time, true_gyr_b2, est_time, imu_df['imu_gyr_bias_2'].to_list())
+                        name = f"imu_gyr_bias_err_{sensor_id}"
+                        if name in errors_group:
+                            del errors_group[name]
+                        ds = errors_group.create_dataset(name, data=np.column_stack((est_time, err_gbx, err_gby, err_gbz)))
+                        ds.attrs['column_names'] = "time,x,y,z"
+
+                # 3. MSCKF Errors
+                for sensor_id in mskcf_dfs_dict.keys():
+                    cam_df = mskcf_dfs_dict[sensor_id][i]
+                    est_time = cam_df['time'].to_list()
+                    
+                    # Camera Position Error
+                    if 'cam_pos_0' in cam_df:
+                        true_pos_0 = body_truth[f'cam_pos_{sensor_id}_0'].to_list()
+                        true_pos_1 = body_truth[f'cam_pos_{sensor_id}_1'].to_list()
+                        true_pos_2 = body_truth[f'cam_pos_{sensor_id}_2'].to_list()
+                        err_x = interpolate_error(true_time, true_pos_0, est_time, cam_df['cam_pos_0'].to_list())
+                        err_y = interpolate_error(true_time, true_pos_1, est_time, cam_df['cam_pos_1'].to_list())
+                        err_z = interpolate_error(true_time, true_pos_2, est_time, cam_df['cam_pos_2'].to_list())
+                        name = f"cam_pos_err_{sensor_id}"
+                        if name in errors_group:
+                            del errors_group[name]
+                        ds = errors_group.create_dataset(name, data=np.column_stack((est_time, err_x, err_y, err_z)))
+                        ds.attrs['column_names'] = "time,x,y,z"
+                    
+                    # Camera Angular Error (in radians)
+                    if 'cam_ang_pos_0' in cam_df:
+                        true_w = body_truth[f'cam_ang_pos_{sensor_id}_0'].to_list()
+                        true_x = body_truth[f'cam_ang_pos_{sensor_id}_1'].to_list()
+                        true_y = body_truth[f'cam_ang_pos_{sensor_id}_2'].to_list()
+                        true_z = body_truth[f'cam_ang_pos_{sensor_id}_3'].to_list()
+                        
+                        est_w = cam_df['cam_ang_pos_0'].to_list()
+                        est_x = cam_df['cam_ang_pos_1'].to_list()
+                        est_y = cam_df['cam_ang_pos_2'].to_list()
+                        est_z = cam_df['cam_ang_pos_3'].to_list()
+                        
+                        err_ax, err_ay, err_az = interpolate_quat_error(
+                            true_time, true_w, true_x, true_y, true_z,
+                            est_time, est_w, est_x, est_y, est_z
+                        )
+                        # Convert to radians since interpolate_quat_error returns milliradians
+                        err_ax = err_ax / 1e3
+                        err_ay = err_ay / 1e3
+                        err_az = err_az / 1e3
+                        name = f"cam_ang_err_{sensor_id}"
+                        if name in errors_group:
+                            del errors_group[name]
+                        ds = errors_group.create_dataset(name, data=np.column_stack((est_time, err_ax, err_ay, err_az)))
+                        ds.attrs['column_names'] = "time,x,y,z"
+
+                # 4. GPS Errors
+                for sensor_id in gps_dfs_dict.keys():
+                    gps_df = gps_dfs_dict[sensor_id][i]
+                    
+                    # GPS Errors
+                    if 'ant_pos_0' in gps_df:
+                        est_time = gps_df['time'].to_list()
+                        true_pos_0 = body_truth[f'gps_pos_{sensor_id}_0'].to_list()
+                        true_pos_1 = body_truth[f'gps_pos_{sensor_id}_1'].to_list()
+                        true_pos_2 = body_truth[f'gps_pos_{sensor_id}_2'].to_list()
+                        err_x = interpolate_error(true_time, true_pos_0, est_time, gps_df['ant_pos_0'].to_list())
+                        err_y = interpolate_error(true_time, true_pos_1, est_time, gps_df['ant_pos_1'].to_list())
+                        err_z = interpolate_error(true_time, true_pos_2, est_time, gps_df['ant_pos_2'].to_list())
+                        name = f"gps_pos_err_{sensor_id}"
+                        if name in errors_group:
+                            del errors_group[name]
+                        ds = errors_group.create_dataset(name, data=np.column_stack((est_time, err_x, err_y, err_z)))
+                        ds.attrs['column_names'] = "time,x,y,z"
+
+    except Exception as e:
+        print(f"Warning: Failed to save error time series: {e}")
+
+
+def save_stats_to_hdf5(data_dirs, stats):
+    """Save calculated RMSE statistics back to each run's HDF5 file."""
+    # Try to find a single/merged HDF5 file in the parent directory
+    single_h5_path = None
+    if data_dirs:
+        parent_dir = os.path.dirname(data_dirs[0].rstrip(os.sep))
+        grandparent_dir = os.path.dirname(parent_dir)
+        if os.path.exists(grandparent_dir):
+            h5_files = [f for f in os.listdir(grandparent_dir) if f.endswith('.h5')]
+            if h5_files:
+                single_h5_path = os.path.join(grandparent_dir, h5_files[0])
+                
+    if single_h5_path and os.path.exists(single_h5_path):
+        try:
+            with h5py.File(single_h5_path, 'a') as f:
+                for i, data_dir in enumerate(data_dirs):
+                    run_name = os.path.basename(data_dir.rstrip(os.sep))
+                    import re
+                    matches = re.findall(r'[0-9]+$', run_name)
+                    if matches:
+                        group_name = f"run_{int(matches[-1])}"
+                    else:
+                        group_name = run_name
+                        
+                    if group_name in f:
+                        run_group = f[group_name]
+                        stats_group = run_group.require_group("statistics")
+                        for key, val_list in stats.items():
+                            if isinstance(val_list, list) and len(val_list) == len(data_dirs):
+                                val = val_list[i]
+                                if key in stats_group:
+                                    del stats_group[key]
+                                stats_group.create_dataset(key, data=val)
+        except Exception as e:
+            print(f"Warning: Failed to save statistics to {single_h5_path}: {e}")
+    else:
+        # Fallback to individual files
+        for i, data_dir in enumerate(data_dirs):
+            h5_files = [f for f in os.listdir(data_dir) if f.endswith('.h5')] if os.path.exists(data_dir) else []
+            h5_path = os.path.join(data_dir, h5_files[0]) if h5_files else os.path.join(data_dir, "simulation_data.h5")
+            if not os.path.exists(h5_path):
+                continue
+            try:
+                with h5py.File(h5_path, 'a') as f:
+                    stats_group = f.require_group("statistics")
+                    for key, val_list in stats.items():
+                        if isinstance(val_list, list) and len(val_list) == len(data_dirs):
+                            val = val_list[i]
+                            if key in stats_group:
+                                    del stats_group[key]
+                            stats_group.create_dataset(key, data=val)
+            except Exception as e:
+                print(f"Warning: Failed to save statistics to {h5_path}: {e}")
+
+
 # TODO(jhartzer): Split for loop into thread pool
 def calc_sim_stats(config_sets, args):
     """Top level function to plot simulation results from sets of config files."""
@@ -367,6 +646,8 @@ def calc_sim_stats(config_sets, args):
             stats[f'gps_{key}_err_init_ang'] = gps_err_ang(gps_dfs, body_truth_dfs)
             stats[f'gps_{key}_init_count'] = gps_init_count(gps_dfs)
 
+        save_errors_to_hdf5(data_dirs, body_state_dfs_dict, body_truth_dfs_dict, imu_dfs_dict, mskcf_dfs_dict, gps_dfs_dict)
+        save_stats_to_hdf5(data_dirs, stats)
         write_summary(stat_dir, stats)
 
 

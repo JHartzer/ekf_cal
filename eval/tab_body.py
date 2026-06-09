@@ -29,13 +29,14 @@ from utilities import calculate_alpha, calculate_rotation_errors, get_colors, in
 class tab_body:
     """Class for plotting body data."""
 
-    def __init__(self, body_state_dfs, aug_state_dfs, body_truth_dfs, args):
+    def __init__(self, body_state_dfs, aug_state_dfs, body_truth_dfs, args, err_dfs=None):
         """Initialize the tab_body class for plotting body state information."""
         self.body_state_dfs = body_state_dfs
         self.aug_state_dfs = aug_state_dfs
         self.body_truth_dfs = body_truth_dfs
         self.alpha = calculate_alpha(len(self.body_state_dfs))
         self.colors = get_colors(args)
+        self.err_dfs = err_dfs if err_dfs is not None else {}
 
     def plot_body_pos(self):
         """Plot body position."""
@@ -140,110 +141,140 @@ class tab_body:
         """Plot the body state position error."""
         fig = figure(width=800, height=300, x_axis_label='Time [s]',
                      y_axis_label='Position Error [m]', title='Body Position Error')
-        for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
-            true_time = body_truth['time']
-            true_pos_0 = body_truth['body_pos_0']
-            true_pos_1 = body_truth['body_pos_1']
-            true_pos_2 = body_truth['body_pos_2']
+        body_pos_err_list = self.err_dfs.get('body_pos_err', [])
+        if body_pos_err_list and len(body_pos_err_list) == len(self.body_state_dfs):
+            for err_df in body_pos_err_list:
+                time = err_df['time']
+                fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        else:
+            for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
+                true_time = body_truth['time']
+                true_pos_0 = body_truth['body_pos_0']
+                true_pos_1 = body_truth['body_pos_1']
+                true_pos_2 = body_truth['body_pos_2']
 
-            time = body_state['time']
-            est_pos_0 = body_state['body_pos_0']
-            est_pos_1 = body_state['body_pos_1']
-            est_pos_2 = body_state['body_pos_2']
+                time = body_state['time']
+                est_pos_0 = body_state['body_pos_0']
+                est_pos_1 = body_state['body_pos_1']
+                est_pos_2 = body_state['body_pos_2']
 
-            err_pos_0 = interpolate_error(true_time, true_pos_0, time, est_pos_0)
-            err_pos_1 = interpolate_error(true_time, true_pos_1, time, est_pos_1)
-            err_pos_2 = interpolate_error(true_time, true_pos_2, time, est_pos_2)
+                err_pos_0 = interpolate_error(true_time, true_pos_0, time, est_pos_0)
+                err_pos_1 = interpolate_error(true_time, true_pos_1, time, est_pos_1)
+                err_pos_2 = interpolate_error(true_time, true_pos_2, time, est_pos_2)
 
-            fig.line(time, err_pos_0, alpha=self.alpha, color=self.colors[0], legend_label='X')
-            fig.line(time, err_pos_1, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-            fig.line(time, err_pos_2, alpha=self.alpha, color=self.colors[2], legend_label='Z')
-
+                fig.line(time, err_pos_0, alpha=self.alpha, color=self.colors[0], legend_label='X')
+                fig.line(time, err_pos_1, alpha=self.alpha, color=self.colors[1], legend_label='Y')
+                fig.line(time, err_pos_2, alpha=self.alpha, color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_body_err_vel(self):
         """Plot the body state velocity error."""
         fig = figure(width=800, height=300, x_axis_label='Time [s]',
                      y_axis_label='Velocity Error [m/s]', title='Body Velocity Error')
-        for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
-            true_time = body_truth['time']
-            true_vel_0 = body_truth['body_vel_0']
-            true_vel_1 = body_truth['body_vel_1']
-            true_vel_2 = body_truth['body_vel_2']
+        body_vel_err_list = self.err_dfs.get('body_vel_err', [])
+        if body_vel_err_list and len(body_vel_err_list) == len(self.body_state_dfs):
+            for err_df in body_vel_err_list:
+                time = err_df['time']
+                fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        else:
+            for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
+                true_time = body_truth['time']
+                true_vel_0 = body_truth['body_vel_0']
+                true_vel_1 = body_truth['body_vel_1']
+                true_vel_2 = body_truth['body_vel_2']
 
-            time = body_state['time']
-            est_vel_0 = body_state['body_vel_0']
-            est_vel_1 = body_state['body_vel_1']
-            est_vel_2 = body_state['body_vel_2']
+                time = body_state['time']
+                est_vel_0 = body_state['body_vel_0']
+                est_vel_1 = body_state['body_vel_1']
+                est_vel_2 = body_state['body_vel_2']
 
-            err_vel_0 = interpolate_error(true_time, true_vel_0, time, est_vel_0)
-            err_vel_1 = interpolate_error(true_time, true_vel_1, time, est_vel_1)
-            err_vel_2 = interpolate_error(true_time, true_vel_2, time, est_vel_2)
+                err_vel_0 = interpolate_error(true_time, true_vel_0, time, est_vel_0)
+                err_vel_1 = interpolate_error(true_time, true_vel_1, time, est_vel_1)
+                err_vel_2 = interpolate_error(true_time, true_vel_2, time, est_vel_2)
 
-            fig.line(time, err_vel_0, alpha=self.alpha, color=self.colors[0], legend_label='X')
-            fig.line(time, err_vel_1, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-            fig.line(time, err_vel_2, alpha=self.alpha, color=self.colors[2], legend_label='Z')
-
+                fig.line(time, err_vel_0, alpha=self.alpha, color=self.colors[0], legend_label='X')
+                fig.line(time, err_vel_1, alpha=self.alpha, color=self.colors[1], legend_label='Y')
+                fig.line(time, err_vel_2, alpha=self.alpha, color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_body_err_acc(self):
         """Plot the body state acceleration error."""
         fig = figure(width=800, height=300, x_axis_label='Time [s]',
                      y_axis_label='Acceleration Error [m/s/s]', title='Body Acceleration Error')
-        for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
-            true_time = body_truth['time']
-            true_acc_0 = body_truth['body_acc_0']
-            true_acc_1 = body_truth['body_acc_1']
-            true_acc_2 = body_truth['body_acc_2']
+        body_acc_err_list = self.err_dfs.get('body_acc_err', [])
+        if body_acc_err_list and len(body_acc_err_list) == len(self.body_state_dfs):
+            for err_df in body_acc_err_list:
+                time = err_df['time']
+                fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        else:
+            for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
+                true_time = body_truth['time']
+                true_acc_0 = body_truth['body_acc_0']
+                true_acc_1 = body_truth['body_acc_1']
+                true_acc_2 = body_truth['body_acc_2']
 
-            time = body_state['time']
-            est_acc_0 = body_state['body_acc_0']
-            est_acc_1 = body_state['body_acc_1']
-            est_acc_2 = body_state['body_acc_2']
+                time = body_state['time']
+                est_acc_0 = body_state['body_acc_0']
+                est_acc_1 = body_state['body_acc_1']
+                est_acc_2 = body_state['body_acc_2']
 
-            err_acc_0 = interpolate_error(true_time, true_acc_0, time, est_acc_0)
-            err_acc_1 = interpolate_error(true_time, true_acc_1, time, est_acc_1)
-            err_acc_2 = interpolate_error(true_time, true_acc_2, time, est_acc_2)
+                err_acc_0 = interpolate_error(true_time, true_acc_0, time, est_acc_0)
+                err_acc_1 = interpolate_error(true_time, true_acc_1, time, est_acc_1)
+                err_acc_2 = interpolate_error(true_time, true_acc_2, time, est_acc_2)
 
-            fig.line(time, err_acc_0, alpha=self.alpha, color=self.colors[0], legend_label='X')
-            fig.line(time, err_acc_1, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-            fig.line(time, err_acc_2, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(time, err_acc_0, alpha=self.alpha, color=self.colors[0], legend_label='X')
+                fig.line(time, err_acc_1, alpha=self.alpha, color=self.colors[1], legend_label='Y')
+                fig.line(time, err_acc_2, alpha=self.alpha, color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_body_err_ang(self):
         """Plot the body state angular error."""
         fig = figure(width=800, height=300, x_axis_label='Time [s]',
                      y_axis_label='Angular Error', title='Body Angular Error')
-        for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
-            true_time = body_truth['time']
-            true_ang_pos_w = body_truth['body_ang_pos_0']
-            true_ang_pos_x = body_truth['body_ang_pos_1']
-            true_ang_pos_y = body_truth['body_ang_pos_2']
-            true_ang_pos_z = body_truth['body_ang_pos_3']
+        body_ang_err_list = self.err_dfs.get('body_ang_err', [])
+        if body_ang_err_list and len(body_ang_err_list) == len(self.body_state_dfs):
+            for err_df in body_ang_err_list:
+                time = err_df['time']
+                fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        else:
+            for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
+                true_time = body_truth['time']
+                true_ang_pos_w = body_truth['body_ang_pos_0']
+                true_ang_pos_x = body_truth['body_ang_pos_1']
+                true_ang_pos_y = body_truth['body_ang_pos_2']
+                true_ang_pos_z = body_truth['body_ang_pos_3']
 
-            time = body_state['time']
-            est_ang_pos_w = body_state['body_ang_pos_0']
-            est_ang_pos_x = body_state['body_ang_pos_1']
-            est_ang_pos_y = body_state['body_ang_pos_2']
-            est_ang_pos_z = body_state['body_ang_pos_3']
-            est_ang_pos_r = lists_to_rot(
-                est_ang_pos_w,
-                est_ang_pos_x,
-                est_ang_pos_y,
-                est_ang_pos_z)
+                time = body_state['time']
+                est_ang_pos_w = body_state['body_ang_pos_0']
+                est_ang_pos_x = body_state['body_ang_pos_1']
+                est_ang_pos_y = body_state['body_ang_pos_2']
+                est_ang_pos_z = body_state['body_ang_pos_3']
+                est_ang_pos_r = lists_to_rot(
+                    est_ang_pos_w,
+                    est_ang_pos_x,
+                    est_ang_pos_y,
+                    est_ang_pos_z)
 
-            interp_w = np.interp(time, true_time, true_ang_pos_w)
-            interp_x = np.interp(time, true_time, true_ang_pos_x)
-            interp_y = np.interp(time, true_time, true_ang_pos_y)
-            interp_z = np.interp(time, true_time, true_ang_pos_z)
-            interp_r = lists_to_rot(interp_w, interp_x, interp_y, interp_z)
+                interp_w = np.interp(time, true_time, true_ang_pos_w)
+                interp_x = np.interp(time, true_time, true_ang_pos_x)
+                interp_y = np.interp(time, true_time, true_ang_pos_y)
+                interp_z = np.interp(time, true_time, true_ang_pos_z)
+                interp_r = lists_to_rot(interp_w, interp_x, interp_y, interp_z)
 
-            pos_err_x, pos_err_y, pos_err_z = \
-                calculate_rotation_errors(est_ang_pos_r, interp_r)
+                pos_err_x, pos_err_y, pos_err_z = \
+                    calculate_rotation_errors(est_ang_pos_r, interp_r)
 
-            fig.line(time, pos_err_x, alpha=self.alpha, color=self.colors[0], legend_label='X')
-            fig.line(time, pos_err_y, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-            fig.line(time, pos_err_z, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(time, pos_err_x, alpha=self.alpha, color=self.colors[0], legend_label='X')
+                fig.line(time, pos_err_y, alpha=self.alpha, color=self.colors[1], legend_label='Y')
+                fig.line(time, pos_err_z, alpha=self.alpha, color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_body_err_ang_vel(self):
@@ -251,24 +282,32 @@ class tab_body:
         fig = figure(width=800, height=300, x_axis_label='Time [s]',
                      y_axis_label='Angular Velocity Error [rad/s]',
                      title='Body Angular Velocity Error')
-        for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
-            true_time = body_truth['time']
-            true_ang_vel_0 = body_truth['body_ang_vel_0']
-            true_ang_vel_1 = body_truth['body_ang_vel_1']
-            true_ang_vel_2 = body_truth['body_ang_vel_2']
+        body_ang_vel_err_list = self.err_dfs.get('body_ang_vel_err', [])
+        if body_ang_vel_err_list and len(body_ang_vel_err_list) == len(self.body_state_dfs):
+            for err_df in body_ang_vel_err_list:
+                time = err_df['time']
+                fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        else:
+            for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
+                true_time = body_truth['time']
+                true_ang_vel_0 = body_truth['body_ang_vel_0']
+                true_ang_vel_1 = body_truth['body_ang_vel_1']
+                true_ang_vel_2 = body_truth['body_ang_vel_2']
 
-            time = body_state['time']
-            est_ang_vel_0 = body_state['body_ang_vel_0']
-            est_ang_vel_1 = body_state['body_ang_vel_1']
-            est_ang_vel_2 = body_state['body_ang_vel_2']
+                time = body_state['time']
+                est_ang_vel_0 = body_state['body_ang_vel_0']
+                est_ang_vel_1 = body_state['body_ang_vel_1']
+                est_ang_vel_2 = body_state['body_ang_vel_2']
 
-            vel_err_0 = interpolate_error(true_time, true_ang_vel_0, time, est_ang_vel_0)
-            vel_err_1 = interpolate_error(true_time, true_ang_vel_1, time, est_ang_vel_1)
-            vel_err_2 = interpolate_error(true_time, true_ang_vel_2, time, est_ang_vel_2)
+                vel_err_0 = interpolate_error(true_time, true_ang_vel_0, time, est_ang_vel_0)
+                vel_err_1 = interpolate_error(true_time, true_ang_vel_1, time, est_ang_vel_1)
+                vel_err_2 = interpolate_error(true_time, true_ang_vel_2, time, est_ang_vel_2)
 
-            fig.line(time, vel_err_0, alpha=self.alpha, color=self.colors[0], legend_label='X')
-            fig.line(time, vel_err_1, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-            fig.line(time, vel_err_2, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(time, vel_err_0, alpha=self.alpha, color=self.colors[0], legend_label='X')
+                fig.line(time, vel_err_1, alpha=self.alpha, color=self.colors[1], legend_label='Y')
+                fig.line(time, vel_err_2, alpha=self.alpha, color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_body_err_ang_acc(self):
@@ -276,24 +315,32 @@ class tab_body:
         fig = figure(width=800, height=300, x_axis_label='Time [s]',
                      y_axis_label='Angular Acceleration Error [rad/s/s]',
                      title='Body Angular Acceleration Error')
-        for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
-            true_time = body_truth['time']
-            true_ang_acc_0 = body_truth['body_ang_acc_0']
-            true_ang_acc_1 = body_truth['body_ang_acc_1']
-            true_ang_acc_2 = body_truth['body_ang_acc_2']
+        body_ang_acc_err_list = self.err_dfs.get('body_ang_acc_err', [])
+        if body_ang_acc_err_list and len(body_ang_acc_err_list) == len(self.body_state_dfs):
+            for err_df in body_ang_acc_err_list:
+                time = err_df['time']
+                fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
+                fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
+                fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        else:
+            for body_state, body_truth in zip(self.body_state_dfs, self.body_truth_dfs):
+                true_time = body_truth['time']
+                true_ang_acc_0 = body_truth['body_ang_acc_0']
+                true_ang_acc_1 = body_truth['body_ang_acc_1']
+                true_ang_acc_2 = body_truth['body_ang_acc_2']
 
-            time = body_state['time']
-            est_ang_acc_0 = body_state['body_ang_acc_0']
-            est_ang_acc_1 = body_state['body_ang_acc_1']
-            est_ang_acc_2 = body_state['body_ang_acc_2']
+                time = body_state['time']
+                est_ang_acc_0 = body_state['body_ang_acc_0']
+                est_ang_acc_1 = body_state['body_ang_acc_1']
+                est_ang_acc_2 = body_state['body_ang_acc_2']
 
-            acc_err_0 = interpolate_error(true_time, true_ang_acc_0, time, est_ang_acc_0)
-            acc_err_1 = interpolate_error(true_time, true_ang_acc_1, time, est_ang_acc_1)
-            acc_err_2 = interpolate_error(true_time, true_ang_acc_2, time, est_ang_acc_2)
+                acc_err_0 = interpolate_error(true_time, true_ang_acc_0, time, est_ang_acc_0)
+                acc_err_1 = interpolate_error(true_time, true_ang_acc_1, time, est_ang_acc_1)
+                acc_err_2 = interpolate_error(true_time, true_ang_acc_2, time, est_ang_acc_2)
 
-            fig.line(time, acc_err_0, alpha=self.alpha, color=self.colors[0], legend_label='X')
-            fig.line(time, acc_err_1, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-            fig.line(time, acc_err_2, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+                fig.line(time, acc_err_0, alpha=self.alpha, color=self.colors[0], legend_label='X')
+                fig.line(time, acc_err_1, alpha=self.alpha, color=self.colors[1], legend_label='Y')
+                fig.line(time, acc_err_2, alpha=self.alpha, color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_body_pos_cov(self):

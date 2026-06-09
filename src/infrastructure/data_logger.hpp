@@ -17,7 +17,9 @@
 #define INFRASTRUCTURE__DATA_LOGGER_HPP_
 
 #include <string>
-#include <fstream>
+#include <memory>
+#include <vector>
+#include <H5Cpp.h>
 
 ///
 /// @brief DataLogger class
@@ -56,6 +58,19 @@ public:
   void RateLimitedLog(const std::string & message, double time);
 
   ///
+  /// @brief Log vector of double values directly
+  /// @param values Values to log
+  ///
+  void Log(const std::vector<double> & values);
+
+  ///
+  /// @brief Log rate-limited vector of double values directly
+  /// @param values Values to log
+  /// @param time Message log time for rate-limited logging
+  ///
+  void RateLimitedLog(const std::vector<double> & values, double time);
+
+  ///
   /// @brief Function to set the output file header
   /// @param header Header string for output file
   ///
@@ -87,13 +102,18 @@ public:
 private:
   bool m_initialized{false};
   std::string m_log_header{""};
-  std::ofstream m_log_file;
+  std::shared_ptr<H5::H5File> m_h5_file;
+  std::unique_ptr<H5::DataSet> m_dataset;
+  hsize_t m_current_rows{0};
+  hsize_t m_num_cols{0};
   bool m_logging_on {false};
   std::string m_log_directory {""};
   std::string m_file_name {"default.log"};
   double m_rate{0.0};
   double m_time_init{0};
   unsigned int m_log_count{0};
+
+  void InitializeHdf5();
 };
 
 #endif  // INFRASTRUCTURE__DATA_LOGGER_HPP_
