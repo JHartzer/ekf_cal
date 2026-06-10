@@ -24,14 +24,14 @@ TEST(data_logger, data_logger_constructor_1) {
 
   data_logger.Log("a1,b1");
   data_logger.SetOutputDirectory("/temp/");
-  data_logger.SetOutputFileName("data.csv");
+  data_logger.SetName("data");
   data_logger.DefineHeader("col1,col2");
   data_logger.EnableLogging();
   data_logger.Log("a1,b1");
 }
 
 TEST(data_logger, data_logger_constructor_2) {
-  DataLogger data_logger("/temp/", "data.csv");
+  DataLogger data_logger("/temp/", "data");
 
   data_logger.Log("a1,b1");
   data_logger.DefineHeader("col1,col2");
@@ -40,7 +40,7 @@ TEST(data_logger, data_logger_constructor_2) {
 }
 
 TEST(data_logger, data_logger_constructor_3) {
-  DataLogger data_logger("/temp/", "data.csv", 1.0);
+  DataLogger data_logger("/temp/", "data", 1.0);
 
   data_logger.Log("a1,b1");
   data_logger.DefineHeader("col1,col2");

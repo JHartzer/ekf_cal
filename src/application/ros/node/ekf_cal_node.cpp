@@ -103,7 +103,7 @@ void EkfCalNode::Initialize()
   m_debug_logger = std::make_shared<DebugLogger>(debug_log_level, m_log_directory);
   if (data_log_rate != 0.0) {m_state_data_logger.EnableLogging();}
   m_state_data_logger.SetOutputDirectory(m_log_directory);
-  m_state_data_logger.SetOutputFileName("state_vector.csv");
+  m_state_data_logger.SetName("state_vector");
   m_state_data_logger.DefineHeader("");
   m_debug_logger->Log(LogLevel::INFO, "EKF CAL Version: " + std::string(EKF_CAL_VERSION));
   m_debug_logger->Log(LogLevel::INFO, "Log Directory: " + m_log_directory);

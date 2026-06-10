@@ -32,17 +32,17 @@ public:
   ///
   /// @brief DataLogger constructor
   /// @param log_directory Output directory for creating data log file
-  /// @param file_name Name of data log file
+  /// @param name Name of data logger dataset
   ///
-  DataLogger(const std::string & log_directory, const std::string & file_name);
+  DataLogger(const std::string & log_directory, const std::string & name);
 
   ///
   /// @brief DataLogger constructor
   /// @param log_directory Output directory for creating data log file
-  /// @param file_name Name of data log file
+  /// @param name Name of data logger dataset
   /// @param logging_rate Logging rate
   ///
-  DataLogger(const std::string & log_directory, const std::string & file_name, double logging_rate);
+  DataLogger(const std::string & log_directory, const std::string & name, double logging_rate);
 
   ///
   /// @brief Log message
@@ -88,10 +88,10 @@ public:
   void SetOutputDirectory(const std::string & log_directory);
 
   ///
-  /// @brief Output file name setter
-  /// @param file_name Output file name
+  /// @brief Data logger name setter
+  /// @param name Data logger name
   ///
-  void SetOutputFileName(const std::string & file_name);
+  void SetName(const std::string & name);
 
   ///
   /// @brief Data logging rate setter
@@ -108,7 +108,7 @@ private:
   hsize_t m_num_cols{0};
   bool m_logging_on {false};
   std::string m_log_directory {""};
-  std::string m_file_name {"default.log"};
+  std::string m_name {"default"};
   double m_rate{0.0};
   double m_time_init{0};
   unsigned int m_log_count{0};

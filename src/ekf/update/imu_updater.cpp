@@ -43,7 +43,7 @@ ImuUpdater::ImuUpdater(
 : Updater(imu_id, logger),
   m_is_extrinsic(is_extrinsic),
   m_is_intrinsic(is_intrinsic),
-  m_data_logger(log_file_directory, "imu_" + std::to_string(imu_id) + ".csv")
+  m_data_logger(log_file_directory, "imu_" + std::to_string(imu_id))
 {
   std::stringstream header;
   header << "time,stationary,score";

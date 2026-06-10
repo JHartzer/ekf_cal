@@ -40,7 +40,7 @@ GpsUpdater::GpsUpdater(
 )
 : Updater(gps_id, logger),
   m_is_extrinsic(is_extrinsic),
-  m_data_logger(log_file_directory, "gps_" + std::to_string(gps_id) + ".csv")
+  m_data_logger(log_file_directory, "gps_" + std::to_string(gps_id))
 {
   std::stringstream header;
   header << "time,lat,lon,alt,x,y,z,ref_lat,ref_lon,ref_alt,ref_heading,is_initialized";

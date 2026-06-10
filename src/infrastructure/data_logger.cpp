@@ -21,18 +21,18 @@
 #include "infrastructure/hdf5_log_manager.hpp"
 
 
-DataLogger::DataLogger(const std::string & log_directory, const std::string & file_name)
+DataLogger::DataLogger(const std::string & log_directory, const std::string & name)
 {
   m_log_directory = log_directory;
-  m_file_name = file_name;
+  m_name = name;
 }
 
 DataLogger::DataLogger(
-  const std::string & log_directory, const std::string & file_name,
+  const std::string & log_directory, const std::string & name,
   double logging_rate)
 {
   m_log_directory = log_directory;
-  m_file_name = file_name;
+  m_name = name;
   m_rate = logging_rate;
 }
 
@@ -62,24 +62,20 @@ void DataLogger::InitializeHdf5()
   }
 
   try {
-    std::string name = m_file_name;
-    if (name.length() > 4 && name.substr(name.length() - 4) == ".csv") {
-      name = name.substr(0, name.length() - 4);
-    }
     std::string dataset_path;
-    if (name.rfind("gps_", 0) == 0 || name.rfind("imu_", 0) == 0 ||
-      name.rfind("camera_", 0) == 0 || name.rfind("msckf_", 0) == 0 ||
-      name.rfind("triangulation_", 0) == 0 || name.rfind("fiducial_", 0) == 0)
+    if (m_name.rfind("gps_", 0) == 0 || m_name.rfind("imu_", 0) == 0 ||
+      m_name.rfind("camera_", 0) == 0 || m_name.rfind("msckf_", 0) == 0 ||
+      m_name.rfind("triangulation_", 0) == 0 || m_name.rfind("fiducial_", 0) == 0)
     {
-      dataset_path = "sensors/" + name;
-    } else if (name == "body_truth") {
+      dataset_path = "sensors/" + m_name;
+    } else if (m_name == "body_truth") {
       dataset_path = "truth/body";
-    } else if (name == "board_truth") {
+    } else if (m_name == "board_truth") {
       dataset_path = "truth/board";
-    } else if (name == "feature_points") {
+    } else if (m_name == "feature_points") {
       dataset_path = "truth/feature_points";
     } else {
-      dataset_path = name;
+      dataset_path = m_name;
     }
 
     m_num_cols = 0;
@@ -226,9 +222,9 @@ void DataLogger::SetOutputDirectory(const std::string & log_directory)
   m_log_directory = log_directory;
 }
 
-void DataLogger::SetOutputFileName(const std::string & file_name)
+void DataLogger::SetName(const std::string & name)
 {
-  m_file_name = file_name;
+  m_name = name;
 }
 
 void DataLogger::DefineHeader(const std::string & header)
