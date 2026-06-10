@@ -22,8 +22,7 @@ from bokeh.models import Band, Range1d, Spacer, TabPanel
 from bokeh.plotting import ColumnDataSource, figure
 import numpy as np
 from scipy.stats.distributions import chi2
-from utilities import calculate_alpha, get_colors, interpolate_error, interpolate_quat_error, \
-    plot_update_timing
+from utilities import calculate_alpha, get_colors, plot_update_timing
 
 
 class tab_msckf:
@@ -85,34 +84,14 @@ class tab_msckf:
             y_axis_label='Position Error [mm]',
             title='Camera Extrinsic Position Error')
         cam_pos_err_list = self.err_dfs.get('cam_pos_err', [])
-        if cam_pos_err_list and len(cam_pos_err_list) == len(self.msckf_dfs):
-            for err_df in cam_pos_err_list:
-                time = err_df['time']
-                fig.line(time, err_df['x'] * 1e3, alpha=self.alpha,
-                         color=self.colors[0], legend_label='X')
-                fig.line(time, err_df['y'] * 1e3, alpha=self.alpha,
-                         color=self.colors[1], legend_label='Y')
-                fig.line(time, err_df['z'] * 1e3, alpha=self.alpha,
-                         color=self.colors[2], legend_label='Z')
-        else:
-            for msckf_df, body_truth in zip(self.msckf_dfs, self.body_truth_dfs):
-                true_t = body_truth['time']
-                true_p0 = body_truth[f"cam_pos_{msckf_df.attrs['id']}_0"]
-                true_p1 = body_truth[f"cam_pos_{msckf_df.attrs['id']}_1"]
-                true_p2 = body_truth[f"cam_pos_{msckf_df.attrs['id']}_2"]
-
-                time = msckf_df['time']
-                est_p0 = msckf_df['cam_pos_0']
-                est_p1 = msckf_df['cam_pos_1']
-                est_p2 = msckf_df['cam_pos_2']
-
-                err_pos_0 = np.array(interpolate_error(true_t, true_p0, time, est_p0)) * 1e3
-                err_pos_1 = np.array(interpolate_error(true_t, true_p1, time, est_p1)) * 1e3
-                err_pos_2 = np.array(interpolate_error(true_t, true_p2, time, est_p2)) * 1e3
-
-                fig.line(time, err_pos_0, alpha=self.alpha, color=self.colors[0], legend_label='X')
-                fig.line(time, err_pos_1, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-                fig.line(time, err_pos_2, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        for err_df in cam_pos_err_list:
+            time = err_df['time']
+            fig.line(time, err_df['x'] * 1e3, alpha=self.alpha,
+                     color=self.colors[0], legend_label='X')
+            fig.line(time, err_df['y'] * 1e3, alpha=self.alpha,
+                     color=self.colors[1], legend_label='Y')
+            fig.line(time, err_df['z'] * 1e3, alpha=self.alpha,
+                     color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_cam_ang_err(self):
@@ -124,34 +103,14 @@ class tab_msckf:
             y_axis_label='Angle Error [mrad]',
             title='Camera Extrinsic Angle Error')
         cam_ang_err_list = self.err_dfs.get('cam_ang_err', [])
-        if cam_ang_err_list and len(cam_ang_err_list) == len(self.msckf_dfs):
-            for err_df in cam_ang_err_list:
-                time = err_df['time']
-                fig.line(time, err_df['x'] * 1e3, alpha=self.alpha,
-                         color=self.colors[0], legend_label='X')
-                fig.line(time, err_df['y'] * 1e3, alpha=self.alpha,
-                         color=self.colors[1], legend_label='Y')
-                fig.line(time, err_df['z'] * 1e3, alpha=self.alpha,
-                         color=self.colors[2], legend_label='Z')
-        else:
-            for msckf_df, body_truth in zip(self.msckf_dfs, self.body_truth_dfs):
-                time = msckf_df['time']
-                est_w = msckf_df['cam_ang_pos_0']
-                est_x = msckf_df['cam_ang_pos_1']
-                est_y = msckf_df['cam_ang_pos_2']
-                est_z = msckf_df['cam_ang_pos_3']
-                true_t = body_truth['time']
-                true_w = body_truth[f"cam_ang_pos_{msckf_df.attrs['id']}_0"]
-                true_x = body_truth[f"cam_ang_pos_{msckf_df.attrs['id']}_1"]
-                true_y = body_truth[f"cam_ang_pos_{msckf_df.attrs['id']}_2"]
-                true_z = body_truth[f"cam_ang_pos_{msckf_df.attrs['id']}_3"]
-
-                eul_err_x, eul_err_y, eul_err_z = interpolate_quat_error(
-                    true_t, true_w, true_x, true_y, true_z, time, est_w, est_x, est_y, est_z)
-
-                fig.line(time, eul_err_x, alpha=self.alpha, color=self.colors[0], legend_label='X')
-                fig.line(time, eul_err_y, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-                fig.line(time, eul_err_z, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        for err_df in cam_ang_err_list:
+            time = err_df['time']
+            fig.line(time, err_df['x'] * 1e3, alpha=self.alpha,
+                     color=self.colors[0], legend_label='X')
+            fig.line(time, err_df['y'] * 1e3, alpha=self.alpha,
+                     color=self.colors[1], legend_label='Y')
+            fig.line(time, err_df['z'] * 1e3, alpha=self.alpha,
+                     color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_cam_pos_cov(self):
@@ -310,49 +269,12 @@ class tab_msckf:
         return fig
 
     def plot_cam_nees(self):
-        """Plot camera normalized estimation error squared."""
+        """Plot camera MSCKF normalized estimation error squared."""
         fig = figure(width=800, height=300, x_axis_label='Time [s]',
                      y_axis_label='NEES', title='Normalized Estimation Error Squared')
-        for msckf_df, body_truth in zip(self.msckf_dfs, self.body_truth_dfs):
-            xt = msckf_df['time']
-            x00 = msckf_df['cam_pos_0']
-            x01 = msckf_df['cam_pos_1']
-            x02 = msckf_df['cam_pos_2']
-            xw = msckf_df['cam_ang_pos_0']
-            xx = msckf_df['cam_ang_pos_1']
-            xy = msckf_df['cam_ang_pos_2']
-            xz = msckf_df['cam_ang_pos_3']
-
-            c00 = msckf_df['cam_cov_0']
-            c01 = msckf_df['cam_cov_1']
-            c02 = msckf_df['cam_cov_2']
-            c03 = msckf_df['cam_cov_3']
-            c04 = msckf_df['cam_cov_4']
-            c05 = msckf_df['cam_cov_5']
-
-            tt = body_truth['time']
-            t00 = body_truth[f"cam_pos_{msckf_df.attrs['id']}_0"]
-            t01 = body_truth[f"cam_pos_{msckf_df.attrs['id']}_1"]
-            t02 = body_truth[f"cam_pos_{msckf_df.attrs['id']}_2"]
-            tw = body_truth[f"cam_ang_pos_{msckf_df.attrs['id']}_0"]
-            tx = body_truth[f"cam_ang_pos_{msckf_df.attrs['id']}_1"]
-            ty = body_truth[f"cam_ang_pos_{msckf_df.attrs['id']}_2"]
-            tz = body_truth[f"cam_ang_pos_{msckf_df.attrs['id']}_3"]
-
-            e00 = interpolate_error(tt, t00, xt, x00)
-            e01 = interpolate_error(tt, t01, xt, x01)
-            e02 = interpolate_error(tt, t02, xt, x02)
-            e03, e04, e05 = interpolate_quat_error(tt, tw, tx, ty, tz, xt, xw, xx, xy, xz)
-
-            nees = \
-                e00 * e00 / c00 / c00 + \
-                e01 * e01 / c01 / c01 + \
-                e02 * e02 / c02 / c02 + \
-                e03 * e03 / c03 / c03 + \
-                e04 * e04 / c04 / c04 + \
-                e05 * e05 / c05 / c05
-
-            fig.line(xt, nees, alpha=self.alpha, color=self.colors[0])
+        cam_nees_list = self.err_dfs.get('cam_nees', [])
+        for err_df in cam_nees_list:
+            fig.line(err_df['time'], err_df['nees'], alpha=self.alpha, color=self.colors[0])
 
         fig.hspan(y=chi2.ppf(0.025, df=6), line_color='red')
         fig.hspan(y=chi2.ppf(0.975, df=6), line_color='red')
