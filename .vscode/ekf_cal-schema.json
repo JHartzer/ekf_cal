@@ -1,5 +1,5 @@
 {
-    "$id": "https://github.com/unmannedlab/ekf_cal/tree/main/.vscode/.vscode/ekf_cal-schema.json",
+    "$id": "https://github.com/jhartzer/ekf_cal/tree/main/.vscode/.vscode/ekf_cal-schema.json",
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "EKF_CAL Configuration",
     "description": "An EKF_CAL config file",
