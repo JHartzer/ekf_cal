@@ -1,12 +1,14 @@
 # ekf_cal
 
 Extended Kalman Filter Calibration and Localization: ekf_cal is a package focused on the simulation and development of a multi-sensor online calibration kalman filter. It combines the architecture of a Multi-State Constraint Kalman Filter (MSCKF) with a multi-sensor calibration filter to provide intrinsic and extrinsic estimates for the following sensors:
-- [IMU](docs/filters/imu.md)
-- [GPS](docs/filters/gps.md)
-- [Cameras](docs/filters/camera.md)
-- [Fiducials](docs/filters/fiducial.md)
+- [IMU](docs/filters/imu.md#imu)
+- [GPS](docs/filters/gps.md#gps)
+- [Cameras](docs/filters/camera.md#camera)
+- [Fiducials](docs/filters/fiducial.md#fiducial)
 
-![setup](docs/doxygen/html/images/setup.svg)
+![Frame Graph](docs/doxygen/html/images/setup.svg)
+
+![Experimental Feature Tracking](docs/doxygen/html/images/feature-tracking.gif)
 
 ## Quick Start
 
@@ -65,7 +67,7 @@ Alternatively, a Dockerfile is provided, which can be used either inside a VS Co
 
 ### Input Files
 
-This repository offers two main ways to utilize the Kalman filter framework: a simulation and ROS2 node. Both the simulation and ROS node are configurable and runnable using identically formatted YAML files. Further documentation on how to configure this YAML file for a particular setup can be found on the [Parameters](docs/parameters.md) page.
+This repository offers two main ways to utilize the Kalman filter framework: a simulation and ROS2 node. Both the simulation and ROS node are configurable and runnable using identically formatted YAML files. Further documentation on how to configure this YAML file for a particular setup can be found on the [Parameters](docs/parameters.md#parameters) page.
 
 ### Simulation
 
