@@ -18,7 +18,6 @@ Simulation:
         - https://docs.opencv.org/4.x/d7/d9e/tutorial_video_write.html
 
 Documentation:
-    - Simulation diagram
     - Write page on coordinate systems
     - Outline Filter documentation
     - Add page for initialization
