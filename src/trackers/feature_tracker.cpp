@@ -167,7 +167,6 @@ void FeatureTracker::Track(
   double time, unsigned int frame_id, const cv::Mat & img_in, cv::Mat & img_out)
 {
   // Down sample image
-  /// @todo: Get down-sample parameters from input
   cv::Mat img_down;
   cv::Size down_sample_size;
   if (m_down_sample) {

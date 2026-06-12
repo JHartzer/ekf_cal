@@ -242,7 +242,14 @@ TEST(test_MathHelper, maximum_distance) {
   eigen_points.push_back(Eigen::Vector3d{4, 0, 0});
   double max_dist = maximum_distance(eigen_points);
 
-  EXPECT_EQ(max_dist, 4.0);
+  EXPECT_NEAR(max_dist, 4.0, 1e-5);
+
+  // Test with fractional coordinates to ensure no integer truncation occurs
+  std::vector<Eigen::Vector3d> frac_points;
+  frac_points.push_back(Eigen::Vector3d{0.5, 0.0, 0.0});
+  frac_points.push_back(Eigen::Vector3d{3.7, 0.0, 0.0});
+  double frac_max_dist = maximum_distance(frac_points);
+  EXPECT_NEAR(frac_max_dist, 3.2, 1e-5);
 }
 
 TEST(test_MathHelper, InsertInMatrix) {

@@ -1,5 +1,7 @@
 # Build files
 build/
+install/
+log/
 
 # Python Cache Files
 *.pyc
