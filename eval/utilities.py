@@ -185,6 +185,56 @@ def parse_yaml(config):
     return config_data
 
 
+_h5_dataset_cache = {}
+
+
+def get_matching_datasets(h5_path, run_group_name, prefix):
+    mtime = os.path.getmtime(h5_path)
+    cache_key = (h5_path, mtime)
+    if cache_key not in _h5_dataset_cache:
+        paths = []
+        with h5py.File(h5_path, 'r') as f:
+            def visit(name, node):
+                if isinstance(node, h5py.Dataset):
+                    paths.append(name)
+            f.visititems(visit)
+        _h5_dataset_cache[cache_key] = paths
+
+    all_paths = _h5_dataset_cache[cache_key]
+    matched_paths = []
+    
+    # If run_group_name is provided, filter datasets under that run group.
+    # Otherwise, match truth/root level.
+    prefix_to_match = f"{run_group_name}/" if run_group_name else ""
+    
+    for path in all_paths:
+        if prefix_to_match:
+            if not path.startswith(prefix_to_match):
+                continue
+            rel_path = path[len(prefix_to_match):]
+        else:
+            rel_path = path
+            
+        matched = False
+        if prefix == 'body_truth':
+            matched = (rel_path == 'truth/body')
+        elif prefix == 'board_truth':
+            matched = (rel_path == 'truth/board')
+        elif prefix == 'feature_points':
+            matched = (rel_path == 'truth/feature_points')
+        else:
+            base = os.path.basename(rel_path)
+            matched = (
+                base == prefix or
+                re.match(rf'^{prefix}_[0-9]+$', base)
+            )
+        if matched:
+            matched_paths.append(path)
+            
+    matched_paths.sort()
+    return matched_paths
+
+
 def find_and_read_data_frames(directories, prefix):
     """
     Find matching dataframes and read using pandas.
@@ -242,54 +292,30 @@ def find_and_read_data_frames(directories, prefix):
                     else:
                         run_group_name = run_name
 
-                    if run_group_name in f:
-                        run_group = f[run_group_name]
-                        datasets = []
+                    ds_paths = get_matching_datasets(single_h5_path, run_group_name, prefix)
+                    for ds_path in ds_paths:
+                        dataset = f[ds_path]
+                        data = dataset[:]
 
-                        def visit(name, node):
-                            if isinstance(node, h5py.Dataset):
-                                matched = False
-                                if prefix == 'body_truth':
-                                    matched = (name == 'truth/body')
-                                elif prefix == 'board_truth':
-                                    matched = (name == 'truth/board')
-                                elif prefix == 'feature_points':
-                                    matched = (name == 'truth/feature_points')
-                                else:
-                                    base = os.path.basename(name)
-                                    matched = (
-                                        base == prefix or
-                                        re.match(rf'^{prefix}_[0-9]+$', base)
-                                    )
-                                if matched:
-                                    datasets.append(name)
+                        cols_attr = dataset.attrs.get('column_names', '')
+                        if isinstance(cols_attr, bytes):
+                            cols_attr = cols_attr.decode('utf-8')
+                        cols = cols_attr.split(',') if cols_attr else None
 
-                        run_group.visititems(visit)
+                        df = pd.DataFrame(data, columns=cols)
+                        df.dropna(inplace=True)
+                        df.attrs['prefix'] = format_prefix(prefix)
 
-                        datasets.sort()
-                        for ds_path in datasets:
-                            dataset = run_group[ds_path]
-                            data = dataset[:]
+                        # Extract sensor ID (not run ID!)
+                        base = os.path.basename(ds_path)
+                        sensor_id_matches = re.findall(r'_[0-9]+$', base)
+                        if sensor_id_matches:
+                            sensor_id = int(sensor_id_matches[0].replace('_', ''))
+                        else:
+                            sensor_id = 0
+                        df.attrs['id'] = sensor_id
 
-                            cols_attr = dataset.attrs.get('column_names', '')
-                            if isinstance(cols_attr, bytes):
-                                cols_attr = cols_attr.decode('utf-8')
-                            cols = cols_attr.split(',') if cols_attr else None
-
-                            df = pd.DataFrame(data, columns=cols)
-                            df.dropna(inplace=True)
-                            df.attrs['prefix'] = format_prefix(prefix)
-
-                            # Extract sensor ID (not run ID!)
-                            base = os.path.basename(ds_path)
-                            sensor_id_matches = re.findall(r'_[0-9]+$', base)
-                            if sensor_id_matches:
-                                sensor_id = int(sensor_id_matches[0].replace('_', ''))
-                            else:
-                                sensor_id = 0
-                            df.attrs['id'] = sensor_id
-
-                            data_frame_sets[sensor_id].append(df)
+                        data_frame_sets[sensor_id].append(df)
 
     else:
         # 2. Fallback to individual run HDF5 files or CSVs
@@ -305,31 +331,9 @@ def find_and_read_data_frames(directories, prefix):
                 h5_path = os.path.join(directory, 'simulation_data.h5')
 
             if os.path.exists(h5_path):
+                ds_paths = get_matching_datasets(h5_path, None, prefix)
                 with h5py.File(h5_path, 'r') as f:
-                    datasets = []
-
-                    def visit(name, node):
-                        if isinstance(node, h5py.Dataset):
-                            matched = False
-                            if prefix == 'body_truth':
-                                matched = (name == 'truth/body')
-                            elif prefix == 'board_truth':
-                                matched = (name == 'truth/board')
-                            elif prefix == 'feature_points':
-                                matched = (name == 'truth/feature_points')
-                            else:
-                                base = os.path.basename(name)
-                                matched = (
-                                    base == prefix or
-                                    re.match(rf'^{prefix}_[0-9]+$', base)
-                                )
-                            if matched:
-                                datasets.append(name)
-
-                    f.visititems(visit)
-
-                    datasets.sort()
-                    for ds_path in datasets:
+                    for ds_path in ds_paths:
                         dataset = f[ds_path]
                         data = dataset[:]
 
