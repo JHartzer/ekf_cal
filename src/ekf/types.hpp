@@ -290,7 +290,8 @@ typedef struct FeatureTrack
 {
   std::vector<FeaturePoint> track;        ///< @brief Vector of tracked feature keypoints
   /// @todo: Remove true feature position once MSCKF complete
-  Eigen::Vector3d true_feature_position;  ///< @brief True feature position (sim only)
+	/// @brief True feature position (sim only)
+  Eigen::Vector3d true_feature_position{Eigen::Vector3d::Zero()};
 } FeatureTrack;
 
 ///

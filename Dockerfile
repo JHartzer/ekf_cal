@@ -14,7 +14,10 @@ RUN apt-get update && apt-get -y install \
     gdb \
     git \
     lcov \
-    libopencv-dev \
+    libeigen3-dev \
+    libgtest-dev \
+    libopencv-dev libopencv-contrib-dev \
+    libyaml-cpp-dev \
     linux-tools-generic \
     locales \
     python3 python3-pip python3-venv \
