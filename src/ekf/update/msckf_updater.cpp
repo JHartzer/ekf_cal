@@ -42,6 +42,7 @@ MsckfUpdater::MsckfUpdater(
   double data_log_rate,
   double min_feat_dist,
   double max_feat_dist,
+  bool use_true_triangulation,
   std::shared_ptr<DebugLogger> logger
 )
 : Updater(cam_id, logger),
@@ -67,6 +68,7 @@ MsckfUpdater::MsckfUpdater(
 
   m_min_feat_dist = min_feat_dist;
   m_max_feat_dist = max_feat_dist;
+  m_use_true_triangulation = use_true_triangulation;
 }
 
 bool MsckfUpdater::TriangulateFeature(

@@ -174,8 +174,9 @@
                 max_track_length: 20        # Maximum track length
                 sim_params:
                     no_errors: false        # Flag to disable errors in simulation
-                    feature_count: 500      # Total number of trackable features
-                    room_size: 5.0          # Maximum distance of features
+                    feature_count: 500            # Total number of trackable features
+                    room_size: 5.0                # Maximum distance of features
+                    use_true_triangulation: true  # Use true feature position for triangulation
 
         fiducial:
             charuco:

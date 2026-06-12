@@ -41,6 +41,7 @@ FeatureTracker::FeatureTracker(FeatureTracker::Parameters params)
     params.data_log_rate,
     params.min_feat_dist,
     params.max_feat_dist,
+    params.use_true_triangulation,
     params.logger
   ),
   m_px_error(params.px_error),
