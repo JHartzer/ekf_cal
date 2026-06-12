@@ -162,21 +162,17 @@ class tab_msckf:
         err_y = collections.defaultdict(list)
         err_z = collections.defaultdict(list)
 
-        for tri_df, feat_df in zip(self.tri_dfs, self.feat_dfs):
-            time = tri_df['time']
-            feature = tri_df['feature']
-            feat_x = tri_df['x']
-            feat_y = tri_df['y']
-            feat_z = tri_df['z']
+        tri_err_list = self.err_dfs.get('triangulation_err', [])
+        for err_df in tri_err_list:
+            time = err_df['time']
+            ex = err_df['x']
+            ey = err_df['y']
+            ez = err_df['z']
 
-            true_x = feat_df['x']
-            true_y = feat_df['y']
-            true_z = feat_df['z']
-
-            for (t, f, x, y, z) in zip(time, feature, feat_x, feat_y, feat_z):
-                err_x[t].append(x - true_x[int(f)])
-                err_y[t].append(y - true_y[int(f)])
-                err_z[t].append(z - true_z[int(f)])
+            for (t, x, y, z) in zip(time, ex, ey, ez):
+                err_x[t].append(x)
+                err_y[t].append(y)
+                err_z[t].append(z)
         times = []
         mean_x = []
         mean_y = []

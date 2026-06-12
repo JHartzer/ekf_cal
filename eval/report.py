@@ -73,6 +73,8 @@ def plot_sim_results(config_sets, args):
         body_ang_vel_err_dfs = find_and_read_data_frames(data_dirs, 'body_ang_vel_err').get(0, [])
         body_ang_acc_err_dfs = find_and_read_data_frames(data_dirs, 'body_ang_acc_err').get(0, [])
         body_nees_dfs = find_and_read_data_frames(data_dirs, 'body_nees').get(0, [])
+        body_euler_dfs = find_and_read_data_frames(data_dirs, 'body_euler').get(0, [])
+        aug_euler_dfs = find_and_read_data_frames(data_dirs, 'aug_euler').get(0, [])
         body_err_dfs = {
             'body_pos_err': body_pos_err_dfs,
             'body_vel_err': body_vel_err_dfs,
@@ -81,6 +83,8 @@ def plot_sim_results(config_sets, args):
             'body_ang_vel_err': body_ang_vel_err_dfs,
             'body_ang_acc_err': body_ang_acc_err_dfs,
             'body_nees': body_nees_dfs,
+            'body_euler': body_euler_dfs,
+            'aug_euler': aug_euler_dfs,
         }
 
         for key in body_state_dfs_dict:
@@ -119,6 +123,8 @@ def plot_sim_results(config_sets, args):
         mskcf_dfs_dict = find_and_read_data_frames(data_dirs, 'msckf')
         tri_dfs_dict = find_and_read_data_frames(data_dirs, 'triangulation')
         feat_dfs_dict = find_and_read_data_frames(data_dirs, 'feature_points')
+        tri_err_dfs_dict = find_and_read_data_frames(data_dirs, 'triangulation_err')
+
         for key in sorted(mskcf_dfs_dict.keys()):
             mskcf_dfs = mskcf_dfs_dict[key]
             tri_dfs = tri_dfs_dict[key]
@@ -128,6 +134,7 @@ def plot_sim_results(config_sets, args):
                 'cam_pos_err': cam_pos_err_dfs_dict.get(key, []),
                 'cam_ang_err': cam_ang_err_dfs_dict.get(key, []),
                 'cam_nees': cam_nees_dfs_dict.get(key, []),
+                'triangulation_err': tri_err_dfs_dict.get(key, []),
             }
             tabs.append(tab_msckf(
                 mskcf_dfs, tri_dfs, feat_dfs, body_truth_dfs, args,
@@ -137,6 +144,7 @@ def plot_sim_results(config_sets, args):
         fiducial_pos_err_dfs_dict = find_and_read_data_frames(data_dirs, 'fiducial_pos_err')
         fiducial_ang_err_dfs_dict = find_and_read_data_frames(data_dirs, 'fiducial_ang_err')
         fiducial_nees_dfs_dict = find_and_read_data_frames(data_dirs, 'fiducial_nees')
+        fiducial_meas_euler_dfs_dict = find_and_read_data_frames(data_dirs, 'fiducial_meas_euler')
 
         fiducial_dfs_dict = find_and_read_data_frames(data_dirs, 'fiducial')
         board_truth_dfs_dict = find_and_read_data_frames(data_dirs, 'board_truth')
@@ -148,6 +156,7 @@ def plot_sim_results(config_sets, args):
                 'fiducial_pos_err': fiducial_pos_err_dfs_dict.get(key, []),
                 'fiducial_ang_err': fiducial_ang_err_dfs_dict.get(key, []),
                 'fiducial_nees': fiducial_nees_dfs_dict.get(key, []),
+                'fiducial_meas_euler': fiducial_meas_euler_dfs_dict.get(key, []),
             }
             tabs.append(tab_fiducial(
                 fiducial_dfs, board_dfs, body_truth_dfs, args,

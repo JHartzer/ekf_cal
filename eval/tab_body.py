@@ -19,7 +19,6 @@
 from bokeh.layouts import layout
 from bokeh.models import Range1d, Spacer, TabPanel
 from bokeh.plotting import figure
-from scipy.spatial.transform import Rotation
 from scipy.stats.distributions import chi2
 from utilities import calculate_alpha, get_colors, plot_update_timing
 
@@ -82,29 +81,12 @@ class tab_body:
         """Plot body angular position."""
         fig = figure(width=800, height=300, x_axis_label='Time [s]',
                      y_axis_label='Angle [rad]', title='Body Angle')
-        for body_df in self.body_state_dfs:
-
-            body_w = body_df['body_ang_pos_0']
-            body_x = body_df['body_ang_pos_1']
-            body_y = body_df['body_ang_pos_2']
-            body_z = body_df['body_ang_pos_3']
-
-            body_a = []
-            body_b = []
-            body_g = []
-
-            # TODO(jhartzer): Use common euler function
-            for (w, x, y, z) in zip(body_w, body_x, body_y, body_z):
-                body_rot = Rotation.from_quat([w, x, y, z], scalar_first=True)
-                body_eul = body_rot.as_euler('XYZ')
-                body_a.append(body_eul[0])
-                body_b.append(body_eul[1])
-                body_g.append(body_eul[2])
-
-            time = body_df['time']
-            fig.line(time, body_a, alpha=self.alpha, color=self.colors[0], legend_label='X')
-            fig.line(time, body_b, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-            fig.line(time, body_g, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        body_euler_list = self.err_dfs.get('body_euler', [])
+        for err_df in body_euler_list:
+            time = err_df['time']
+            fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
+            fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
+            fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_body_ang_vel(self):
@@ -364,42 +346,26 @@ class tab_body:
                      y_axis_label='Augmented Orientation [rad]',
                      title='Augmented State Orientation')
 
-        for aug_df in self.aug_state_dfs:
-            aug_w = aug_df['aug_ang_0']
-            aug_x = aug_df['aug_ang_1']
-            aug_y = aug_df['aug_ang_2']
-            aug_z = aug_df['aug_ang_3']
-
-            aug_a = []
-            aug_b = []
-            aug_g = []
-
-            # TODO(jhartzer): Use common euler function
-            for (w, x, y, z) in zip(aug_w, aug_x, aug_y, aug_z):
-                aug_rot = Rotation.from_quat([w, x, y, z], scalar_first=True)
-                aug_eul = aug_rot.as_euler('XYZ')
-                aug_a.append(aug_eul[0])
-                aug_b.append(aug_eul[1])
-                aug_g.append(aug_eul[2])
-
-            time = aug_df['time']
+        aug_euler_list = self.err_dfs.get('aug_euler', [])
+        for err_df in aug_euler_list:
+            time = err_df['time']
             fig.scatter(
                 time,
-                aug_a,
+                err_df['x'],
                 alpha=self.alpha,
                 color=self.colors[0],
                 legend_label='X',
                 size=1)
             fig.scatter(
                 time,
-                aug_b,
+                err_df['y'],
                 alpha=self.alpha,
                 color=self.colors[1],
                 legend_label='Y',
                 size=1)
             fig.scatter(
                 time,
-                aug_g,
+                err_df['z'],
                 alpha=self.alpha,
                 color=self.colors[2],
                 legend_label='Z',

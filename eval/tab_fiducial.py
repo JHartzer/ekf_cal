@@ -18,7 +18,6 @@
 from bokeh.layouts import layout
 from bokeh.models import Range1d, Spacer, TabPanel
 from bokeh.plotting import figure
-from scipy.spatial.transform import Rotation
 from scipy.stats.distributions import chi2
 from utilities import calculate_alpha, get_colors, plot_update_timing
 
@@ -177,29 +176,12 @@ class tab_fiducial:
             y_axis_label='Angular',
             title='Fiducial Angle in Camera Frame')
 
-        for fiducial_df in self.fiducial_dfs:
-            time = fiducial_df['time']
-            board_qw = fiducial_df['board_meas_ang_0']
-            board_qx = fiducial_df['board_meas_ang_1']
-            board_qy = fiducial_df['board_meas_ang_2']
-            board_qz = fiducial_df['board_meas_ang_3']
-
-            board_a = []
-            board_b = []
-            board_g = []
-
-            # TODO(jhartzer): Use common euler function
-            for (w, x, y, z) in zip(board_qw, board_qx, board_qy, board_qz):
-                board_rot = Rotation.from_quat([w, x, y, z], scalar_first=True)
-                board_eul = board_rot.as_euler('XYZ')
-                board_a.append(board_eul[0])
-                board_b.append(board_eul[1])
-                board_g.append(board_eul[2])
-
-            time = fiducial_df['time']
-            fig.line(time, board_a, alpha=self.alpha, color=self.colors[0], legend_label='X')
-            fig.line(time, board_b, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-            fig.line(time, board_g, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        fiducial_meas_euler = self.err_dfs.get('fiducial_meas_euler', [])
+        for err_df in fiducial_meas_euler:
+            time = err_df['time']
+            fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
+            fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
+            fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_fid_nees(self):

@@ -318,7 +318,8 @@ def write_summary(directory, stats):
 
 def _calc_errors_for_single_run(run_args):
     (i, data_dir, body_state, body_truth, imu_df_dict_i, mskcf_df_dict_i,
-     gps_df_dict_i, fiducial_df_dict_i, board_truth) = run_args
+     gps_df_dict_i, fiducial_df_dict_i, board_truth, aug_state,
+     tri_df_dict_i, feat_df_dict_i) = run_args
 
     run_errors = {}
 
@@ -395,6 +396,17 @@ def _calc_errors_for_single_run(run_args):
         for j in range(18):
             body_nees += (err_all[:, j] ** 2) / (cov_cols[j] ** 2)
         run_errors['body_nees'] = np.column_stack((est_time, body_nees))
+
+        # Body Euler Angles (XYZ)
+        if 'body_ang_pos_0' in body_state:
+            body_w = body_state['body_ang_pos_0'].to_numpy()
+            body_x = body_state['body_ang_pos_1'].to_numpy()
+            body_y = body_state['body_ang_pos_2'].to_numpy()
+            body_z = body_state['body_ang_pos_3'].to_numpy()
+            quats = np.column_stack((body_w, body_x, body_y, body_z))
+            body_rot = Rotation.from_quat(quats, scalar_first=True)
+            body_eul = body_rot.as_euler('XYZ')
+            run_errors['body_euler'] = np.column_stack((body_state['time'].to_numpy(), body_eul))
 
     # 2. IMU Errors & NEES
     if body_truth is not None:
@@ -662,12 +674,58 @@ def _calc_errors_for_single_run(run_args):
 
                 run_errors[f'fiducial_nees_{sensor_id}'] = np.column_stack((est_time, nees))
 
+                # Fiducial board measurement Euler angles
+                if 'board_meas_ang_0' in fid_df:
+                    board_qw = fid_df['board_meas_ang_0'].to_numpy()
+                    board_qx = fid_df['board_meas_ang_1'].to_numpy()
+                    board_qy = fid_df['board_meas_ang_2'].to_numpy()
+                    board_qz = fid_df['board_meas_ang_3'].to_numpy()
+                    quats = np.column_stack((board_qw, board_qx, board_qy, board_qz))
+                    board_rot = Rotation.from_quat(quats, scalar_first=True)
+                    board_eul = board_rot.as_euler('XYZ')
+                    run_errors[f'fiducial_meas_euler_{sensor_id}'] = np.column_stack(
+                        (fid_df['time'].to_numpy(), board_eul))
+
+    # 6. Augmented State Euler Angles
+    if aug_state is not None and 'aug_ang_0' in aug_state:
+        aug_w = aug_state['aug_ang_0'].to_numpy()
+        aug_x = aug_state['aug_ang_1'].to_numpy()
+        aug_y = aug_state['aug_ang_2'].to_numpy()
+        aug_z = aug_state['aug_ang_3'].to_numpy()
+        quats = np.column_stack((aug_w, aug_x, aug_y, aug_z))
+        aug_rot = Rotation.from_quat(quats, scalar_first=True)
+        aug_eul = aug_rot.as_euler('XYZ')
+        run_errors['aug_euler'] = np.column_stack((aug_state['time'].to_numpy(), aug_eul))
+
+    # 7. Triangulation Errors
+    if feat_df_dict_i is not None and tri_df_dict_i is not None:
+        feat_df = feat_df_dict_i.get(0, None)
+        if feat_df is not None and 'x' in feat_df:
+            true_x = feat_df['x'].to_numpy()
+            true_y = feat_df['y'].to_numpy()
+            true_z = feat_df['z'].to_numpy()
+            for sensor_id, tri_df in tri_df_dict_i.items():
+                if 'x' in tri_df and 'feature' in tri_df:
+                    time = tri_df['time'].to_numpy()
+                    feature = tri_df['feature'].to_numpy().astype(int)
+                    feature = np.clip(feature, 0, len(true_x) - 1)
+                    feat_x = tri_df['x'].to_numpy()
+                    feat_y = tri_df['y'].to_numpy()
+                    feat_z = tri_df['z'].to_numpy()
+                    err_x = feat_x - true_x[feature]
+                    err_y = feat_y - true_y[feature]
+                    err_z = feat_z - true_z[feature]
+                    run_errors[f'triangulation_err_{sensor_id}'] = np.column_stack(
+                        (time, err_x, err_y, err_z))
+
     return i, data_dir, run_errors
 
 
 def save_errors_to_hdf5(data_dirs, body_state_dfs_dict, body_truth_dfs_dict,
                         imu_dfs_dict, mskcf_dfs_dict, gps_dfs_dict,
-                        fiducial_dfs_dict=None, board_truth_dfs_dict=None):
+                        fiducial_dfs_dict=None, board_truth_dfs_dict=None,
+                        aug_state_dfs_dict=None, tri_dfs_dict=None,
+                        feat_dfs_dict=None):
     """Calculate and write error time series back to the HDF5 file."""
     # Find the single merged HDF5 file in the parent directory
     single_h5_path = None
@@ -724,9 +782,33 @@ def save_errors_to_hdf5(data_dirs, body_state_dfs_dict, body_truth_dfs_dict,
             else None
         )
 
+        aug_state = (
+            aug_state_dfs_dict[0][i]
+            if (aug_state_dfs_dict and 0 in aug_state_dfs_dict
+                and i < len(aug_state_dfs_dict[0]))
+            else None
+        )
+
+        if tri_dfs_dict is not None:
+            tri_df_dict_i = {
+                sid: tri_dfs_dict[sid][i]
+                for sid in tri_dfs_dict if i < len(tri_dfs_dict[sid])
+            }
+        else:
+            tri_df_dict_i = {}
+
+        if feat_dfs_dict is not None:
+            feat_df_dict_i = {
+                sid: feat_dfs_dict[sid][i]
+                for sid in feat_dfs_dict if i < len(feat_dfs_dict[sid])
+            }
+        else:
+            feat_df_dict_i = {}
+
         jobs.append((
             i, data_dir, body_state, body_truth, imu_df_dict_i,
-            mskcf_df_dict_i, gps_df_dict_i, fiducial_df_dict_i, board_truth
+            mskcf_df_dict_i, gps_df_dict_i, fiducial_df_dict_i, board_truth,
+            aug_state, tri_df_dict_i, feat_df_dict_i
         ))
 
     import multiprocessing
@@ -884,11 +966,15 @@ def calc_sim_stats(config_sets, args):
             stats[f'gps_{key}_init_count'] = gps_init_count(gps_dfs)
 
         board_truth_dfs_dict = find_and_read_data_frames(data_dirs, 'board_truth')
+        aug_state_dfs_dict = find_and_read_data_frames(data_dirs, 'aug_state')
+        tri_dfs_dict = find_and_read_data_frames(data_dirs, 'triangulation')
+        feat_dfs_dict = find_and_read_data_frames(data_dirs, 'feature_points')
 
         save_errors_to_hdf5(
             data_dirs, body_state_dfs_dict, body_truth_dfs_dict,
             imu_dfs_dict, mskcf_dfs_dict, gps_dfs_dict, fiducial_dfs_dict,
-            board_truth_dfs_dict
+            board_truth_dfs_dict, aug_state_dfs_dict, tri_dfs_dict,
+            feat_dfs_dict
         )
         save_stats_to_hdf5(data_dirs, stats)
         write_summary(stat_dir, stats)
