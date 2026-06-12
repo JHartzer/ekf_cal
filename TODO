@@ -3,10 +3,8 @@ Package Features:
     - Outlier rejection by gating / Mahalanobis distance
     - Play rosbag through as fast as possible given yaml
     - Multiple Single-IMU filters to a multi-sensor filter
-    - Use emplace_back where appropriate
     - Multi-Threading in EKF std::lock_guard lock(mutex);
     - Reduce state with single IMU
-    - Use modern cmake organization
 
 Simulation:
     - Show track images from simulation

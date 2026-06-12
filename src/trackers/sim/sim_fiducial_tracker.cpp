@@ -78,12 +78,8 @@ bool SimFiducialTracker::IsBoardVisible(const double time) const
   // Project points
   std::vector<cv::Point2d> projected_points;
   std::vector<cv::Point3d> board_position_vector;
-  cv::Point3d board_position;
   Eigen::Vector3d pos_f_in_l_true = m_truth->GetBoardPosition(m_id);
-  board_position.x = pos_f_in_l_true.x();
-  board_position.y = pos_f_in_l_true.y();
-  board_position.z = pos_f_in_l_true.z();
-  board_position_vector.push_back(board_position);
+  board_position_vector.emplace_back(pos_f_in_l_true.x(), pos_f_in_l_true.y(), pos_f_in_l_true.z());
 
   cv::projectPoints(
     board_position_vector, r_vec, t_vec, camera_matrix, distortion, projected_points);
