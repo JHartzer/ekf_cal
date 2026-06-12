@@ -123,42 +123,39 @@ std::vector<cv::KeyPoint> FeatureTracker::GridFeatures(
   int cols
 )
 {
-  double min_pixel_distance = 10.0;
+  constexpr double min_pixel_distance = 10.0;
+  constexpr double inv_min_pixel_distance = 1.0 / min_pixel_distance;
   auto double_rows = static_cast<double>(rows);
   auto double_cols = static_cast<double>(cols);
-  auto grid_rows = static_cast<int>(double_rows / min_pixel_distance);
-  auto grid_cols = static_cast<int>(double_cols / min_pixel_distance);
-  cv::Size size(grid_cols, grid_rows);
-
-  /// @todo replace this with some kind of boolean array. Eigen?
-  // Eigen::Array<bool, 1, 5> false_array(5);
-  // false_array = Array<bool, 1, 5>::Zero(5);
+  auto grid_rows = static_cast<int>(double_rows * inv_min_pixel_distance);
+  auto grid_cols = static_cast<int>(double_cols * inv_min_pixel_distance);
 
   /// @todo Implement non-maximal suppression instead
 
-  cv::Mat grid_2d = cv::Mat::zeros(size, CV_8UC1);
+  std::vector<uint8_t> grid(grid_rows * grid_cols, 0);
 
   std::vector<cv::KeyPoint> grid_key_points;
   for (unsigned int i = 0; i < key_points.size(); i++) {
     // Get current left keypoint, check that it is in bounds
-    cv::KeyPoint kpt = key_points.at(i);
+    const cv::KeyPoint & kpt = key_points[i];
     int pt_x = static_cast<int>(kpt.pt.x);
     int pt_y = static_cast<int>(kpt.pt.y);
-    int x_grid = static_cast<int>(static_cast<double>(kpt.pt.x) / min_pixel_distance);
-    int y_grid = static_cast<int>(static_cast<double>(kpt.pt.y) / min_pixel_distance);
-    if (x_grid < 0 || x_grid >= size.width || y_grid < 0 || y_grid >= size.height || pt_x < 0 ||
+    int x_grid = static_cast<int>(static_cast<double>(kpt.pt.x) * inv_min_pixel_distance);
+    int y_grid = static_cast<int>(static_cast<double>(kpt.pt.y) * inv_min_pixel_distance);
+    if (x_grid < 0 || x_grid >= grid_cols || y_grid < 0 || y_grid >= grid_rows || pt_x < 0 ||
       pt_x >= cols || pt_y < 0 || pt_y >= rows)
     {
       continue;
     }
     // Check if this keypoint is near another point
-    if (grid_2d.at<uint8_t>(y_grid, x_grid) > 127) {
+    int grid_index = y_grid * grid_cols + x_grid;
+    if (grid[grid_index]) {
       continue;
     }
-    // Else we are good, append our key_points and descriptors
-    grid_key_points.push_back(key_points.at(i));
+    // Else we are good, append our key_points
+    grid_key_points.push_back(kpt);
 
-    grid_2d.at<uint8_t>(y_grid, x_grid) = 255;
+    grid[grid_index] = 1;
   }
   return grid_key_points;
 }
