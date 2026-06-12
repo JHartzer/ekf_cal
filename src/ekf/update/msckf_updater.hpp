@@ -48,6 +48,7 @@ public:
     const std::string & log_file_directory,
     double data_log_rate,
     double min_feat_dist,
+    double max_feat_dist,
     std::shared_ptr<DebugLogger> logger
   );
 
@@ -116,7 +117,7 @@ private:
   DataLogger m_msckf_logger;
   DataLogger m_triangulation_logger;
   double m_min_feat_dist{1.0};
-  double m_max_feat_dist{100.0};  /// @todo: Get from input
+  double m_max_feat_dist{100.0};
   bool m_is_first_estimate{true};
   bool m_use_true_triangulation{true};
   Intrinsics m_intrinsics;

@@ -358,6 +358,7 @@ void EkfCalNode::DeclareTrackerParameters(const std::string & tracker_name)
   declare_parameter(tracker_prefix + ".down_sample_height", 480);
   declare_parameter(tracker_prefix + ".down_sample_width", 640);
   declare_parameter(tracker_prefix + ".min_feature_distance", 1.0);
+  declare_parameter(tracker_prefix + ".max_feature_distance", 100.0);
   declare_parameter(tracker_prefix + ".min_track_length", 2);
   declare_parameter(tracker_prefix + ".max_track_length", 20);
 }
@@ -374,6 +375,7 @@ FeatureTracker::Parameters EkfCalNode::GetTrackerParameters(const std::string & 
   auto down_height = get_parameter(tracker_prefix + ".down_sample_height").as_int();
   auto down_width = get_parameter(tracker_prefix + ".down_sample_width").as_int();
   auto min_feat_dist = get_parameter(tracker_prefix + ".min_feature_distance").as_double();
+  auto max_feat_dist = get_parameter(tracker_prefix + ".max_feature_distance").as_double();
   auto min_track_length = get_parameter(tracker_prefix + ".min_track_length").as_int();
   auto max_track_length = get_parameter(tracker_prefix + ".max_track_length").as_int();
 
@@ -386,6 +388,7 @@ FeatureTracker::Parameters EkfCalNode::GetTrackerParameters(const std::string & 
   tracker_params.down_sample_height = static_cast<int>(down_height);
   tracker_params.down_sample_width = static_cast<int>(down_width);
   tracker_params.min_feat_dist = min_feat_dist;
+  tracker_params.max_feat_dist = max_feat_dist;
   tracker_params.min_track_length = static_cast<unsigned int>(min_track_length);
   tracker_params.max_track_length = static_cast<unsigned int>(max_track_length);
   tracker_params.ekf = m_ekf;

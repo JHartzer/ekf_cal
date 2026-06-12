@@ -40,6 +40,7 @@ FeatureTracker::FeatureTracker(FeatureTracker::Parameters params)
     params.log_directory,
     params.data_log_rate,
     params.min_feat_dist,
+    params.max_feat_dist,
     params.logger
   ),
   m_px_error(params.px_error),

@@ -34,7 +34,6 @@
 #include "infrastructure/debug_logger.hpp"
 #include "utility/math_helper.hpp"
 #include "utility/string_helper.hpp"
-#include "utility/type_helper.hpp"
 
 MsckfUpdater::MsckfUpdater(
   unsigned int cam_id,
@@ -42,6 +41,7 @@ MsckfUpdater::MsckfUpdater(
   const std::string & log_file_directory,
   double data_log_rate,
   double min_feat_dist,
+  double max_feat_dist,
   std::shared_ptr<DebugLogger> logger
 )
 : Updater(cam_id, logger),
@@ -66,6 +66,7 @@ MsckfUpdater::MsckfUpdater(
   m_triangulation_logger.SetLogRate(data_log_rate);
 
   m_min_feat_dist = min_feat_dist;
+  m_max_feat_dist = max_feat_dist;
 }
 
 bool MsckfUpdater::TriangulateFeature(
@@ -134,7 +135,6 @@ bool MsckfUpdater::TriangulateFeature(
     err_msg << "MSCKF triangulated point out of bounds. meas_noise = " << pos_f_in_c0.z();
     m_logger->Log(LogLevel::INFO, err_msg.str());
     pos_f_in_l_tri = Eigen::Vector3d::Zero();
-    /// @todo: Add input flag
     if (m_use_true_triangulation) {
       success = true;
     } else {

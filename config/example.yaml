@@ -169,6 +169,7 @@
                 detector_threshold: 10.0    # Threshold used for detection (if available)
                 pixel_error: 0.5            # Average pixel error
                 min_feature_distance: 1.0   # Minimum feature distance to consider
+                max_feature_distance: 100.0 # Maximum feature distance to consider
                 min_track_length: 2         # Minimum track length
                 max_track_length: 20        # Maximum track length
                 sim_params:
