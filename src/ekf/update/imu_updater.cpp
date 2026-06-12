@@ -163,13 +163,13 @@ Eigen::MatrixXd ImuUpdater::GetZeroAccelerationJacobian(EKF & ekf) const
 
   jacobian.block<3, 3>(
     0,
-    9) = -SkewSymmetric(ang_i_to_b.inverse() * ang_b_to_l.inverse() * g_gravity) *
+    9) = -SkewSymmetric(ang_i_to_b.conjugate() * ang_b_to_l.conjugate() * g_gravity) *
     QuaternionJacobian(ang_b_to_l).transpose();
 
   if (m_is_extrinsic) {
     unsigned int index_extrinsic = ekf.m_state.imu_states[m_id].index_extrinsic;
     jacobian.block<3, 3>(0, index_extrinsic) = -SkewSymmetric(
-      ang_i_to_b.inverse() * ang_b_to_l.inverse() * g_gravity
+      ang_i_to_b.conjugate() * ang_b_to_l.conjugate() * g_gravity
     );
   }
 
@@ -214,8 +214,8 @@ bool ImuUpdater::ZeroAccelerationUpdate(
 
   Eigen::VectorXd resid = Eigen::VectorXd::Zero(meas_size);
   resid.segment<3>(0) = -(acceleration - bias_a -
-    ang_i_to_b.inverse() *
-    ang_b_to_l.inverse() * g_gravity);
+    ang_i_to_b.conjugate() *
+    ang_b_to_l.conjugate() * g_gravity);
   if (m_is_intrinsic) {
     resid.segment<3>(3) = -(angular_rate - bias_g);
   }
@@ -321,11 +321,11 @@ Eigen::VectorXd ImuUpdater::PredictMeasurement(EKF & ekf) const
     2 * ekf.m_state.body_state.ang_vel_b_in_l.cross(
     ekf.m_state.body_state.vel_b_in_l);
 
-  Eigen::Vector3d imu_omg_b = ang_b_to_l.inverse() * ekf.m_state.body_state.ang_vel_b_in_l;
+  Eigen::Vector3d imu_omg_b = ang_b_to_l.conjugate() * ekf.m_state.body_state.ang_vel_b_in_l;
 
   // Rotate measurements in place
-  predicted_measurement.segment<3>(0) = acc_bias + ang_i_to_b.inverse() * imu_acc_b;
-  predicted_measurement.segment<3>(3) = omg_bias + ang_i_to_b.inverse() * imu_omg_b;
+  predicted_measurement.segment<3>(0) = acc_bias + ang_i_to_b.conjugate() * imu_acc_b;
+  predicted_measurement.segment<3>(3) = omg_bias + ang_i_to_b.conjugate() * imu_omg_b;
 
   return predicted_measurement;
 }
@@ -339,23 +339,23 @@ Eigen::MatrixXd ImuUpdater::GetMeasurementJacobian(EKF & ekf) const
   Eigen::MatrixXd measurement_jacobian = Eigen::MatrixXd::Zero(6, ekf.GetStateSize());
 
   // Body Acceleration
-  measurement_jacobian.block<3, 3>(0, 6) = ang_i_to_b.inverse().toRotationMatrix() *
-    ang_b_to_l.inverse().toRotationMatrix();
+  measurement_jacobian.block<3, 3>(0, 6) = ang_i_to_b.conjugate().toRotationMatrix() *
+    ang_b_to_l.conjugate().toRotationMatrix();
 
   // Body Angular Velocity
-  measurement_jacobian.block<3, 3>(0, 12) = ang_i_to_b.inverse().toRotationMatrix() * (
+  measurement_jacobian.block<3, 3>(0, 12) = ang_i_to_b.conjugate().toRotationMatrix() * (
     SkewSymmetric(ekf.m_state.body_state.ang_vel_b_in_l) *
     SkewSymmetric(pos_i_in_b).transpose() +
     SkewSymmetric(ekf.m_state.body_state.ang_vel_b_in_l.cross(pos_i_in_b)).transpose()
   );
 
   // Body Angular Acceleration
-  measurement_jacobian.block<3, 3>(0, 15) = -ang_i_to_b.inverse().toRotationMatrix() *
+  measurement_jacobian.block<3, 3>(0, 15) = -ang_i_to_b.conjugate().toRotationMatrix() *
     SkewSymmetric(pos_i_in_b);
 
   // Body Angular Velocity
-  measurement_jacobian.block<3, 3>(3, 12) = ang_i_to_b.inverse().toRotationMatrix() *
-    ang_b_to_l.inverse().toRotationMatrix();
+  measurement_jacobian.block<3, 3>(3, 12) = ang_i_to_b.conjugate().toRotationMatrix() *
+    ang_b_to_l.conjugate().toRotationMatrix();
 
   if (m_is_extrinsic) {
     unsigned int index_extrinsic = ekf.m_state.imu_states[m_id].index_extrinsic;
@@ -365,21 +365,21 @@ Eigen::MatrixXd ImuUpdater::GetMeasurementJacobian(EKF & ekf) const
 
     // IMU Positional Offset
     measurement_jacobian.block<3, 3>(0, index_extrinsic + 0) =
-      ang_i_to_b.inverse().toRotationMatrix() * (SkewSymmetric(ang_acc_b_in_l) +
+      ang_i_to_b.conjugate().toRotationMatrix() * (SkewSymmetric(ang_acc_b_in_l) +
       SkewSymmetric(ang_vel_b_in_l) * SkewSymmetric(ang_vel_b_in_l)
       );
 
     // IMU Angular Offset
     measurement_jacobian.block<3, 3>(0, index_extrinsic + 3) = SkewSymmetric(
-      ang_i_to_b.inverse() * (ang_acc_b_in_l.cross(pos_i_in_b) +
+      ang_i_to_b.conjugate() * (ang_acc_b_in_l.cross(pos_i_in_b) +
       ang_vel_b_in_l.cross(ang_vel_b_in_l.cross(pos_i_in_b)) +
-      ang_b_to_l.inverse() * ekf.m_state.body_state.acc_b_in_l
+      ang_b_to_l.conjugate() * ekf.m_state.body_state.acc_b_in_l
       )
     );
 
     // IMU Angular Offset
     measurement_jacobian.block<3, 3>(3, index_extrinsic + 3) = SkewSymmetric(
-      ang_i_to_b.inverse() * ang_b_to_l.inverse() * ang_vel_b_in_l);
+      ang_i_to_b.conjugate() * ang_b_to_l.conjugate() * ang_vel_b_in_l);
   }
 
   if (m_is_intrinsic) {
@@ -409,8 +409,8 @@ void ImuUpdater::AngularUpdate(
     measurement.segment<3>(0) = angular_rate;
 
     Eigen::VectorXd pred_measurement =
-      ang_i_to_b.inverse() *
-      ang_b_to_l.inverse() * ekf.m_state.body_state.ang_vel_b_in_l + omg_bias;
+      ang_i_to_b.conjugate() *
+      ang_b_to_l.conjugate() * ekf.m_state.body_state.ang_vel_b_in_l + omg_bias;
     Eigen::VectorXd resid = measurement - pred_measurement;
 
     Eigen::MatrixXd jacobian = Eigen::MatrixXd::Zero(3, 9);

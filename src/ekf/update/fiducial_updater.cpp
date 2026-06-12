@@ -168,7 +168,7 @@ void FiducialUpdater::UpdateEKF(
   // Residuals for this frame
   Eigen::VectorXd res = Eigen::VectorXd::Zero(g_fid_measurement_size);
   res.segment<3>(0) = pos_measured - pred_meas.segment<3>(0);
-  res.segment<3>(3) = QuatToRotVec(RotVecToQuat(pred_meas.segment<3>(3)) * ang_measured.inverse());
+  res.segment<3>(3) = QuatToRotVec(RotVecToQuat(pred_meas.segment<3>(3)) * ang_measured.conjugate());
 
   Eigen::MatrixXd jacobian = GetMeasurementJacobian(ekf);
 
