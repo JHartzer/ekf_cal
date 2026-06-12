@@ -32,7 +32,6 @@
 /// @class EKF
 /// @brief Calibration EKF class
 /// @todo Implement check for correlation coefficients to be between +/- 1
-/// @todo Add gravity initialization/check
 ///
 class EKF
 {

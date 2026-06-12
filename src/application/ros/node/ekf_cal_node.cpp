@@ -631,7 +631,6 @@ void EkfCalNode::GpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr msg, u
 
 void EkfCalNode::PublishState()
 {
-  /// @todo Copy states before converting to vectors due to race conditions.
   // Body State
   Eigen::VectorXd body_state_vector = m_ekf->m_state.body_state.ToVector();
   auto body_state_vec_msg = std_msgs::msg::Float64MultiArray();

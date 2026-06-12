@@ -57,7 +57,6 @@ TEST(test_TypeHelper, StdToEigQuat) {
   EXPECT_NEAR(eig_vec.z(), std_vec[3], 1e-6);
 }
 
-/// @todo replace with round numbers
 TEST(test_TypeHelper, RotVecToQuat) {
   Eigen::Vector3d vec0 {0.0, 0.0, 0.0};
   Eigen::Quaterniond quat0 = RotVecToQuat(vec0);
