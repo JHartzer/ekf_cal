@@ -98,7 +98,7 @@ public:
   /// @param cols Number of final columns to consider
   /// @return Down sampled key points
   ///
-  static std::vector<cv::KeyPoint> GridFeatures(
+  static void GridFeatures(
     std::vector<cv::KeyPoint> & key_points,
     int rows,
     int cols

@@ -116,8 +116,7 @@ cv::Ptr<cv::DescriptorMatcher> FeatureTracker::InitDescriptorMatcher(Matcher mat
   return descriptor_matcher;
 }
 
-/// @todo Do keypoint vector editing in place
-std::vector<cv::KeyPoint> FeatureTracker::GridFeatures(
+void FeatureTracker::GridFeatures(
   std::vector<cv::KeyPoint> & key_points,
   int rows,
   int cols
@@ -134,9 +133,8 @@ std::vector<cv::KeyPoint> FeatureTracker::GridFeatures(
 
   std::vector<uint8_t> grid(grid_rows * grid_cols, 0);
 
-  std::vector<cv::KeyPoint> grid_key_points;
-  for (unsigned int i = 0; i < key_points.size(); i++) {
-    // Get current left keypoint, check that it is in bounds
+  size_t write_idx = 0;
+  for (size_t i = 0; i < key_points.size(); ++i) {
     const cv::KeyPoint & kpt = key_points[i];
     int pt_x = static_cast<int>(kpt.pt.x);
     int pt_y = static_cast<int>(kpt.pt.y);
@@ -152,12 +150,15 @@ std::vector<cv::KeyPoint> FeatureTracker::GridFeatures(
     if (grid[grid_index]) {
       continue;
     }
-    // Else we are good, append our key_points
-    grid_key_points.push_back(kpt);
+    // Else we are good, update in place
+    if (write_idx != i) {
+      key_points[write_idx] = key_points[i];
+    }
+    write_idx++;
 
     grid[grid_index] = 1;
   }
-  return grid_key_points;
+  key_points.resize(write_idx);
 }
 
 void FeatureTracker::Track(
@@ -178,8 +179,7 @@ void FeatureTracker::Track(
 
   std::vector<cv::KeyPoint> curr_key_points;
   m_feature_detector->detect(img_down, curr_key_points);
-  /// @todo create occupancy grid of key_points using minimal pixel distance
-  curr_key_points = GridFeatures(curr_key_points, img_down.rows, img_down.cols);
+  GridFeatures(curr_key_points, img_down.rows, img_down.cols);
 
   // double threshold_dist =
   //   0.1 * sqrt(
