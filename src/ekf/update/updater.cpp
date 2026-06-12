@@ -38,12 +38,13 @@ void Updater::KalmanUpdate(
   if (ekf.GetUseRootCovariance()) {
     observation_noise = measurement_noise.cwiseSqrt();
     innovation = QR_r(ekf.m_cov * jacobian.transpose(), observation_noise);
-    gain = ekf.m_cov.transpose() * ekf.m_cov * jacobian.transpose() *
-      (innovation.transpose() * innovation).inverse();
+    Eigen::MatrixXd rhs = jacobian * ekf.m_cov.transpose() * ekf.m_cov;
+    Eigen::MatrixXd S_root = innovation.transpose() * innovation;
+    gain = S_root.ldlt().solve(rhs).transpose();
   } else {
     observation_noise = measurement_noise;
     innovation = jacobian * ekf.m_cov * jacobian.transpose() + observation_noise;
-    gain = ekf.m_cov * jacobian.transpose() * innovation.inverse();
+    gain = innovation.ldlt().solve(jacobian * ekf.m_cov).transpose();
   }
 
   Eigen::VectorXd update = gain * residual;
