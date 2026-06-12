@@ -18,21 +18,19 @@
 from bokeh.layouts import layout
 from bokeh.models import Range1d, Spacer, TabPanel
 from bokeh.plotting import figure
-import numpy as np
-from scipy.spatial.transform import Rotation
 from scipy.stats.distributions import chi2
-from utilities import calculate_alpha, get_colors, interpolate_error, interpolate_quat_error, \
-    plot_update_timing
+from utilities import calculate_alpha, get_colors, plot_update_timing
 
 
 class tab_fiducial:
     """Class for plotting fiducial data."""
 
-    def __init__(self, fiducial_dfs, board_truth_dfs, body_truth_dfs, args):
+    def __init__(self, fiducial_dfs, board_truth_dfs, body_truth_dfs, args, err_dfs=None):
         """Initialize the tab_fiducial class for plotting fiducial information."""
         self.fiducial_dfs = fiducial_dfs
         self.board_truth_dfs = board_truth_dfs
         self.body_truth_dfs = body_truth_dfs
+        self.err_dfs = err_dfs if err_dfs is not None else {}
         self.is_fid_extrinsic = 'fid_cov_0' in self.fiducial_dfs[0].keys()
         self.is_cam_extrinsic = 'cam_cov_0' in self.fiducial_dfs[0].keys()
 
@@ -83,24 +81,15 @@ class tab_fiducial:
             x_axis_label='Time [s]',
             y_axis_label='Position Error [mm]',
             title='Camera Extrinsic Position Error')
-        for fiducial_df, body_truth in zip(self.fiducial_dfs, self.body_truth_dfs):
-            true_t = body_truth['time']
-            true_p0 = body_truth[f"cam_pos_{fiducial_df.attrs['id']}_0"]
-            true_p1 = body_truth[f"cam_pos_{fiducial_df.attrs['id']}_1"]
-            true_p2 = body_truth[f"cam_pos_{fiducial_df.attrs['id']}_2"]
-
-            time = fiducial_df['time']
-            est_p0 = fiducial_df['cam_pos_0']
-            est_p1 = fiducial_df['cam_pos_1']
-            est_p2 = fiducial_df['cam_pos_2']
-
-            err_pos_0 = np.array(interpolate_error(true_t, true_p0, time, est_p0)) * 1e3
-            err_pos_1 = np.array(interpolate_error(true_t, true_p1, time, est_p1)) * 1e3
-            err_pos_2 = np.array(interpolate_error(true_t, true_p2, time, est_p2)) * 1e3
-
-            fig.line(time, err_pos_0, alpha=self.alpha, color=self.colors[0], legend_label='X')
-            fig.line(time, err_pos_1, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-            fig.line(time, err_pos_2, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        fid_pos_err_list = self.err_dfs.get('fiducial_pos_err', [])
+        for err_df in fid_pos_err_list:
+            time = err_df['time']
+            fig.line(time, err_df['x'] * 1e3, alpha=self.alpha,
+                     color=self.colors[0], legend_label='X')
+            fig.line(time, err_df['y'] * 1e3, alpha=self.alpha,
+                     color=self.colors[1], legend_label='Y')
+            fig.line(time, err_df['z'] * 1e3, alpha=self.alpha,
+                     color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_cam_ang_err(self):
@@ -111,25 +100,15 @@ class tab_fiducial:
             x_axis_label='Time [s]',
             y_axis_label='Angle Error [mrad]',
             title='Camera Extrinsic Angle Error')
-        for fiducial_df, body_truth in zip(self.fiducial_dfs, self.body_truth_dfs):
-            time = fiducial_df['time']
-            est_w = fiducial_df['cam_ang_pos_0']
-            est_x = fiducial_df['cam_ang_pos_1']
-            est_y = fiducial_df['cam_ang_pos_2']
-            est_z = fiducial_df['cam_ang_pos_3']
-            true_t = body_truth['time']
-            true_w = body_truth[f"cam_ang_pos_{fiducial_df.attrs['id']}_0"]
-            true_x = body_truth[f"cam_ang_pos_{fiducial_df.attrs['id']}_1"]
-            true_y = body_truth[f"cam_ang_pos_{fiducial_df.attrs['id']}_2"]
-            true_z = body_truth[f"cam_ang_pos_{fiducial_df.attrs['id']}_3"]
-
-            eul_err_x, eul_err_y, eul_err_z = interpolate_quat_error(
-                true_t, true_w, true_x, true_y, true_z,
-                time, est_w, est_x, est_y, est_z)
-
-            fig.line(time, eul_err_x, alpha=self.alpha, color=self.colors[0], legend_label='X')
-            fig.line(time, eul_err_y, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-            fig.line(time, eul_err_z, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        fid_ang_err_list = self.err_dfs.get('fiducial_ang_err', [])
+        for err_df in fid_ang_err_list:
+            time = err_df['time']
+            fig.line(time, err_df['x'] * 1e3, alpha=self.alpha,
+                     color=self.colors[0], legend_label='X')
+            fig.line(time, err_df['y'] * 1e3, alpha=self.alpha,
+                     color=self.colors[1], legend_label='Y')
+            fig.line(time, err_df['z'] * 1e3, alpha=self.alpha,
+                     color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_cam_pos_cov(self):
@@ -197,84 +176,21 @@ class tab_fiducial:
             y_axis_label='Angular',
             title='Fiducial Angle in Camera Frame')
 
-        for fiducial_df in self.fiducial_dfs:
-            time = fiducial_df['time']
-            board_qw = fiducial_df['board_meas_ang_0']
-            board_qx = fiducial_df['board_meas_ang_1']
-            board_qy = fiducial_df['board_meas_ang_2']
-            board_qz = fiducial_df['board_meas_ang_3']
-
-            board_a = []
-            board_b = []
-            board_g = []
-
-            # TODO(jhartzer): Use common euler function
-            for (w, x, y, z) in zip(board_qw, board_qx, board_qy, board_qz):
-                board_rot = Rotation.from_quat([w, x, y, z], scalar_first=True)
-                board_eul = board_rot.as_euler('XYZ')
-                board_a.append(board_eul[0])
-                board_b.append(board_eul[1])
-                board_g.append(board_eul[2])
-
-            time = fiducial_df['time']
-            fig.line(time, board_a, alpha=self.alpha, color=self.colors[0], legend_label='X')
-            fig.line(time, board_b, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-            fig.line(time, board_g, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        fiducial_meas_euler = self.err_dfs.get('fiducial_meas_euler', [])
+        for err_df in fiducial_meas_euler:
+            time = err_df['time']
+            fig.line(time, err_df['x'], alpha=self.alpha, color=self.colors[0], legend_label='X')
+            fig.line(time, err_df['y'], alpha=self.alpha, color=self.colors[1], legend_label='Y')
+            fig.line(time, err_df['z'], alpha=self.alpha, color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_fid_nees(self):
         """Plot fiducial normalized estimation error squared."""
         fig = figure(width=800, height=300, x_axis_label='Time [s]',
                      y_axis_label='NEES', title='Normalized Estimation Error Squared')
-        for fiducial_df, board_truth in zip(self.fiducial_dfs, self.board_truth_dfs):
-            t00 = np.array(board_truth['pos_x'])[0]
-            t01 = np.array(board_truth['pos_y'])[0]
-            t02 = np.array(board_truth['pos_z'])[0]
-            tw = np.array(board_truth['quat_w'])[0]
-            tx = np.array(board_truth['quat_x'])[0]
-            ty = np.array(board_truth['quat_y'])[0]
-            tz = np.array(board_truth['quat_z'])[0]
-
-            xt = fiducial_df['time']
-            e00 = fiducial_df['fid_pos_0'] - t00
-            e01 = fiducial_df['fid_pos_1'] - t01
-            e02 = fiducial_df['fid_pos_2'] - t02
-
-            e03 = []
-            e04 = []
-            e05 = []
-            for i in range(len(fiducial_df['fid_ang_0'])):
-                ew = fiducial_df['fid_ang_0'][i]
-                ex = fiducial_df['fid_ang_1'][i]
-                ey = fiducial_df['fid_ang_2'][i]
-                ez = fiducial_df['fid_ang_3'][i]
-                qt = Rotation.from_quat([tw, tx, ty, tz], scalar_first=True)
-                qe = Rotation.from_quat([ew, ex, ey, ez], scalar_first=True)
-                q_err = qt * qe.inv()
-                error_euler = q_err.as_euler('XYZ')
-                e03.append(error_euler[0] * 1e3)
-                e04.append(error_euler[1] * 1e3)
-                e05.append(error_euler[2] * 1e3)
-            e03 = np.array(e03)
-            e04 = np.array(e04)
-            e05 = np.array(e05)
-
-            c00 = fiducial_df['fid_cov_0']
-            c01 = fiducial_df['fid_cov_1']
-            c02 = fiducial_df['fid_cov_2']
-            c03 = fiducial_df['fid_cov_3']
-            c04 = fiducial_df['fid_cov_4']
-            c05 = fiducial_df['fid_cov_5']
-
-            nees = \
-                e00 * e00 / c00 / c00 + \
-                e01 * e01 / c01 / c01 + \
-                e02 * e02 / c02 / c02 + \
-                e03 * e03 / c03 / c03 + \
-                e04 * e04 / c04 / c04 + \
-                e05 * e05 / c05 / c05
-
-            fig.line(xt, nees, alpha=self.alpha, color=self.colors[0])
+        fid_nees_list = self.err_dfs.get('fiducial_nees', [])
+        for err_df in fid_nees_list:
+            fig.line(err_df['time'], err_df['nees'], alpha=self.alpha, color=self.colors[0])
 
         fig.hspan(y=chi2.ppf(0.025, df=6), line_color='red')
         fig.hspan(y=chi2.ppf(0.975, df=6), line_color='red')

@@ -16,6 +16,7 @@ RUN apt-get update && apt-get -y install \
     lcov \
     libeigen3-dev \
     libgtest-dev \
+    libhdf5-dev \
     libopencv-dev libopencv-contrib-dev \
     libyaml-cpp-dev \
     linux-tools-generic \

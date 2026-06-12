@@ -46,8 +46,8 @@ MsckfUpdater::MsckfUpdater(
 )
 : Updater(cam_id, logger),
   m_is_cam_extrinsic(is_extrinsic),
-  m_msckf_logger(log_file_directory, "msckf_" + std::to_string(cam_id) + ".csv"),
-  m_triangulation_logger(log_file_directory, "triangulation_" + std::to_string(cam_id) + ".csv")
+  m_msckf_logger(log_file_directory, "msckf_" + std::to_string(cam_id)),
+  m_triangulation_logger(log_file_directory, "triangulation_" + std::to_string(cam_id))
 {
   std::stringstream header;
   header << "time";

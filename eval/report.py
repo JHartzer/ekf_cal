@@ -64,27 +64,87 @@ def plot_sim_results(config_sets, args):
         body_state_dfs_dict = find_and_read_data_frames(data_dirs, 'body_state')
         aug_state_dfs_dict = find_and_read_data_frames(data_dirs, 'aug_state')
         body_truth_dfs_dict = find_and_read_data_frames(data_dirs, 'body_truth')
+
+        # Load body errors & NEES
+        body_pos_err_dfs = find_and_read_data_frames(data_dirs, 'body_pos_err').get(0, [])
+        body_vel_err_dfs = find_and_read_data_frames(data_dirs, 'body_vel_err').get(0, [])
+        body_acc_err_dfs = find_and_read_data_frames(data_dirs, 'body_acc_err').get(0, [])
+        body_ang_err_dfs = find_and_read_data_frames(data_dirs, 'body_ang_err').get(0, [])
+        body_ang_vel_err_dfs = find_and_read_data_frames(data_dirs, 'body_ang_vel_err').get(0, [])
+        body_ang_acc_err_dfs = find_and_read_data_frames(data_dirs, 'body_ang_acc_err').get(0, [])
+        body_nees_dfs = find_and_read_data_frames(data_dirs, 'body_nees').get(0, [])
+        body_euler_dfs = find_and_read_data_frames(data_dirs, 'body_euler').get(0, [])
+        aug_euler_dfs = find_and_read_data_frames(data_dirs, 'aug_euler').get(0, [])
+        body_err_dfs = {
+            'body_pos_err': body_pos_err_dfs,
+            'body_vel_err': body_vel_err_dfs,
+            'body_acc_err': body_acc_err_dfs,
+            'body_ang_err': body_ang_err_dfs,
+            'body_ang_vel_err': body_ang_vel_err_dfs,
+            'body_ang_acc_err': body_ang_acc_err_dfs,
+            'body_nees': body_nees_dfs,
+            'body_euler': body_euler_dfs,
+            'aug_euler': aug_euler_dfs,
+        }
+
         for key in body_state_dfs_dict:
             body_state_dfs = body_state_dfs_dict[key]
             aug_state_dfs = aug_state_dfs_dict[key]
             body_truth_dfs = body_truth_dfs_dict[key]
-            tabs.append(tab_body(body_state_dfs, aug_state_dfs, body_truth_dfs, args).get_tab())
+            tabs.append(tab_body(
+                body_state_dfs, aug_state_dfs, body_truth_dfs, args,
+                err_dfs=body_err_dfs).get_tab())
+
+        # Load IMU errors & NEES
+        imu_pos_err_dfs_dict = find_and_read_data_frames(data_dirs, 'imu_pos_err')
+        imu_ang_err_dfs_dict = find_and_read_data_frames(data_dirs, 'imu_ang_err')
+        imu_acc_bias_err_dfs_dict = find_and_read_data_frames(data_dirs, 'imu_acc_bias_err')
+        imu_gyr_bias_err_dfs_dict = find_and_read_data_frames(data_dirs, 'imu_gyr_bias_err')
+        imu_nees_dfs_dict = find_and_read_data_frames(data_dirs, 'imu_nees')
 
         imu_dfs_dict = find_and_read_data_frames(data_dirs, 'imu')
         for key in sorted(imu_dfs_dict.keys()):
             imu_dfs = imu_dfs_dict[key]
             body_truth_dfs = body_truth_dfs_dict[0]
-            tabs.append(tab_imu(imu_dfs, body_truth_dfs, args).get_tab())
+            imu_err_dfs = {
+                'imu_pos_err': imu_pos_err_dfs_dict.get(key, []),
+                'imu_ang_err': imu_ang_err_dfs_dict.get(key, []),
+                'imu_acc_bias_err': imu_acc_bias_err_dfs_dict.get(key, []),
+                'imu_gyr_bias_err': imu_gyr_bias_err_dfs_dict.get(key, []),
+                'imu_nees': imu_nees_dfs_dict.get(key, []),
+            }
+            tabs.append(tab_imu(imu_dfs, body_truth_dfs, args, err_dfs=imu_err_dfs).get_tab())
+
+        # Load MSCKF errors & NEES
+        cam_pos_err_dfs_dict = find_and_read_data_frames(data_dirs, 'cam_pos_err')
+        cam_ang_err_dfs_dict = find_and_read_data_frames(data_dirs, 'cam_ang_err')
+        cam_nees_dfs_dict = find_and_read_data_frames(data_dirs, 'cam_nees')
 
         mskcf_dfs_dict = find_and_read_data_frames(data_dirs, 'msckf')
         tri_dfs_dict = find_and_read_data_frames(data_dirs, 'triangulation')
         feat_dfs_dict = find_and_read_data_frames(data_dirs, 'feature_points')
+        tri_err_dfs_dict = find_and_read_data_frames(data_dirs, 'triangulation_err')
+
         for key in sorted(mskcf_dfs_dict.keys()):
             mskcf_dfs = mskcf_dfs_dict[key]
             tri_dfs = tri_dfs_dict[key]
             feat_dfs = feat_dfs_dict[0]
             body_truth_dfs = body_truth_dfs_dict[0]
-            tabs.append(tab_msckf(mskcf_dfs, tri_dfs, feat_dfs, body_truth_dfs, args).get_tab())
+            cam_err_dfs = {
+                'cam_pos_err': cam_pos_err_dfs_dict.get(key, []),
+                'cam_ang_err': cam_ang_err_dfs_dict.get(key, []),
+                'cam_nees': cam_nees_dfs_dict.get(key, []),
+                'triangulation_err': tri_err_dfs_dict.get(key, []),
+            }
+            tabs.append(tab_msckf(
+                mskcf_dfs, tri_dfs, feat_dfs, body_truth_dfs, args,
+                err_dfs=cam_err_dfs).get_tab())
+
+        # Load Fiducial errors & NEES
+        fiducial_pos_err_dfs_dict = find_and_read_data_frames(data_dirs, 'fiducial_pos_err')
+        fiducial_ang_err_dfs_dict = find_and_read_data_frames(data_dirs, 'fiducial_ang_err')
+        fiducial_nees_dfs_dict = find_and_read_data_frames(data_dirs, 'fiducial_nees')
+        fiducial_meas_euler_dfs_dict = find_and_read_data_frames(data_dirs, 'fiducial_meas_euler')
 
         fiducial_dfs_dict = find_and_read_data_frames(data_dirs, 'fiducial')
         board_truth_dfs_dict = find_and_read_data_frames(data_dirs, 'board_truth')
@@ -92,13 +152,29 @@ def plot_sim_results(config_sets, args):
             fiducial_dfs = fiducial_dfs_dict[key]
             board_dfs = board_truth_dfs_dict[0]
             body_truth_dfs = body_truth_dfs_dict[0]
-            tabs.append(tab_fiducial(fiducial_dfs, board_dfs, body_truth_dfs, args).get_tab())
+            fiducial_err_dfs = {
+                'fiducial_pos_err': fiducial_pos_err_dfs_dict.get(key, []),
+                'fiducial_ang_err': fiducial_ang_err_dfs_dict.get(key, []),
+                'fiducial_nees': fiducial_nees_dfs_dict.get(key, []),
+                'fiducial_meas_euler': fiducial_meas_euler_dfs_dict.get(key, []),
+            }
+            tabs.append(tab_fiducial(
+                fiducial_dfs, board_dfs, body_truth_dfs, args,
+                err_dfs=fiducial_err_dfs).get_tab())
+
+        # Load GPS errors & NEES
+        gps_pos_err_dfs_dict = find_and_read_data_frames(data_dirs, 'gps_pos_err')
+        gps_nees_dfs_dict = find_and_read_data_frames(data_dirs, 'gps_nees')
 
         gps_dfs_dict = find_and_read_data_frames(data_dirs, 'gps')
         for key in sorted(gps_dfs_dict.keys()):
             gps_dfs = gps_dfs_dict[key]
             body_truth_dfs = body_truth_dfs_dict[0]
-            tabs.append(tab_gps(gps_dfs, body_truth_dfs, args).get_tab())
+            gps_err_dfs = {
+                'gps_pos_err': gps_pos_err_dfs_dict.get(key, []),
+                'gps_nees': gps_nees_dfs_dict.get(key, []),
+            }
+            tabs.append(tab_gps(gps_dfs, body_truth_dfs, args, err_dfs=gps_err_dfs).get_tab())
 
         # Hide legends on click
         for tab in tabs:

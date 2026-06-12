@@ -36,8 +36,8 @@
 
 EKF::EKF(Parameters params)
 : m_debug_logger(params.debug_logger),
-  m_data_logger(params.log_directory, "body_state.csv"),
-  m_augmentation_logger(params.log_directory, "aug_state.csv"),
+  m_data_logger(params.log_directory, "body_state"),
+  m_augmentation_logger(params.log_directory, "aug_state"),
   m_data_log_rate(params.data_log_rate),
   m_gps_init_type(params.gps_init_type),
   m_gps_init_pos_thresh(params.gps_init_pos_thresh),

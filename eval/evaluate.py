@@ -43,6 +43,13 @@ if __name__ == '__main__':
     add_jobs(args)
 
     config_files = generate_mc_lists(args)
+
+    # Merge individual run HDF5 files into a single top-level HDF5 file named after the config file
+    from utilities import merge_mc_hdf5_files
+    for j, config_set in enumerate(config_files):
+        merge_mc_hdf5_files(config_set, args.inputs[j])
+
+    calc_sim_stats(config_files, args)
+
     if (not args.no_plot):
         plot_sim_results(config_files, args)
-    calc_sim_stats(config_files, args)

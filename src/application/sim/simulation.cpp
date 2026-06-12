@@ -200,6 +200,7 @@ int main(int argc, char * argv[])
   /// @todo: Add overriding no_errors option
   YAML::Node sim_params = ros_params["sim_params"];
   unsigned int rng_seed = sim_params["seed"].as<unsigned int>(1);
+  unsigned int run_number = sim_params["run_number"].as<unsigned int>(0);
   double max_time = sim_params["max_time"].as<double>(10.0);
 
   if (rng_seed > 0) {
@@ -498,7 +499,9 @@ int main(int argc, char * argv[])
   }
 
   // Log truth data
-  if (data_log_rate != 0.0) {truth_engine->WriteTruthData(data_log_rate, log_directory);}
+  if (data_log_rate != 0.0 && run_number == 0) {
+    truth_engine->WriteTruthData(data_log_rate, log_directory);
+  }
 
   // Sort Measurements
   sort(messages.begin(), messages.end(), MessageCompare);

@@ -18,16 +18,14 @@
 from bokeh.layouts import layout
 from bokeh.models import Range1d, Spacer, TabPanel
 from bokeh.plotting import figure
-import numpy as np
 from scipy.stats.distributions import chi2
-from utilities import calculate_alpha, get_colors, interpolate_error, \
-    interpolate_quat_error, plot_update_timing
+from utilities import calculate_alpha, get_colors, plot_update_timing
 
 
 class tab_imu:
     """Class for plotting IMU data."""
 
-    def __init__(self, imu_dfs, body_truth_dfs, args):
+    def __init__(self, imu_dfs, body_truth_dfs, args, err_dfs=None):
         """Initialize the tab_imu class for plotting IMU information."""
         self.imu_dfs = imu_dfs
         self.body_truth_dfs = body_truth_dfs
@@ -35,6 +33,7 @@ class tab_imu:
         self.is_intrinsic = 'imu_int_cov_0' in self.imu_dfs[0].keys()
         self.alpha = calculate_alpha(len(self.imu_dfs))
         self.colors = get_colors(args)
+        self.err_dfs = err_dfs if err_dfs is not None else {}
 
     def plot_acc_measurements(self):
         """Plot acceleration measurements."""
@@ -117,24 +116,15 @@ class tab_imu:
             y_axis_label='Position Error [mm]',
             title='Extrinsic Position Error')
 
-        for i, (imu_df, body_truth) in enumerate(zip(self.imu_dfs, self.body_truth_dfs)):
-            time = self.imu_dfs[i]['time']
-            est_x = np.array(self.imu_dfs[i]['imu_pos_0'])
-            est_y = np.array(self.imu_dfs[i]['imu_pos_1'])
-            est_z = np.array(self.imu_dfs[i]['imu_pos_2'])
-
-            true_t = body_truth['time']
-            true_x = body_truth[f"imu_pos_{imu_df.attrs['id']}_0"]
-            true_y = body_truth[f"imu_pos_{imu_df.attrs['id']}_1"]
-            true_z = body_truth[f"imu_pos_{imu_df.attrs['id']}_2"]
-
-            pos_x = np.array(interpolate_error(true_t, true_x, time, est_x))
-            pos_y = np.array(interpolate_error(true_t, true_y, time, est_y))
-            pos_z = np.array(interpolate_error(true_t, true_z, time, est_z))
-
-            fig.line(time, pos_x * 1e3, alpha=self.alpha, color=self.colors[0], legend_label='X')
-            fig.line(time, pos_y * 1e3, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-            fig.line(time, pos_z * 1e3, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        imu_pos_err_list = self.err_dfs.get('imu_pos_err', [])
+        for err_df in imu_pos_err_list:
+            time = err_df['time']
+            fig.line(time, err_df['x'] * 1e3, alpha=self.alpha,
+                     color=self.colors[0], legend_label='X')
+            fig.line(time, err_df['y'] * 1e3, alpha=self.alpha,
+                     color=self.colors[1], legend_label='Y')
+            fig.line(time, err_df['z'] * 1e3, alpha=self.alpha,
+                     color=self.colors[2], legend_label='Z')
 
         return fig
 
@@ -146,24 +136,15 @@ class tab_imu:
             x_axis_label='Time [s]',
             y_axis_label='Angle Error [mrad]',
             title='Extrinsic Angle Error')
-        for imu_df, body_truth in zip(self.imu_dfs, self.body_truth_dfs):
-            est_t = imu_df['time']
-            est_w = imu_df['imu_ang_pos_0']
-            est_x = imu_df['imu_ang_pos_1']
-            est_y = imu_df['imu_ang_pos_2']
-            est_z = imu_df['imu_ang_pos_3']
-            true_t = body_truth['time']
-            true_w = body_truth[f"imu_ang_pos_{imu_df.attrs['id']}_0"]
-            true_x = body_truth[f"imu_ang_pos_{imu_df.attrs['id']}_1"]
-            true_y = body_truth[f"imu_ang_pos_{imu_df.attrs['id']}_2"]
-            true_z = body_truth[f"imu_ang_pos_{imu_df.attrs['id']}_3"]
-
-            eul_err_x, eul_err_y, eul_err_z = interpolate_quat_error(
-                true_t, true_w, true_x, true_y, true_z, est_t, est_w, est_x, est_y, est_z)
-
-            fig.line(est_t, eul_err_x, alpha=self.alpha, color=self.colors[0], legend_label='X')
-            fig.line(est_t, eul_err_y, alpha=self.alpha, color=self.colors[1], legend_label='Y')
-            fig.line(est_t, eul_err_z, alpha=self.alpha, color=self.colors[2], legend_label='Z')
+        imu_ang_err_list = self.err_dfs.get('imu_ang_err', [])
+        for err_df in imu_ang_err_list:
+            time = err_df['time']
+            fig.line(time, err_df['x'] * 1e3, alpha=self.alpha,
+                     color=self.colors[0], legend_label='X')
+            fig.line(time, err_df['y'] * 1e3, alpha=self.alpha,
+                     color=self.colors[1], legend_label='Y')
+            fig.line(time, err_df['z'] * 1e3, alpha=self.alpha,
+                     color=self.colors[2], legend_label='Z')
         return fig
 
     def plot_acc_bias_err(self):
@@ -174,30 +155,12 @@ class tab_imu:
             x_axis_label='Time [s]',
             y_axis_label='Bias Error [m]',
             title='Accelerometer Bias Error')
-        n = np.max([len(imu_df) for imu_df in self.imu_dfs])
-        a_bias_err_x = np.zeros([len(self.imu_dfs), n])
-        a_bias_err_y = np.zeros([len(self.imu_dfs), n])
-        a_bias_err_z = np.zeros([len(self.imu_dfs), n])
-
-        for i, (imu_df, body_truth) in enumerate(zip(self.imu_dfs, self.body_truth_dfs)):
-            m = len(self.imu_dfs[i]['time'])
-            time = self.imu_dfs[i]['time']
-            est_x = np.array(self.imu_dfs[i]['imu_acc_bias_0'])
-            est_y = np.array(self.imu_dfs[i]['imu_acc_bias_1'])
-            est_z = np.array(self.imu_dfs[i]['imu_acc_bias_2'])
-
-            true_t = body_truth['time']
-            true_x = body_truth[f"imu_acc_bias_{imu_df.attrs['id']}_0"]
-            true_y = body_truth[f"imu_acc_bias_{imu_df.attrs['id']}_1"]
-            true_z = body_truth[f"imu_acc_bias_{imu_df.attrs['id']}_2"]
-
-            a_bias_err_x[i, 0:m] = interpolate_error(true_t, true_x, time, est_x)
-            a_bias_err_y[i, 0:m] = interpolate_error(true_t, true_y, time, est_y)
-            a_bias_err_z[i, 0:m] = interpolate_error(true_t, true_z, time, est_z)
-
-            fig.line(time, a_bias_err_x[i, :], color=self.colors[0], alpha=self.alpha)
-            fig.line(time, a_bias_err_y[i, :], color=self.colors[1], alpha=self.alpha)
-            fig.line(time, a_bias_err_z[i, :], color=self.colors[2], alpha=self.alpha)
+        imu_acc_bias_err_list = self.err_dfs.get('imu_acc_bias_err', [])
+        for err_df in imu_acc_bias_err_list:
+            time = err_df['time']
+            fig.line(time, err_df['x'], color=self.colors[0], alpha=self.alpha)
+            fig.line(time, err_df['y'], color=self.colors[1], alpha=self.alpha)
+            fig.line(time, err_df['z'], color=self.colors[2], alpha=self.alpha)
 
         return fig
 
@@ -209,31 +172,12 @@ class tab_imu:
             x_axis_label='Time [s]',
             y_axis_label='Bias Error [m]',
             title='Gyroscope Bias Error')
-        n = np.max([len(imu_df) for imu_df in self.imu_dfs])
-        w_bias_t = np.zeros([len(self.imu_dfs), n])
-        w_bias_err_x = np.zeros([len(self.imu_dfs), n])
-        w_bias_err_y = np.zeros([len(self.imu_dfs), n])
-        w_bias_err_z = np.zeros([len(self.imu_dfs), n])
-
-        for i, (imu_df, body_truth) in enumerate(zip(self.imu_dfs, self.body_truth_dfs)):
-            m = len(self.imu_dfs[i]['time'])
-            w_bias_t[i, 0:m] = self.imu_dfs[i]['time']
-            w_bias_x = np.array(self.imu_dfs[i]['imu_gyr_bias_0'])
-            w_bias_y = np.array(self.imu_dfs[i]['imu_gyr_bias_1'])
-            w_bias_z = np.array(self.imu_dfs[i]['imu_gyr_bias_2'])
-
-            true_t = body_truth['time']
-            true_x = body_truth[f"imu_gyr_bias_{imu_df.attrs['id']}_0"]
-            true_y = body_truth[f"imu_gyr_bias_{imu_df.attrs['id']}_1"]
-            true_z = body_truth[f"imu_gyr_bias_{imu_df.attrs['id']}_2"]
-
-            w_bias_err_x[i, 0:m] = interpolate_error(true_t, true_x, w_bias_err_x[i, :], w_bias_x)
-            w_bias_err_y[i, 0:m] = interpolate_error(true_t, true_y, w_bias_err_y[i, :], w_bias_y)
-            w_bias_err_z[i, 0:m] = interpolate_error(true_t, true_z, w_bias_err_z[i, :], w_bias_z)
-
-            fig.line(w_bias_t[i, :], w_bias_err_x[i, :], color=self.colors[0], alpha=self.alpha)
-            fig.line(w_bias_t[i, :], w_bias_err_y[i, :], color=self.colors[1], alpha=self.alpha)
-            fig.line(w_bias_t[i, :], w_bias_err_z[i, :], color=self.colors[2], alpha=self.alpha)
+        imu_gyr_bias_err_list = self.err_dfs.get('imu_gyr_bias_err', [])
+        for err_df in imu_gyr_bias_err_list:
+            time = err_df['time']
+            fig.line(time, err_df['x'], color=self.colors[0], alpha=self.alpha)
+            fig.line(time, err_df['y'], color=self.colors[1], alpha=self.alpha)
+            fig.line(time, err_df['z'], color=self.colors[2], alpha=self.alpha)
 
         return fig
 
@@ -340,89 +284,16 @@ class tab_imu:
         """Plot IMU normalized estimation error squared."""
         fig = figure(width=800, height=300, x_axis_label='Time [s]',
                      y_axis_label='NEES', title='Normalized Estimation Error Squared')
-        for imu_df, body_truth in zip(self.imu_dfs, self.body_truth_dfs):
-            xt = imu_df['time']
-            tt = body_truth['time']
-            nees = np.zeros(len(xt))
-            dof = 0
+        imu_nees_list = self.err_dfs.get('imu_nees', [])
 
-            if self.is_extrinsic:
-                dof += 6
-                x00 = imu_df['imu_pos_0']
-                x01 = imu_df['imu_pos_1']
-                x02 = imu_df['imu_pos_2']
-                xw = imu_df['imu_ang_pos_0']
-                xx = imu_df['imu_ang_pos_1']
-                xy = imu_df['imu_ang_pos_2']
-                xz = imu_df['imu_ang_pos_3']
+        for err_df in imu_nees_list:
+            fig.line(err_df['time'], err_df['nees'], alpha=self.alpha, color=self.colors[0])
 
-                c00 = imu_df['imu_ext_cov_0']
-                c01 = imu_df['imu_ext_cov_1']
-                c02 = imu_df['imu_ext_cov_2']
-                c03 = imu_df['imu_ext_cov_3']
-                c04 = imu_df['imu_ext_cov_4']
-                c05 = imu_df['imu_ext_cov_5']
-
-                t00 = body_truth[f"imu_pos_{self.imu_dfs[0].attrs['id']}_0"]
-                t01 = body_truth[f"imu_pos_{self.imu_dfs[0].attrs['id']}_1"]
-                t02 = body_truth[f"imu_pos_{self.imu_dfs[0].attrs['id']}_2"]
-                tw = body_truth[f"imu_ang_pos_{self.imu_dfs[0].attrs['id']}_0"]
-                tx = body_truth[f"imu_ang_pos_{self.imu_dfs[0].attrs['id']}_1"]
-                ty = body_truth[f"imu_ang_pos_{self.imu_dfs[0].attrs['id']}_2"]
-                tz = body_truth[f"imu_ang_pos_{self.imu_dfs[0].attrs['id']}_3"]
-
-                e00 = interpolate_error(tt, t00, xt, x00)
-                e01 = interpolate_error(tt, t01, xt, x01)
-                e02 = interpolate_error(tt, t02, xt, x02)
-                e03, e04, e05 = interpolate_quat_error(tt, tw, tx, ty, tz, xt, xw, xx, xy, xz)
-
-                nees += \
-                    e00 * e00 / c00 / c00 + \
-                    e01 * e01 / c01 / c01 + \
-                    e02 * e02 / c02 / c02 + \
-                    e03 * e03 / c03 / c03 + \
-                    e04 * e04 / c04 / c04 + \
-                    e05 * e05 / c05 / c05
-
-            if self.is_intrinsic:
-                dof += 6
-                x06 = imu_df['imu_acc_bias_0']
-                x07 = imu_df['imu_acc_bias_1']
-                x08 = imu_df['imu_acc_bias_2']
-                x09 = imu_df['imu_gyr_bias_0']
-                x10 = imu_df['imu_gyr_bias_1']
-                x11 = imu_df['imu_gyr_bias_2']
-
-                c06 = imu_df['imu_int_cov_0']
-                c07 = imu_df['imu_int_cov_1']
-                c08 = imu_df['imu_int_cov_2']
-                c09 = imu_df['imu_int_cov_3']
-                c10 = imu_df['imu_int_cov_4']
-                c11 = imu_df['imu_int_cov_5']
-
-                t06 = body_truth[f"imu_acc_bias_{imu_df.attrs['id']}_0"]
-                t07 = body_truth[f"imu_acc_bias_{imu_df.attrs['id']}_1"]
-                t08 = body_truth[f"imu_acc_bias_{imu_df.attrs['id']}_2"]
-                t09 = body_truth[f"imu_gyr_bias_{imu_df.attrs['id']}_0"]
-                t10 = body_truth[f"imu_gyr_bias_{imu_df.attrs['id']}_1"]
-                t11 = body_truth[f"imu_gyr_bias_{imu_df.attrs['id']}_2"]
-
-                e06 = interpolate_error(tt, t06, xt, x06)
-                e07 = interpolate_error(tt, t07, xt, x07)
-                e08 = interpolate_error(tt, t08, xt, x08)
-                e09 = interpolate_error(tt, t09, xt, x09)
-                e10 = interpolate_error(tt, t10, xt, x10)
-                e11 = interpolate_error(tt, t11, xt, x11)
-
-                nees += \
-                    e06 * e06 / c06 / c06 + \
-                    e07 * e07 / c07 / c07 + \
-                    e08 * e08 / c08 / c08 + \
-                    e09 * e09 / c09 / c09 + \
-                    e10 * e10 / c10 / c10 + \
-                    e11 * e11 / c11 / c11
-
-            fig.line(xt, nees, alpha=self.alpha, color=self.colors[0])
+        dof = 0
+        if self.is_extrinsic:
+            dof += 6
+        if self.is_intrinsic:
+            dof += 6
 
         fig.hspan(y=chi2.ppf(0.025, df=dof), line_color='red')
         fig.hspan(y=chi2.ppf(0.975, df=dof), line_color='red')
