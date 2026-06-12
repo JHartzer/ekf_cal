@@ -1,3 +1,6 @@
+# Build files
+build/
+
 # Python Cache Files
 *.pyc
 */__pycache__/
