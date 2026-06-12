@@ -81,6 +81,7 @@ EkfCalNode::EkfCalNode()
   declare_parameter("imu_noise_scale_factor", 100.0);
   declare_parameter("use_root_covariance", true);
   declare_parameter("use_first_estimate_jacobian", false);
+  declare_parameter("use_rk4", false);
 
   // Declare Sensor Lists
   declare_parameter("imu_list", std::vector<std::string>{});
@@ -130,6 +131,7 @@ void EkfCalNode::Initialize()
   ekf_params.use_root_covariance = get_parameter("use_root_covariance").as_bool();
   ekf_params.use_first_estimate_jacobian =
     get_parameter("use_first_estimate_jacobian").as_bool();
+  ekf_params.use_rk4 = get_parameter("use_rk4").as_bool();
   ekf_params.imu_noise_scale_factor = get_parameter("imu_noise_scale_factor").as_double();
 
   // Load lists of sensors

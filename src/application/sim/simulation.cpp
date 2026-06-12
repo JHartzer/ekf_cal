@@ -191,6 +191,7 @@ int main(int argc, char * argv[])
   ekf_params.use_root_covariance = ros_params["use_root_covariance"].as<bool>(true);
   ekf_params.use_first_estimate_jacobian =
     ros_params["use_first_estimate_jacobian"].as<bool>(false);
+  ekf_params.use_rk4 = ros_params["use_rk4"].as<bool>(false);
   if (trackers.empty()) {
     ekf_params.augmenting_type = AugmentationType::NONE;
   }

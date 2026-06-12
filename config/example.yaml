@@ -35,6 +35,7 @@
         motion_detection_chi_squared: 1.0     # Chi-Squared value for motion detection
         use_root_covariance: true             # Flag to utilize the square root form of covariance
         use_first_estimate_jacobian: true     # Flag to utilize the first estimate Jacobian
+        use_rk4:                     true     # Flag to use the RK4 estimate of orientation
 
         sim_params:
             seed: 1                           # Seed to provide to random number generator

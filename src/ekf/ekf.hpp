@@ -62,6 +62,7 @@ public:
     double imu_noise_scale_factor {100.0};       ///< @brief Motion detection IMU noise scale factor
     bool use_root_covariance{false};  ///< @brief Flag to use the square-root form of Kalman filter
     bool use_first_estimate_jacobian{false};  ///< @brief Flag to use first estimate Jacobians
+    bool use_rk4{false};                      ///< @brief Flag to use RK4 orientation propagation
   } Parameters;
 
   ///
@@ -380,6 +381,12 @@ public:
   bool GetUseFirstEstimateJacobian() const;
 
   ///
+  /// @brief Getter for use RK4 propagation flag
+  /// @return Use RK4 propagation flag
+  ///
+  bool GetUseRK4() const;
+
+  ///
   /// @brief Calculate UTF time to local EKF time
   /// @return EKF time
   ///
@@ -442,6 +449,7 @@ private:
 
   bool m_use_root_covariance{true};
   bool m_use_first_estimate_jacobian{false};
+  bool m_use_rk4{false};
   bool m_is_zero_acceleration{true};
   bool m_frame_received_since_last_aug {true};
 };
