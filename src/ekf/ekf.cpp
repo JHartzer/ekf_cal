@@ -52,7 +52,8 @@ EKF::EKF(Parameters params)
   m_motion_detection_chi_squared(params.motion_detection_chi_squared),
   m_imu_noise_scale_factor(params.imu_noise_scale_factor),
   m_use_root_covariance(params.use_root_covariance),
-  m_use_first_estimate_jacobian(params.use_first_estimate_jacobian)
+  m_use_first_estimate_jacobian(params.use_first_estimate_jacobian),
+  m_use_rk4(params.use_rk4)
 {
   std::stringstream body_header;
   body_header << "time";
@@ -116,7 +117,6 @@ void EKF::LogBodyStateIfNeeded(int execution_count)
   }
 }
 
-/// @todo: Use RK4 or other higher-order prediction step
 void EKF::PredictModel(double local_time)
 {
   m_debug_logger->Log(LogLevel::DEBUG, "EKF::Predict at t=" + std::to_string(local_time));
@@ -143,15 +143,50 @@ void EKF::PredictModel(double local_time)
       acceleration_local = acc_b_in_l - g_gravity;
     }
 
-    Eigen::Vector3d rot_vec(
-      ang_vel_in_b[0] * delta_time,
-      ang_vel_in_b[1] * delta_time,
-      ang_vel_in_b[2] * delta_time
-    );
+    if (m_use_rk4) {
+      Eigen::Quaterniond q_n = m_state.body_state.ang_b_to_l;
+      Eigen::Vector3d omega_0 = m_state.body_state.ang_vel_b_in_l;
+      Eigen::Vector3d alpha_0 = m_state.body_state.ang_acc_b_in_l;
+      double h = delta_time;
+
+      Eigen::Quaterniond omega_1(0.0, omega_0.x(), omega_0.y(), omega_0.z());
+      Eigen::Quaterniond K1 = omega_1 * q_n;
+
+      Eigen::Quaterniond q2;
+      q2.coeffs() = q_n.coeffs() + 0.25 * h * K1.coeffs();
+
+      Eigen::Vector3d omega_mid = omega_0 + 0.5 * h * alpha_0;
+      Eigen::Quaterniond omega_2(0.0, omega_mid.x(), omega_mid.y(), omega_mid.z());
+      Eigen::Quaterniond K2 = omega_2 * q2;
+
+      Eigen::Quaterniond q3;
+      q3.coeffs() = q_n.coeffs() + 0.25 * h * K2.coeffs();
+
+      Eigen::Quaterniond K3 = omega_2 * q3;
+
+      Eigen::Quaterniond q4;
+      q4.coeffs() = q_n.coeffs() + 0.5 * h * K3.coeffs();
+
+      Eigen::Vector3d omega_end = omega_0 + h * alpha_0;
+      Eigen::Quaterniond omega_4(0.0, omega_end.x(), omega_end.y(), omega_end.z());
+      Eigen::Quaterniond K4 = omega_4 * q4;
+
+      Eigen::Quaterniond q_next;
+      q_next.coeffs() = q_n.coeffs() + (h / 12.0) * (K1.coeffs() + 2.0 * K2.coeffs() + 2.0 * K3.coeffs() + K4.coeffs());
+      q_next.normalize();
+
+      m_state.body_state.ang_b_to_l = q_next;
+    } else {
+      Eigen::Vector3d rot_vec(
+        ang_vel_in_b[0] * delta_time,
+        ang_vel_in_b[1] * delta_time,
+        ang_vel_in_b[2] * delta_time
+      );
+      m_state.body_state.ang_b_to_l = RotVecToQuat(rot_vec) * m_state.body_state.ang_b_to_l;
+    }
 
     m_state.body_state.vel_b_in_l += delta_time * acceleration_local;
     m_state.body_state.pos_b_in_l += delta_time * m_state.body_state.vel_b_in_l;
-    m_state.body_state.ang_b_to_l = RotVecToQuat(rot_vec) * m_state.body_state.ang_b_to_l;
 
     Eigen::MatrixXd state_transition = GetStateTransition(delta_time);
     unsigned int alt_size = m_state_size - g_body_state_size;
@@ -469,8 +504,8 @@ void EKF::AugmentStateIfNeeded()
         ang_vel_b_in_l[2] * delta_time);
 
       Eigen::Vector3d delta_ang = QuatToRotVec(
-        m_state.body_state.ang_b_to_l * RotVecToQuat(rot_vec).inverse() *
-        last_aug.ang_b_to_l.inverse());
+        m_state.body_state.ang_b_to_l * RotVecToQuat(rot_vec).conjugate() *
+        last_aug.ang_b_to_l.conjugate());
 
       if (delta_pos.norm() > m_augmenting_pos_error || delta_ang.norm() > m_augmenting_ang_error) {
         augmented_state_needed = true;
@@ -860,6 +895,11 @@ bool EKF::GetUseRootCovariance() const
 bool EKF::GetUseFirstEstimateJacobian() const
 {
   return m_use_first_estimate_jacobian;
+}
+
+bool EKF::GetUseRK4() const
+{
+  return m_use_rk4;
 }
 
 double EKF::CalculateLocalTime(double time)

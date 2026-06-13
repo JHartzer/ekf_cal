@@ -259,16 +259,15 @@ bool kabsch_2d(
   return true;
 }
 
-/// @todo This method uses integers for distance, where doubles would be more accurate
 double maximum_distance(const std::vector<Eigen::Vector3d> & eigen_points)
 {
-  std::vector<cv::Point> points;
-  std::vector<cv::Point> hull;
-  for (auto eigen_point : eigen_points) {
-    cv::Point cv_point;
-    cv_point.x = static_cast<int>(eigen_point.x());
-    cv_point.y = static_cast<int>(eigen_point.y());
-    points.push_back(cv_point);
+  std::vector<cv::Point2f> points;
+  std::vector<cv::Point2f> hull;
+  for (const auto & eigen_point : eigen_points) {
+    points.push_back(cv::Point2f(
+      static_cast<float>(eigen_point.x()),
+      static_cast<float>(eigen_point.y())
+    ));
   }
   cv::convexHull(points, hull);
 

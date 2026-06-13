@@ -155,12 +155,12 @@ void TruthEngine::GenerateGridFeatures()
       double grid_size_double = static_cast<double>(m_grid_size);
       double grid_x = (static_cast<double>(i) / grid_size_double * m_room_size) - (m_room_size / 2);
       double grid_y = (static_cast<double>(j) / grid_size_double * m_room_size) - (m_room_size / 2);
-      m_feature_points.push_back(cv::Point3d(m_room_size / 2.0, grid_x, grid_y));
-      m_feature_points.push_back(cv::Point3d(-m_room_size / 2.0, grid_x, grid_y));
-      m_feature_points.push_back(cv::Point3d(grid_x, m_room_size / 2.0, grid_y));
-      m_feature_points.push_back(cv::Point3d(grid_x, -m_room_size / 2.0, grid_y));
-      m_feature_points.push_back(cv::Point3d(grid_x, grid_y, m_room_size / 2.0));
-      m_feature_points.push_back(cv::Point3d(grid_x, grid_y, -m_room_size / 2.0));
+      m_feature_points.emplace_back(m_room_size / 2.0, grid_x, grid_y);
+      m_feature_points.emplace_back(-m_room_size / 2.0, grid_x, grid_y);
+      m_feature_points.emplace_back(grid_x, m_room_size / 2.0, grid_y);
+      m_feature_points.emplace_back(grid_x, -m_room_size / 2.0, grid_y);
+      m_feature_points.emplace_back(grid_x, grid_y, m_room_size / 2.0);
+      m_feature_points.emplace_back(grid_x, grid_y, -m_room_size / 2.0);
     }
   }
 

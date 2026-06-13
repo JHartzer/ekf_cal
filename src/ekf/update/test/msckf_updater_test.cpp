@@ -77,7 +77,7 @@ TEST(test_msckf_updater, update) {
   ekf.RegisterCamera(cam_id, cam_state, cam_cov);
 
   auto logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
-  auto msckf_updater = MsckfUpdater(1, false, "", 0.0, 1.0, logger);
+  auto msckf_updater = MsckfUpdater(1, false, "", 0.0, 1.0, 100.0, false, logger);
 
   double time {0.3};
   cv::KeyPoint point_1;

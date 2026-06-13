@@ -79,6 +79,8 @@ public:
     int threshold {20};                       ///< @brief Threshold
     double px_error{1e-9};                    ///< @brief Pixel error standard deviation
     double min_feat_dist {1.0};               ///< @brief Minimum feature distance to consider
+    double max_feat_dist {100.0};             ///< @brief Maximum feature distance to consider
+    bool use_true_triangulation {false};      ///< @brief Flag to use true feature position for triangulation
     bool down_sample {false};                 ///< @brief Flag to perform down-sampling
     int down_sample_height {480};             ///< @brief Down-sampled height to use for tracking
     int down_sample_width {640};              ///< @brief Down-sampled width to use for tracking
@@ -98,7 +100,7 @@ public:
   /// @param cols Number of final columns to consider
   /// @return Down sampled key points
   ///
-  static std::vector<cv::KeyPoint> GridFeatures(
+  static void GridFeatures(
     std::vector<cv::KeyPoint> & key_points,
     int rows,
     int cols

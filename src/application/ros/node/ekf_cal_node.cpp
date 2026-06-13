@@ -81,6 +81,7 @@ EkfCalNode::EkfCalNode()
   declare_parameter("imu_noise_scale_factor", 100.0);
   declare_parameter("use_root_covariance", true);
   declare_parameter("use_first_estimate_jacobian", false);
+  declare_parameter("use_rk4", false);
 
   // Declare Sensor Lists
   declare_parameter("imu_list", std::vector<std::string>{});
@@ -130,6 +131,7 @@ void EkfCalNode::Initialize()
   ekf_params.use_root_covariance = get_parameter("use_root_covariance").as_bool();
   ekf_params.use_first_estimate_jacobian =
     get_parameter("use_first_estimate_jacobian").as_bool();
+  ekf_params.use_rk4 = get_parameter("use_rk4").as_bool();
   ekf_params.imu_noise_scale_factor = get_parameter("imu_noise_scale_factor").as_double();
 
   // Load lists of sensors
@@ -358,6 +360,7 @@ void EkfCalNode::DeclareTrackerParameters(const std::string & tracker_name)
   declare_parameter(tracker_prefix + ".down_sample_height", 480);
   declare_parameter(tracker_prefix + ".down_sample_width", 640);
   declare_parameter(tracker_prefix + ".min_feature_distance", 1.0);
+  declare_parameter(tracker_prefix + ".max_feature_distance", 100.0);
   declare_parameter(tracker_prefix + ".min_track_length", 2);
   declare_parameter(tracker_prefix + ".max_track_length", 20);
 }
@@ -374,6 +377,7 @@ FeatureTracker::Parameters EkfCalNode::GetTrackerParameters(const std::string & 
   auto down_height = get_parameter(tracker_prefix + ".down_sample_height").as_int();
   auto down_width = get_parameter(tracker_prefix + ".down_sample_width").as_int();
   auto min_feat_dist = get_parameter(tracker_prefix + ".min_feature_distance").as_double();
+  auto max_feat_dist = get_parameter(tracker_prefix + ".max_feature_distance").as_double();
   auto min_track_length = get_parameter(tracker_prefix + ".min_track_length").as_int();
   auto max_track_length = get_parameter(tracker_prefix + ".max_track_length").as_int();
 
@@ -386,6 +390,7 @@ FeatureTracker::Parameters EkfCalNode::GetTrackerParameters(const std::string & 
   tracker_params.down_sample_height = static_cast<int>(down_height);
   tracker_params.down_sample_width = static_cast<int>(down_width);
   tracker_params.min_feat_dist = min_feat_dist;
+  tracker_params.max_feat_dist = max_feat_dist;
   tracker_params.min_track_length = static_cast<unsigned int>(min_track_length);
   tracker_params.max_track_length = static_cast<unsigned int>(max_track_length);
   tracker_params.ekf = m_ekf;
@@ -628,7 +633,6 @@ void EkfCalNode::GpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr msg, u
 
 void EkfCalNode::PublishState()
 {
-  /// @todo Copy states before converting to vectors due to race conditions.
   // Body State
   Eigen::VectorXd body_state_vector = m_ekf->m_state.body_state.ToVector();
   auto body_state_vec_msg = std_msgs::msg::Float64MultiArray();
