@@ -20,6 +20,16 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+# Create and symlink compile_commands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(GLOBAL_COMP_DB_DIR "${CMAKE_SOURCE_DIR}/build")
+set(GLOBAL_COMP_DB_FILE "${GLOBAL_COMP_DB_DIR}/compile_commands.json")
+file(MAKE_DIRECTORY "${GLOBAL_COMP_DB_DIR}")
+execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+    "${CMAKE_BINARY_DIR}/compile_commands.json"
+    "${GLOBAL_COMP_DB_FILE}"
+)
+
 # Default BUILD_WITH_ROS to true, and set to false if ament_cmake is not found
 set(BUILD_WITH_ROS TRUE)
 
@@ -36,11 +46,12 @@ if(EXISTS "/usr/lib/x86_64-linux-gnu/cmake/opencv4")
 elseif(EXISTS "/usr/lib/aarch64-linux-gnu/cmake/opencv4")
     set(OpenCV_DIR "/usr/lib/aarch64-linux-gnu/cmake/opencv4" CACHE PATH "Path to system OpenCV" FORCE)
 endif()
+
 find_package(OpenCV REQUIRED)
 find_package(aprilgrid REQUIRED)
 find_package(yaml-cpp REQUIRED)
-
 find_package(HDF5 REQUIRED COMPONENTS C CXX)
+find_package(Eigen3 REQUIRED)
 
 if(BUILD_WITH_ROS)
     set(ROS_PKGS
@@ -62,6 +73,8 @@ if(BUILD_WITH_ROS)
         find_package(${pkg} REQUIRED)
     endforeach()
 endif()
+
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 
 include_directories(PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
