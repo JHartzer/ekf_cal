@@ -306,13 +306,13 @@ def gps_init_count(gps_dfs):
 
 def write_summary(directory, stats):
     """Write the error summary statistics to a file."""
-    with open(os.path.join(directory, 'stats.txt'), 'w') as f:
+    with open(os.path.join(directory, 'stats.csv'), 'w') as f:
         f.write('Statistic,RMSE-Mean,RMSE-StdDev\n')
         for key in stats:
             vals = np.array(stats[key])
             mu = np.mean(vals)
             sig = np.std(vals)
-            f.write('{}: {:0.4f}, {:0.4f}\n'.format(key, mu, sig))
+            f.write('{},{:0.4f},{:0.4f}\n'.format(key, mu, sig))
     return
 
 
