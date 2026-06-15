@@ -15,12 +15,14 @@
 
 #include <gtest/gtest.h>
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <memory>
+#include <vector>
 
+#include "infrastructure/debug_logger.hpp"
 #include "infrastructure/sim/truth_engine_spline.hpp"
-#include "infrastructure/sim/truth_engine.hpp"
 #include "utility/custom_assertions.hpp"
-#include "utility/sim/sim_rng.hpp"
 #include "utility/type_helper.hpp"
 
 

@@ -21,8 +21,6 @@
 #include <vector>
 
 #include "infrastructure/sim/truth_engine.hpp"
-#include "sensors/sensor.hpp"
-#include "utility/sim/sim_rng.hpp"
 
 ///
 /// @brief SimSensor namespace

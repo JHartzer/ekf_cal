@@ -13,9 +13,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <memory>
-
 #include "sensors/ros/ros_imu.hpp"
+#include "infrastructure/debug_logger.hpp"
+#include "sensors/imu.hpp"
 #include "sensors/ros/ros_imu_message.hpp"
 
 void RosIMU::Callback(const RosImuMessage & ros_imu_message)

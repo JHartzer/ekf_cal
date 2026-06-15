@@ -16,9 +16,12 @@
 #include "infrastructure/sim/truth_engine_smoother.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <vector>
 
+#include "infrastructure/debug_logger.hpp"
+#include "infrastructure/sim/truth_engine.hpp"
 #include "utility/sim/sim_rng.hpp"
 #include "utility/type_helper.hpp"
 

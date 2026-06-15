@@ -16,7 +16,8 @@
 #ifndef UTILITY__STRING_HELPER_HPP_
 #define UTILITY__STRING_HELPER_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <string>
 

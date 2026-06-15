@@ -15,9 +15,14 @@
 
 #include "utility/math_helper.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+#include <Eigen/QR>
+#include <Eigen/SVD>
 
 #include <algorithm>
+#include <cmath>
 #include <vector>
 
 #include <opencv2/opencv.hpp>

@@ -15,9 +15,13 @@
 
 #include "ekf/ekf.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
 #include <map>
 #include <memory>
 #include <sstream>

@@ -14,10 +14,9 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "sensors/ros/ros_gps_message.hpp"
+#include "ekf/types.hpp"
 
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
-
-#include "utility/ros_helper.hpp"
 
 
 RosGpsMessage::RosGpsMessage(const sensor_msgs::msg::NavSatFix::SharedPtr msg)

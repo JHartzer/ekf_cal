@@ -22,7 +22,10 @@
 #include <opencv2/aruco/charuco.hpp>
 #include <opencv2/opencv.hpp>
 
+#include "ekf/ekf.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "sensors/camera.hpp"
+#include "sensors/camera_message.hpp"
 #include "sensors/imu.hpp"
 #include "trackers/fiducial_tracker.hpp"
 #include "trackers/fiducials/april_grid_tracker.hpp"

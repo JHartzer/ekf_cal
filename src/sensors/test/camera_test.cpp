@@ -17,6 +17,8 @@
 
 #include <memory>
 
+#include "ekf/ekf.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "trackers/feature_tracker.hpp"
 
 TEST(test_feature_tracker, initialization) {

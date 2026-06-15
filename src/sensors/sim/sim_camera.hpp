@@ -17,7 +17,7 @@
 #ifndef SENSORS__SIM__SIM_CAMERA_HPP_
 #define SENSORS__SIM__SIM_CAMERA_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
 #include <map>
 #include <memory>
@@ -29,7 +29,6 @@
 #include "sensors/sim/sim_sensor.hpp"
 #include "trackers/sim/sim_feature_tracker.hpp"
 #include "trackers/sim/sim_fiducial_tracker.hpp"
-#include "utility/sim/sim_rng.hpp"
 
 
 ///

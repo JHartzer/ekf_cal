@@ -14,10 +14,16 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <gtest/gtest.h>
+#include <memory>
+#include <vector>
 
+#include "ekf/ekf.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "infrastructure/sim/truth_engine_cyclic.hpp"
 #include "sensors/imu.hpp"
 #include "sensors/sim/sim_imu.hpp"
+#include "sensors/sim/sim_imu_message.hpp"
+#include "utility/sim/sim_rng.hpp"
 
 TEST(test_SimIMU, Constructor) {
   EKF::Parameters ekf_params;

@@ -14,7 +14,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <gtest/gtest.h>
 #include <math.h>
 

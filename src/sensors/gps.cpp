@@ -15,15 +15,15 @@
 
 #include "sensors/gps.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
 #include <memory>
+#include <string>
 
 #include "ekf/types.hpp"
 #include "infrastructure/debug_logger.hpp"
+#include "sensors/gps_message.hpp"
 #include "sensors/sensor.hpp"
-#include "utility/math_helper.hpp"
-#include "utility/type_helper.hpp"
 
 
 GPS::GPS(GPS::Parameters params)

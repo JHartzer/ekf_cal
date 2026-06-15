@@ -13,14 +13,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
 #include <gtest/gtest.h>
+#include <memory>
 
+#include "ekf/ekf.hpp"
+#include "infrastructure/debug_logger.hpp"
+#include "infrastructure/sim/truth_engine.hpp"
 #include "sensors/sim/sim_gps.hpp"
 #include "sensors/gps.hpp"
 #include "infrastructure/sim/truth_engine_cyclic.hpp"
 #include "utility/gps_helper.hpp"
+#include "utility/sim/sim_rng.hpp"
 
 TEST(test_SimIMU, Constructor) {
   EKF::Parameters ekf_params;

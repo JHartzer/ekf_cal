@@ -15,14 +15,12 @@
 
 #include "utility/type_helper.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <vector>
 
 #include <opencv2/opencv.hpp>
-
-#include "ekf/types.hpp"
-#include "infrastructure/debug_logger.hpp"
 
 
 Eigen::VectorXd StdToEigVec(std::vector<double> const & std_vec)

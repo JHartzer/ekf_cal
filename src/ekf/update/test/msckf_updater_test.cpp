@@ -13,14 +13,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <string>
 
 #include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
 #include "ekf/update/msckf_updater.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "utility/custom_assertions.hpp"
 
 

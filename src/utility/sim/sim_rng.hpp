@@ -16,7 +16,8 @@
 #ifndef UTILITY__SIM__SIM_RNG_HPP_
 #define UTILITY__SIM__SIM_RNG_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <random>
 

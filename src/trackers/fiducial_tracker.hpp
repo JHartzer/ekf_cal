@@ -16,19 +16,11 @@
 #ifndef TRACKERS__FIDUCIAL_TRACKER_HPP_
 #define TRACKERS__FIDUCIAL_TRACKER_HPP_
 
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
-
 #include <opencv2/aruco.hpp>
 #include <opencv2/features2d.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "ekf/ekf.hpp"
-#include "ekf/types.hpp"
 #include "ekf/update/fiducial_updater.hpp"
-#include "infrastructure/debug_logger.hpp"
 #include "trackers/tracker.hpp"
 
 ///

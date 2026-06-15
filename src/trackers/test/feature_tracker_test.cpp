@@ -18,6 +18,9 @@
 #include <memory>
 
 #include "ekf/ekf.hpp"
+#include "ekf/types.hpp"
+#include "infrastructure/debug_logger.hpp"
+#include "sensors/camera_message.hpp"
 #include "trackers/feature_tracker.hpp"
 #include "sensors/imu.hpp"
 #include "sensors/camera.hpp"

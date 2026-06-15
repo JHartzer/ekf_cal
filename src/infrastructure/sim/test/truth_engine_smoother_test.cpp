@@ -15,13 +15,14 @@
 
 #include <gtest/gtest.h>
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <iostream>
+#include <memory>
+#include <ostream>
+#include <vector>
 
+#include "infrastructure/debug_logger.hpp"
 #include "infrastructure/sim/truth_engine_smoother.hpp"
-#include "infrastructure/sim/truth_engine.hpp"
-#include "utility/custom_assertions.hpp"
-#include "utility/sim/sim_rng.hpp"
-#include "utility/type_helper.hpp"
 
 TEST(test_TruthEngineSmoother, Oscillating) {
   double stationary_time {0.0};

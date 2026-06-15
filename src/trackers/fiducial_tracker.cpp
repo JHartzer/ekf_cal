@@ -19,7 +19,10 @@
 #include <opencv2/aruco/charuco.hpp>
 #include <opencv2/core/cvstd.hpp>
 #include <opencv2/opencv.hpp>
+#include <vector>
 
+#include "ekf/constants.hpp"
+#include "ekf/types.hpp"
 #include "trackers/tracker.hpp"
 #include "utility/type_helper.hpp"
 

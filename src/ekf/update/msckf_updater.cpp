@@ -15,7 +15,8 @@
 
 #include "ekf/update/msckf_updater.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <algorithm>
 #include <chrono>
@@ -24,6 +25,7 @@
 #include <map>
 #include <memory>
 #include <ostream>
+#include <sstream>
 #include <string>
 
 #include <opencv2/opencv.hpp>
@@ -31,6 +33,7 @@
 #include "ekf/constants.hpp"
 #include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
+#include "ekf/update/updater.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "utility/math_helper.hpp"
 #include "utility/string_helper.hpp"

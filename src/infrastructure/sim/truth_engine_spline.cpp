@@ -15,12 +15,15 @@
 
 #include "infrastructure/sim/truth_engine_spline.hpp"
 
+#include <cmath>
 #include <eigen3/unsupported/Eigen/Splines>
 
 #include <algorithm>
 #include <memory>
 #include <vector>
 
+#include "infrastructure/debug_logger.hpp"
+#include "infrastructure/sim/truth_engine.hpp"
 #include "utility/sim/sim_rng.hpp"
 #include "utility/type_helper.hpp"
 

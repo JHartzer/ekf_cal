@@ -18,7 +18,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -26,8 +25,10 @@
 
 #include <opencv2/features2d.hpp>
 #include <opencv2/opencv.hpp>
+#include <vector>
 
 #include "ekf/types.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "trackers/tracker.hpp"
 
 

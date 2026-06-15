@@ -15,16 +15,12 @@
 
 #include "ekf_cal_node.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
-#include <array>
-#include <chrono>
 #include <functional>
-#include <map>
 #include <memory>
 #include <sstream>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <rclcpp/rclcpp.hpp>
@@ -33,9 +29,9 @@
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <std_msgs/msg/float64_multi_array.hpp>
 
+#include "ekf/constants.hpp"
 #include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
-#include "infrastructure/debug_logger.hpp"
 #include "infrastructure/ekf_cal_version.hpp"
 #include "sensors/camera.hpp"
 #include "sensors/gps.hpp"
@@ -46,12 +42,12 @@
 #include "sensors/ros/ros_gps.hpp"
 #include "sensors/ros/ros_imu_message.hpp"
 #include "sensors/ros/ros_imu.hpp"
+#include "sensors/sensor.hpp"
+#include "trackers/feature_tracker.hpp"
 #include "trackers/fiducial_tracker.hpp"
 #include "trackers/fiducials/april_grid_tracker.hpp"
 #include "trackers/fiducials/aruco_board_tracker.hpp"
 #include "trackers/fiducials/charuco_board_tracker.hpp"
-#include "utility/string_helper.hpp"
-#include "utility/type_helper.hpp"
 
 using std::placeholders::_1;
 

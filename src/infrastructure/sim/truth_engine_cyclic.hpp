@@ -16,10 +16,12 @@
 #ifndef INFRASTRUCTURE__SIM__TRUTH_ENGINE_CYCLIC_HPP_
 #define INFRASTRUCTURE__SIM__TRUTH_ENGINE_CYCLIC_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <memory>
 
+#include "infrastructure/debug_logger.hpp"
 #include "infrastructure/sim/truth_engine.hpp"
 
 ///

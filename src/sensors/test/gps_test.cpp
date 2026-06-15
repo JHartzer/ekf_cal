@@ -14,8 +14,13 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <gtest/gtest.h>
+#include <memory>
 
+#include "ekf/ekf.hpp"
+#include "ekf/types.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "sensors/gps.hpp"
+#include "sensors/gps_message.hpp"
 
 
 TEST(test_gps, Callback) {

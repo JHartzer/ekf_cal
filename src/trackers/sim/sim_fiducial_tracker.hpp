@@ -16,20 +16,15 @@
 #ifndef TRACKERS__SIM__SIM_FIDUCIAL_TRACKER_HPP_
 #define TRACKERS__SIM__SIM_FIDUCIAL_TRACKER_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
 #include <memory>
-#include <string>
-#include <vector>
 
 #include <opencv2/opencv.hpp>
 
-#include "ekf/types.hpp"
-#include "infrastructure/data_logger.hpp"
 #include "infrastructure/sim/truth_engine.hpp"
 #include "trackers/fiducial_tracker.hpp"
 #include "trackers/sim/sim_fiducial_tracker_message.hpp"
-#include "utility/sim/sim_rng.hpp"
 
 ///
 /// @class SimFiducialTracker

@@ -16,7 +16,7 @@
 #ifndef UTILITY__GPS_HELPER_HPP_
 #define UTILITY__GPS_HELPER_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
 Eigen::Vector3d ecef_to_enu(const Eigen::Vector3d & in_ecef, const Eigen::Vector3d & ref_lla);
 Eigen::Vector3d ecef_to_lla(const Eigen::Vector3d & ecef);

@@ -16,7 +16,8 @@
 #ifndef EKF__TYPES_HPP_
 #define EKF__TYPES_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <map>
 #include <vector>

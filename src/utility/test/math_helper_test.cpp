@@ -15,8 +15,10 @@
 
 #include <gtest/gtest.h>
 
-#include <eigen3/Eigen/Eigen>
-#include <memory>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <math.h>
+#include <vector>
 
 #include "utility/custom_assertions.hpp"
 #include "utility/math_helper.hpp"

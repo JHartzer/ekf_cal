@@ -16,7 +16,8 @@
 #ifndef EKF__EKF_HPP_
 #define EKF__EKF_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <stddef.h>
 
 #include <memory>

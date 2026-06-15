@@ -13,10 +13,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 #include <gtest/gtest.h>
+#include <memory>
 
 #include "ekf/update/updater.hpp"
+#include "infrastructure/debug_logger.hpp"
 
 TEST(test_updater, constructor) {
   auto logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");

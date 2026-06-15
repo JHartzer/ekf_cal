@@ -17,19 +17,15 @@
 #ifndef SENSORS__SIM__SIM_GPS_HPP_
 #define SENSORS__SIM__SIM_GPS_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
 #include <memory>
-#include <string>
 #include <vector>
 
-#include "ekf/types.hpp"
-#include "infrastructure/debug_logger.hpp"
+#include "infrastructure/sim/truth_engine.hpp"
 #include "sensors/gps.hpp"
-#include "sensors/sensor.hpp"
 #include "sensors/sim/sim_gps_message.hpp"
 #include "sensors/sim/sim_sensor.hpp"
-#include "utility/sim/sim_rng.hpp"
 
 ///
 /// @class SimGPS

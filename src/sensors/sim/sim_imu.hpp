@@ -17,7 +17,7 @@
 #ifndef SENSORS__SIM__SIM_IMU_HPP_
 #define SENSORS__SIM__SIM_IMU_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
 #include <memory>
 #include <vector>
@@ -26,7 +26,6 @@
 #include "sensors/imu.hpp"
 #include "sensors/sim/sim_imu_message.hpp"
 #include "sensors/sim/sim_sensor.hpp"
-#include "utility/sim/sim_rng.hpp"
 
 
 ///

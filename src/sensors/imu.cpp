@@ -15,16 +15,15 @@
 
 #include "sensors/imu.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
 #include <memory>
+#include <string>
 
-#include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "sensors/imu_message.hpp"
 #include "sensors/sensor.hpp"
-#include "utility/math_helper.hpp"
 
 
 IMU::IMU(IMU::Parameters params)

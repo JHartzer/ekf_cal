@@ -17,9 +17,7 @@
 
 #include <stddef.h>
 
-#include <memory>
 #include <string>
-#include <vector>
 
 #include <cv_bridge/cv_bridge.hpp>
 #include <geometry_msgs/msg/vector3.hpp>

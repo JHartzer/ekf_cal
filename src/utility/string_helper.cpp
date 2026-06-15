@@ -15,7 +15,8 @@
 
 #include "utility/string_helper.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <iomanip>
 #include <sstream>

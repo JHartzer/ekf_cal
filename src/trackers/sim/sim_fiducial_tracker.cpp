@@ -15,10 +15,16 @@
 
 #include "trackers/sim/sim_fiducial_tracker.hpp"
 
+#include <memory>
 #include <opencv2/opencv.hpp>
+#include <vector>
 
-#include "utility/string_helper.hpp"
+#include "ekf/types.hpp"
+#include "infrastructure/sim/truth_engine.hpp"
+#include "trackers/fiducial_tracker.hpp"
+#include "trackers/sim/sim_fiducial_tracker_message.hpp"
 #include "utility/type_helper.hpp"
+#include "utility/sim/sim_rng.hpp"
 
 SimFiducialTracker::SimFiducialTracker(
   SimFiducialTracker::Parameters params,

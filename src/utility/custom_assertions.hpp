@@ -16,7 +16,9 @@
 #ifndef UTILITY__CUSTOM_ASSERTIONS_HPP_
 #define UTILITY__CUSTOM_ASSERTIONS_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
 #include <gtest/gtest.h>
 #include <math.h>
 

@@ -18,12 +18,11 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "ekf/ekf.hpp"
-#include "ekf/types.hpp"
 #include "ekf/update/updater.hpp"
 #include "infrastructure/data_logger.hpp"
+#include "infrastructure/debug_logger.hpp"
 
 ///
 /// @class GpsUpdater
