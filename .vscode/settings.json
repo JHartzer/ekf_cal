@@ -140,7 +140,6 @@
         "Zhuochun"
     ],
     "terminal.integrated.scrollback": 5000,
-    "cmake.buildDirectory": "${workspaceFolder}/../../build/ekf_cal/",
     "files.associations": {
         "cctype": "cpp",
         "clocale": "cpp",
@@ -313,5 +312,12 @@
         "editor.wordWrap": "wordWrapColumn",
         "editor.wordWrapColumn": 99
     },
-    "python.defaultInterpreterPath": "/opt/venv/bin/python3"
+    "cmake.options.advanced": {
+        "packagePreset": {
+            "statusBarVisibility": "hidden"
+        },
+        "cpack": {
+            "statusBarVisibility": "hidden"
+        },
+    }
 }
