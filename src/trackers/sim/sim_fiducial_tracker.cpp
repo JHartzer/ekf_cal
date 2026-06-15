@@ -16,8 +16,9 @@
 #include "trackers/sim/sim_fiducial_tracker.hpp"
 
 #include <memory>
-#include <opencv2/opencv.hpp>
 #include <vector>
+
+#include <opencv2/opencv.hpp>
 
 #include "ekf/types.hpp"
 #include "infrastructure/sim/truth_engine.hpp"

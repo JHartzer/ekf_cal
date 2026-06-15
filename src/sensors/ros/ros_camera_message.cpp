@@ -15,6 +15,7 @@
 
 #include "sensors/ros/ros_camera_message.hpp"
 #include "ekf/types.hpp"
+#include "utility/ros_helper.hpp"
 
 #include <cv_bridge/cv_bridge.hpp>
 #include <sensor_msgs/msg/image.hpp>

@@ -176,7 +176,8 @@ void EKF::PredictModel(double local_time)
       Eigen::Quaterniond K4 = omega_4 * q4;
 
       Eigen::Quaterniond q_next;
-      q_next.coeffs() = q_n.coeffs() + (h / 12.0) * (K1.coeffs() + 2.0 * K2.coeffs() + 2.0 * K3.coeffs() + K4.coeffs());
+      q_next.coeffs() = q_n.coeffs() + (h / 12.0) *
+        (K1.coeffs() + 2.0 * K2.coeffs() + 2.0 * K3.coeffs() + K4.coeffs());
       q_next.normalize();
 
       m_state.body_state.ang_b_to_l = q_next;

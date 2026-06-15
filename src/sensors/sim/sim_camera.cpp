@@ -18,13 +18,13 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include <string>
 #include <cmath>
 #include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include <opencv2/opencv.hpp>
-#include <vector>
 
 #include "infrastructure/debug_logger.hpp"
 #include "infrastructure/sim/truth_engine.hpp"

@@ -18,8 +18,9 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include <cmath>
 #include <math.h>
+
+#include <cmath>
 #include <memory>
 
 #include "infrastructure/debug_logger.hpp"

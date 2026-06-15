@@ -17,8 +17,9 @@
 
 #include <Eigen/Core>
 
-#include <cmath>
 #include <math.h>
+
+#include <cmath>
 
 
 static constexpr double g_wgs84_a {+6.37813700000000000000e+0006};  // WGS84 a - Semi-Major Axis

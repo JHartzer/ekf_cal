@@ -22,10 +22,10 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <opencv2/features2d.hpp>
 #include <opencv2/opencv.hpp>
-#include <vector>
 
 #include "ekf/types.hpp"
 #include "infrastructure/debug_logger.hpp"

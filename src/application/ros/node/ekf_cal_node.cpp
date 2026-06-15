@@ -48,6 +48,7 @@
 #include "trackers/fiducials/april_grid_tracker.hpp"
 #include "trackers/fiducials/aruco_board_tracker.hpp"
 #include "trackers/fiducials/charuco_board_tracker.hpp"
+#include "utility/type_helper.hpp"
 
 using std::placeholders::_1;
 

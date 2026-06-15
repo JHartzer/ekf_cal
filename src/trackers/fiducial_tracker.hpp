@@ -78,6 +78,11 @@ public:
   explicit FiducialTracker(FiducialTracker::Parameters params);
 
   ///
+  /// @brief FeatureTracker sensor destructor
+  ///
+  virtual ~FiducialTracker() = default;
+
+  ///
   /// @brief Perform track on new image frame
   /// @param time Frame time
   /// @param frame_id Frame ID
