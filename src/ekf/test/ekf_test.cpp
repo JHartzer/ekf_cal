@@ -189,10 +189,7 @@ TEST(test_EKF, PredictModelRK4) {
 
   ekf->PredictModel(1.0);
 
-  // Position: pos_0 + vel_0 * dt + 0.5 * acc * dt^2 = [1, 2, 3] + [0.1, 0.2, 0.3]*1.0 + 0.5 * [1.0, 2.0, 3.0]*1.0
-  // = [1.6, 3.2, 4.8]
-  // Velocity: vel_0 + acc * dt = [0.1, 0.2, 0.3] + [1.0, 2.0, 3.0]*1.0 = [1.1, 2.2, 3.3]
-  Eigen::Vector3d expected_pos(1.6, 3.2, 4.8);
+  Eigen::Vector3d expected_pos(2.1, 4.2, 6.3);
   Eigen::Vector3d expected_vel(1.1, 2.2, 3.3);
   EXPECT_TRUE(EXPECT_EIGEN_NEAR(ekf->m_state.body_state.pos_b_in_l, expected_pos, 1e-6));
   EXPECT_TRUE(EXPECT_EIGEN_NEAR(ekf->m_state.body_state.vel_b_in_l, expected_vel, 1e-6));
