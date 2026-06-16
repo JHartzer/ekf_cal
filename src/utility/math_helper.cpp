@@ -314,3 +314,18 @@ Eigen::MatrixXd QR_r(const Eigen::MatrixXd & left, const Eigen::MatrixXd & right
 
   return R_decomp;
 }
+
+Eigen::MatrixXd RemoveStateFromRootCovariance(
+  const Eigen::MatrixXd & S, unsigned int index, unsigned int size)
+{
+  auto rows = static_cast<unsigned int>(S.rows());
+  auto cols = static_cast<unsigned int>(S.cols());
+  Eigen::MatrixXd S_new(rows, cols - size);
+  S_new.leftCols(index) = S.leftCols(index);
+  S_new.rightCols(cols - index - size) = S.rightCols(cols - index - size);
+  Eigen::HouseholderQR<Eigen::MatrixXd> qr(S_new);
+  Eigen::MatrixXd R =
+    qr.matrixQR().block(0, 0, cols - size, cols - size).triangularView<Eigen::Upper>();
+  return R;
+}
+

@@ -158,4 +158,14 @@ double mean_standard_deviation(const std::vector<Eigen::Vector3d> & input_vector
 ///
 Eigen::MatrixXd QR_r(const Eigen::MatrixXd & A, const Eigen::MatrixXd & B);
 
+///
+/// @brief Remove columns from root covariance matrix and get R of QR decomposition
+/// @param S Input root covariance matrix
+/// @param index Starting index of state to remove
+/// @param size Size of state to remove
+/// @return New root covariance matrix
+///
+Eigen::MatrixXd RemoveStateFromRootCovariance(
+  const Eigen::MatrixXd & S, unsigned int index, unsigned int size);
+
 #endif  // UTILITY__MATH_HELPER_HPP_

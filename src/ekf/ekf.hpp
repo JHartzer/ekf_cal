@@ -151,7 +151,7 @@ public:
   /// @param delta_time State transition time
   /// @return State transition matrix
   ///
-  static Eigen::MatrixXd GetStateTransition(double delta_time);
+  Eigen::MatrixXd GetStateTransition(double delta_time);
 
   ///
   /// @brief EKF state initialization method
