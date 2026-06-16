@@ -40,7 +40,7 @@
         sim_params:
             seed: 1                           # Seed to provide to random number generator
             max_time: 10.0                    # Maximum simulation time
-            number_of_runs: 10                # Number of runs for Multi-Threaded Simulation
+            number_of_runs: 20                # Number of runs for Multi-Threaded Simulation
             run_number: 0                     # Start run number (also used to initialize seed)
             stationary_time: 0.1              # Time to be stationary before motion begins
             truth_type: "cyclic"              # TruthType:
@@ -87,7 +87,7 @@
             - "charuco"
 
         gps_list:       # List of gps. Can be empty but list must exist
-            - "gps_1"
+            # - "gps_1"
 
         imu:
             imu_1:
