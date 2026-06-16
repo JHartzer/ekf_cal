@@ -12,17 +12,25 @@
       "description": "Base configuration using Clang and Ninja in RelWithDebInfo mode",
       "hidden": true,
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
         "CMAKE_C_COMPILER": "clang",
         "CMAKE_CXX_COMPILER": "clang++",
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_BUILD_WITH_INSTALL_RPATH": "TRUE"
       }
     },
     {
       "name": "RelWithDebInfo",
       "displayName": "RelWithDebInfo",
       "description": "Default build preset",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "inherits": "base"
+    },
+    {
+      "name": "RelWithDebInfo-ROS",
+      "displayName": "RelWithDebInfo-ROS",
+      "description": "Default build preset",
+      "binaryDir": "${sourceDir}/../../build",
       "inherits": "base"
     }
   ],
@@ -30,12 +38,23 @@
     {
       "name": "RelWithDebInfo",
       "configurePreset": "RelWithDebInfo"
+    },
+    {
+      "name": "RelWithDebInfo-ROS",
+      "configurePreset": "RelWithDebInfo-ROS"
     }
   ],
   "testPresets": [
     {
       "name": "RelWithDebInfo",
       "configurePreset": "RelWithDebInfo",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "RelWithDebInfo-ROS",
+      "configurePreset": "RelWithDebInfo-ROS",
       "output": {
         "outputOnFailure": true
       }
