@@ -6,7 +6,7 @@ When available, GPS can provide a drift-free global position measurement.
 Since these measurements are produced in a global frame, it is necessary to have a global to local frame transformation to utilize these measurements in a localization system.
 
 ## Local Frame Initialization
-A least squares method is used to initialize the global to local frame transformation. This requires a prior estimate of the GPS antenna in the body frame \f$ \pose{A}{B} \f$ as well as some form of odometry to predict or estimate body positions in the local frame without GPS-aiding.
+A least squares method is used to initialize the global to local frame transformation. This requires a prior estimate of the GPS antenna in the body frame \f$ \Pose{A}{B} \f$ as well as some form of odometry to predict or estimate body positions in the local frame without GPS-aiding.
 
 Before the frame transformation is initialized, each GPS measurement is saved off along with the current estimate of the body position in the local frame. These measurement/estimate pairs are then used for the following routine.
 
@@ -23,10 +23,10 @@ Errors in the initial local frame heading estimate can cause issues with estimat
 \f{align}{
     \boldsymbol{x}_G =
     \begin{bmatrix}
-        \ang{G}{L} &
-        \pose{A_1}{B} &
-        \hdots &
-        \pose{A_{N_G}}{B}
+        \Ang{G}{L} &
+        \Pose{A_1}{B} &
+        \cdots &
+        \Pose{A_{N_G}}{B}
     \end{bmatrix}
 \f}
 
@@ -37,7 +37,7 @@ The Kalman update step is performed in the typical fashion. The predicted measur
 \f{align}{
   \hat{\boldsymbol{z}} =
   \begin{bmatrix}
-    \poseHat{L}{G} + \quatHat{L}{G} (\poseHat{B}{L} + \quatHat{B}{L} (\poseHat{A}{B}))
+    \PoseHat{L}{G} + \QuatHat{L}{G} (\PoseHat{B}{L} + \QuatHat{B}{L} (\PoseHat{A}{B}))
   \end{bmatrix}
 \f}
 

@@ -8,15 +8,15 @@ To explain this, first consider the measurement model for an IMU that is not at 
 \f{align}{
 \boldsymbol{h}(\boldsymbol{x}_{b}) =
 \begin{bmatrix}
-    \mathcal{C}(\quat{I_i}{B})^T
+    \mathcal{C}(\Quat{I_i}{B})^T
     \left(
-    \mathcal{C}(\quat{B}{G})^T \boldsymbol{a} +
-    \boldsymbol{\alpha} \times \pose{I_i}{B} +
-    \boldsymbol{\omega} \times \boldsymbol{\omega} \times \pose{I_i}{B}
+    \mathcal{C}(\Quat{B}{G})^T \boldsymbol{a} +
+    \boldsymbol{\alpha} \times \Pose{I_i}{B} +
+    \boldsymbol{\omega} \times \boldsymbol{\omega} \times \Pose{I_i}{B}
     \right)
     \\
-    \mathcal{C}(\quat{I_i}{B})^T
-    \mathcal{C}(\quat{B}{G})^T
+    \mathcal{C}(\Quat{I_i}{B})^T
+    \mathcal{C}(\Quat{B}{G})^T
     \boldsymbol{\omega}
 \end{bmatrix}
 \f}
@@ -26,12 +26,12 @@ In order to properly develop residuals for this measurement model in the Kalman 
 \f{align}{
   \boldsymbol{x}_B =
   \begin{bmatrix}
-    \pose{B}{L} &
-    \vel{B}{L} &
-    \acc{B}{L} &
-    \quat{B}{L} &
-    \angvel{B}{L} &
-    \angacc{B}{L}
+    \Pose{B}{L} &
+    \Vel{B}{L} &
+    \Acc{B}{L} &
+    \Quat{B}{L} &
+    \AngVel{B}{L} &
+    \Angacc{B}{L}
   \end{bmatrix}
 \f}
 
@@ -94,8 +94,8 @@ For simulation purposes, the IMU error model is
 
 \f{align}{
     a_m =
-    \omega \times \omega \times \pose{I}{B} +
-    \alpha \times \pose{I}{B} +
+    \omega \times \omega \times \Pose{I}{B} +
+    \alpha \times \Pose{I}{B} +
     \mathcal{C}\left(q_i^b\right)
     \left[a + \boldsymbol{g}\right]
 \f}
@@ -104,10 +104,10 @@ where
 
 - \f$a_m\f$            is the measured acceleration,
 - \f$\omega\f$         is the true angular velocity,
-- \f$\pose{I}{B}\f$    is the true position of the IMU in the body frame,
+- \f$\Pose{I}{B}\f$    is the true position of the IMU in the body frame,
 - \f$\alpha\f$         is the true angular acceleration,
 - \f$\mathcal{C}\f$    is the quaternion to rotation matrix function,
-- \f$\quat{B}{I}\f$    is the rotation from the body frame to the IMU frame,
+- \f$\Quat{B}{I}\f$    is the rotation from the body frame to the IMU frame,
 - \f$a_b\f$            is the true body acceleration, and
 - \f$\boldsymbol{g}\f$ is the gravity vector.
 

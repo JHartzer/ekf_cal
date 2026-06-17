@@ -1,33 +1,53 @@
+\newcommand{\Abs}[1]{\left| #1 \right|}
+\newcommand{\Acc}[1]{\prescript{#1}{}{\boldsymbol{a}}}
+\newcommand{\AccDot}[1]{\prescript{#1}{}{\BoldDot{a}}}
+\newcommand{\AccHat}[1]{\prescript{#1}{}{\BoldHat{a}}}
+\newcommand{\Ang}[2]{\prescript{#2}{#1}{\theta}}
+\newcommand{\AngAcc}[1]{\prescript{#1}{}{\boldsymbol{\alpha}}}
+\newcommand{\AngAccDot}[1]{\prescript{#1}{}{\BoldDot{\alpha}}}
+\newcommand{\AngAccHat}[1]{\prescript{#1}{}{\BoldHat{\alpha}}}
+\newcommand{\AngHat}[2]{\prescript{#2}{#1}{\hat{\theta}}}
+\newcommand{\AngVel}[1]{\prescript{#1}{}{\boldsymbol{\omega}}}
+\newcommand{\AngVelDot}[1]{\prescript{#1}{}{\BoldDot{\omega}}}
+\newcommand{\AngVelHat}[1]{\prescript{#1}{}{\BoldHat{\omega}}}
+\newcommand{\Bias}[1]{\boldsymbol{b}_{#1}}
+\newcommand{\BiasHat}[1]{\BoldHat{b}_{#1}}
+\newcommand{\BoldDot}[1]{\dot{\boldsymbol{#1}}}
+\newcommand{\BoldHat}[1]{\hat{\boldsymbol{#1}}}
+\newcommand{\BoldHatDot}[1]{\dot{\BoldHat{#1}}}
+\newcommand{\BoldTilde}[1]{\tilde{\boldsymbol{#1}}}
+\newcommand{\CosNorm}[1]{\text{cos}\Norm{#1}}
+\newcommand{\CrossMat}[1]{\left\lfloor #1 \right\rfloor_{\times} }
+\newcommand{\Exp}[1]{\text{Exp}\left(#1\right)}
+\newcommand{\Eye}[1]{\boldsymbol{I}_{#1}}
+\newcommand{\Floor}[1]{\lfloor #1 \rfloor}
+\newcommand{\Frame}[3]{\prescript{#2}{}{#1}_{#3}}
+\newcommand{\HatDot}[1]{\dot{\hat{#1}}}
+\newcommand{\JacL}[1]{~\mathcal{J}_L\left({#1}\right)}
+\newcommand{\JacR}[1]{~\mathcal{J}_R\left({#1}\right)}
+\newcommand{\Log}[1]{\text{Log}\left(#1\right)}
+\newcommand{\Noise}[1]{\boldsymbol{n}_{#1}}
+\newcommand{\Norm}[1]{\left\lVert #1 \right\lVert}
+\newcommand{\Pose}[2]{\prescript{#2}{}{\boldsymbol{p}}_{#1}}
+\newcommand{\PoseDot}[2]{\prescript{#2}{}{\BoldDot{p}}_{#1}}
+\newcommand{\PoseHat}[2]{\prescript{#2}{}{\BoldHat{p}}_{#1}}
+\newcommand{\PoseHatDot}[2]{\prescript{#2}{}{\BoldHatDot{p}}_{#1}}
+\newcommand{\PoseTilde}[2]{\prescript{#2}{}{\BoldTilde{p}}_{#1}}
+\newcommand{\QRr}[1]{ \text{QR}_r \left( #1 \right) }
+\newcommand{\Quat}[2]{\prescript{#2}{#1}{q}}
+\newcommand{\QuatDot}[2]{\prescript{#2}{#1}{\dot{q}}}
+\newcommand{\QuatHat}[2]{\prescript{#2}{#1}{\hat{q}}}
+\newcommand{\QuatHatDot}[2]{\prescript{#2}{#1}{\HatDot{q}}}
+\newcommand{\QuatRot}[1]{\boldsymbol{R}\left(#1\right)}
+\newcommand{\QuatTilde}[2]{\prescript{#2}{#1}{\tilde{q}}}
+\newcommand{\RotMat}[2]{\prescript{#2}{#1}{\boldsymbol{R}}}
+\newcommand{\SinNorm}[1]{\text{sin}\Norm{#1}}
+\newcommand{\TimeHat}[1]{\hat{t}_{#1}}
+\newcommand{\Vel}[1]{\prescript{#1}{}{\boldsymbol{v}}}
+\newcommand{\VelDot}[1]{\prescript{#1}{}{\BoldDot{v}}}
+\newcommand{\VelHat}[1]{\prescript{#1}{}{\BoldHat{v}}}
+\newcommand{\VelHat}[1]{\prescript{#1}{}{\BoldTilde{v}}}
+\newcommand{\VelHatDot}[1]{\BoldHatDot{v}_{#1}}
+\newcommand{\Zero}[0]{\boldsymbol{0}}
+\newcommand{\Zeros}[2]{\boldsymbol{0}_{#1 \times #2}}
 \newcommand{\prescript}[3]{ {}^{#1}_{#2}{#3} }
-\newcommand{\acc}[2]{\prescript{#2}{}{\boldsymbol{a}}_{#1}}
-\newcommand{\accDot}[2]{\prescript{#2}{}{\Dot{\boldsymbol{a}}}_{#1}}
-\newcommand{\accHat}[2]{\prescript{#2}{}{\hat{\boldsymbol{a}}}_{#1}}
-\newcommand{\ang}[2]{\prescript{#2}{#1}{\theta}}
-\newcommand{\angacc}[2]{\prescript{#2}{}{\boldsymbol{\alpha}}_{#1}}
-\newcommand{\angaccDot}[2]{\prescript{#2}{}{\Dot{\boldsymbol{\alpha}}}_{#1}}
-\newcommand{\angHat}[2]{\prescript{#2}{#1}{\hat{\theta}}}
-\newcommand{\angvel}[2]{\prescript{#2}{}{\boldsymbol{\omega}}_{#1}}
-\newcommand{\angvelDot}[2]{\prescript{#2}{}{\Dot{\boldsymbol{\omega}}}_{#1}}
-\newcommand{\crossmat}[1]{\left\lfloor #1 \right\rfloor_{\times} }
-\newcommand{\DotHat}[1]{\Dot{\hat{#1}}}
-\newcommand{\eye}[1]{\mathbf{I}_{#1}}
-\newcommand{\floor}[1]{\lfloor #1 \rfloor}
-\newcommand{\HatBold}[1]{\hat{\boldsymbol{#1}}}
-\newcommand{\matPose}[2]{\prescript{#2}{}{\boldsymbol{P}}_{#1}}
-\newcommand{\matPoseHat}[2]{\prescript{#2}{}{\hat{\boldsymbol{P}}}_{#1}}
-\newcommand{\pose}[2]{\prescript{#2}{}{\boldsymbol{p}}_{#1}}
-\newcommand{\poseDot}[2]{\prescript{#2}{}{\Dot{\boldsymbol{p}}}_{#1}}
-\newcommand{\poseHat}[2]{\prescript{#2}{}{\hat{\boldsymbol{p}}}_{#1}}
-\newcommand{\poseTilde}[2]{\prescript{#2}{}{\tilde{\boldsymbol{p}}}_{#1}}
-\newcommand{\quat}[2]{\prescript{#2}{#1}{q}}
-\newcommand{\quatDot}[2]{\prescript{#2}{#1}{\Dot{q}}}
-\newcommand{\quatHat}[2]{\prescript{#2}{#1}{\hat{q}}}
-\newcommand{\quatJac}[1]{\mathcal{J}\left({#1}\right)}
-\newcommand{\quatJacInv}[1]{\mathcal{J}^{-1}\left({#1}\right)}
-\newcommand{\quatRot}[1]{\mathcal{C}\left(#1\right)}
-\newcommand{\quatTilde}[2]{\prescript{#2}{#1}{\tilde{q}}}
-\newcommand{\vel}[2]{\prescript{#2}{}{\boldsymbol{v}}_{#1}}
-\newcommand{\velDot}[2]{\prescript{#2}{}{\Dot{\boldsymbol{v}}}_{#1}}
-\newcommand{\velHat}[2]{\prescript{#2}{}{\hat{\boldsymbol{v}}}_{#1}}
-\newcommand{\velTilde}[2]{\prescript{#2}{}{\tilde{\boldsymbol{v}}}_{#1}}
-\newcommand{\zeros}[2]{\mathbf{0}_{#1 \times #2}}
