@@ -73,6 +73,7 @@ TEST(test_msckf_updater, update) {
   BodyState body_state;
   body_state.vel_b_in_l = Eigen::Vector3d{0, 5, 0};
   ekf.Initialize(0.0, body_state);
+  ekf.InitializeGravity();
 
   unsigned int cam_id{1};
 
@@ -87,12 +88,12 @@ TEST(test_msckf_updater, update) {
   cv::KeyPoint point_1;
   cv::KeyPoint point_2;
   cv::KeyPoint point_3;
-  point_1.pt.x = 320;
-  point_1.pt.y = 240;
-  point_2.pt.x = 220;
-  point_2.pt.y = 240;
-  point_3.pt.x = 120;
-  point_3.pt.y = 240;
+  point_1.pt.x = 1160;
+  point_1.pt.y = 540;
+  point_2.pt.x = 1160;
+  point_2.pt.y = 340;
+  point_3.pt.x = 1160;
+  point_3.pt.y = 140;
 
   FeaturePoint feature_point_1;
   FeaturePoint feature_point_2;

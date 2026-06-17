@@ -262,4 +262,53 @@ TEST(test_imu_updater, jacobian) {
   }
 
   EXPECT_TRUE(EXPECT_EIGEN_NEAR(jac_analytical, jac_numerical, 1e-3));
+
+  Eigen::Vector3d angular_rate = Eigen::Vector3d::Zero();
+  Eigen::Matrix3d angular_rate_covariance = Eigen::Matrix3d::Identity() * 1e-3;
+  imu_updater.AngularUpdate(ekf, angular_rate, angular_rate_covariance);
+}
+
+TEST(test_imu_updater, motion_and_root_cov) {
+  auto logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  EKF::Parameters ekf_params;
+  ekf_params.debug_logger = logger;
+  ekf_params.use_root_covariance = true;
+  EKF ekf(ekf_params);
+
+  BodyState body_state;
+  body_state.vel_b_in_l = Eigen::Vector3d::Ones();
+  ekf.Initialize(0.0, body_state);
+
+  // Register two IMUs to cover the multi-IMU branch (size > 1)
+  ImuState imu_state_1;
+  imu_state_1.SetIsIntrinsic(true);
+  imu_state_1.SetIsExtrinsic(true);
+  Eigen::MatrixXd imu_covariance_1 = Eigen::MatrixXd::Identity(12, 12);
+  ekf.RegisterIMU(0, imu_state_1, imu_covariance_1);
+
+  ImuState imu_state_2;
+  imu_state_2.SetIsIntrinsic(true);
+  imu_state_2.SetIsExtrinsic(true);
+  Eigen::MatrixXd imu_covariance_2 = Eigen::MatrixXd::Identity(12, 12);
+  ekf.RegisterIMU(1, imu_state_2, imu_covariance_2);
+
+  ImuUpdater imu_updater(0, true, true, "", 0.0, logger);
+
+  // 1. First call: stationary to initialize gravity
+  Eigen::Vector3d acceleration = g_gravity;
+  Eigen::Matrix3d acceleration_cov = Eigen::Matrix3d::Identity() * 1e-3;
+  Eigen::Vector3d angular_rate = Eigen::Vector3d::Zero();
+  Eigen::Matrix3d angular_rate_cov = Eigen::Matrix3d::Identity() * 1e-3;
+
+  imu_updater.UpdateEKF(
+    ekf, 1.0, acceleration, acceleration_cov, angular_rate, angular_rate_cov);
+
+  // Verify gravity is initialized
+  EXPECT_TRUE(ekf.IsGravityInitialized());
+
+  // 2. Second call: dynamic motion to trigger motion detection
+  Eigen::Vector3d dynamic_acc = g_gravity + Eigen::Vector3d(50.0, 50.0, 50.0);
+  Eigen::Vector3d dynamic_gyro(10.0, 10.0, 10.0);
+  imu_updater.UpdateEKF(
+    ekf, 2.0, dynamic_acc, acceleration_cov, dynamic_gyro, angular_rate_cov);
 }

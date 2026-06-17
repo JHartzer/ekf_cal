@@ -17,13 +17,13 @@
         },
         {
             "label": "build coverage",
-            "detail": "Build ekf_cal package with covereage symbols",
+            "detail": "Build ekf_cal package with coverage symbols using CMake",
             "type": "shell",
-            "command": "colcon build --symlink-install --packages-select ekf_cal --event-handlers console_cohesion+ --cmake-args -DCMAKE_C_FLAGS='--coverage' -DCMAKE_CXX_FLAGS='--coverage'",
+            "command": "cmake -S . -B build/coverage -DBUILD_WITH_ROS=OFF -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS=\"--coverage\" -DCMAKE_C_FLAGS=\"--coverage\" && cmake --build build/coverage -j$(nproc)",
             "group": "build",
             "problemMatcher": "$gcc",
             "options": {
-                "cwd": "${workspaceFolder}/../../"
+                "cwd": "${workspaceFolder}"
             }
         },
         {
@@ -39,26 +39,26 @@
         },
         {
             "label": "test coverage",
-            "detail": "Run coverage tests of ekf_cal",
+            "detail": "Run coverage tests of ekf_cal using CTest",
             "type": "shell",
-            "command": "rm -r lcov; rm -r ${workspaceFolder}/docs/doxygen/html/lcov; colcon test --packages-select ekf_cal --pytest-with-coverage --pytest-args --cov-report=term --event-handlers console_direct+",
+            "command": "cd build/coverage && ctest --output-on-failure",
             "group": "test",
             "problemMatcher": "$gcc",
             "dependsOn": "build coverage",
             "options": {
-                "cwd": "${workspaceFolder}/../../"
+                "cwd": "${workspaceFolder}"
             }
         },
         {
             "label": "report coverage",
-            "detail": "Generate coverage report of ekf_cal tests",
+            "detail": "Generate coverage report of ekf_cal tests using LCOV",
             "type": "shell",
-            "command": "colcon lcov-result --packages-select ekf_cal --filter '*_test.cpp' '*_main.cpp' --lcov-config-file ${workspaceFolder}/.lcovrc && cp -r lcov/ src/ekf_cal/docs/doxygen/html/lcov",
+            "command": "lcov --directory build/coverage --capture --output-file build/coverage/coverage.info --config-file .lcovrc --ignore-errors mismatch && lcov --remove build/coverage/coverage.info '*/test/*' '*/usr/*' '*/install/*' '*/gtest/*' --output-file build/coverage/coverage_filtered.info --config-file .lcovrc --ignore-errors unused && genhtml build/coverage/coverage_filtered.info --output-directory build/coverage/lcov --config-file .lcovrc && rm -rf docs/doxygen/html/lcov && mkdir -p docs/doxygen/html && cp -r build/coverage/lcov docs/doxygen/html/lcov",
             "group": "test",
             "problemMatcher": "$gcc",
             "dependsOn": "test coverage",
             "options": {
-                "cwd": "${workspaceFolder}/../../"
+                "cwd": "${workspaceFolder}"
             }
         },
         {
