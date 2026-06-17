@@ -84,3 +84,37 @@ TEST(test_IMU, ID) {
 TEST(test_IMU, IMU_message) {
   ImuMessage imu_message;
 }
+
+TEST(test_IMU, Callback) {
+  EKF::Parameters ekf_params;
+  ekf_params.debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  auto ekf = std::make_shared<EKF>(ekf_params);
+
+  BodyState body_state;
+  body_state.pos_b_in_l = Eigen::Vector3d(0, 0, 0);
+  body_state.vel_b_in_l = Eigen::Vector3d(0, 0, 0);
+  body_state.acc_b_in_l = Eigen::Vector3d(0, 0, 0) + g_gravity;
+  body_state.ang_b_to_l = Eigen::Quaterniond::Identity();
+  body_state.ang_vel_b_in_l = Eigen::Vector3d(0, 0, 0);
+  body_state.ang_acc_b_in_l = Eigen::Vector3d(0, 0, 0);
+  ekf->Initialize(1.0, body_state);
+  ekf->InitializeGravity();
+
+  IMU::Parameters imu_params;
+  imu_params.ekf = ekf;
+  imu_params.logger = ekf_params.debug_logger;
+  imu_params.is_intrinsic = true;
+  imu_params.is_extrinsic = true;
+  IMU imu(imu_params);
+
+  ImuMessage imu_message;
+  imu_message.time = 1.1;
+  imu_message.acceleration = Eigen::Vector3d(0.1, 0.2, 9.8);
+  imu_message.acceleration_covariance = Eigen::Matrix3d::Identity() * 0.01;
+  imu_message.angular_rate = Eigen::Vector3d(0.01, 0.02, 0.03);
+  imu_message.angular_rate_covariance = Eigen::Matrix3d::Identity() * 0.001;
+
+  EXPECT_NO_THROW(imu.Callback(imu_message));
+  EXPECT_DOUBLE_EQ(ekf->GetCurrentTime(), 1.1);
+}
+

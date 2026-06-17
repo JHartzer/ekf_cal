@@ -47,3 +47,43 @@ TEST(data_logger, data_logger_constructor_3) {
   data_logger.EnableLogging();
   data_logger.Log("a1,b1");
 }
+
+TEST(data_logger, rate_limited_log) {
+  // Overload 1: string
+  {
+    DataLogger data_logger("/temp/", "data_str", 10.0);
+    data_logger.DefineHeader("col1,col2");
+    data_logger.EnableLogging();
+    
+    // First log (m_time_init is 0.0, so it sets m_time_init = 1.0 and logs)
+    data_logger.RateLimitedLog("1.0,2.0", 1.0);
+    
+    // Second log: at 1.1s. max_count = 10.0 * (1.1 - 1.0) = 1.0.
+    // log_count is 1.0. log_count < max_count is 1.0 < 1.0 (false), so rate limited!
+    data_logger.RateLimitedLog("3.0,4.0", 1.1);
+    
+    // Third log: at 1.21s. max_count = 10.0 * (1.21 - 1.0) = 2.1.
+    // log_count is 1.0. log_count < max_count is 1.0 < 2.1 (true), so it logs!
+    data_logger.RateLimitedLog("5.0,6.0", 1.21);
+  }
+
+  // Overload 2: vector<double>
+  {
+    DataLogger data_logger("/temp/", "data_vec", 5.0);
+    data_logger.DefineHeader("col1,col2");
+    data_logger.EnableLogging();
+    
+    std::vector<double> v1 = {1.0, 2.0};
+    std::vector<double> v2 = {3.0, 4.0};
+    
+    // First log
+    data_logger.RateLimitedLog(v1, 1.0);
+    
+    // Second log: at 1.1s
+    data_logger.RateLimitedLog(v2, 1.1);
+    
+    // Third log: at 1.3s
+    data_logger.RateLimitedLog(v2, 1.3);
+  }
+}
+

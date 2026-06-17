@@ -23,6 +23,8 @@
 #include "ekf/types.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "utility/custom_assertions.hpp"
+#include "utility/gps_helper.hpp"
+
 
 
 TEST(test_EKF, get_counts) {
@@ -200,3 +202,111 @@ TEST(test_EKF, PredictModelRK4) {
   Eigen::Quaterniond expected_ang(0.980768, 0.052162, 0.104325, 0.156487);
   EXPECT_TRUE(EXPECT_EIGEN_NEAR(ekf->m_state.body_state.ang_b_to_l, expected_ang, 1e-5));
 }
+
+TEST(test_EKF, LogBodyStateAndGetters) {
+  EKF::Parameters ekf_params;
+  ekf_params.debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  ekf_params.data_log_rate = 10.0;
+  ekf_params.log_directory = "/temp/";
+  auto ekf = std::make_shared<EKF>(ekf_params);
+  
+  ekf->LogBodyStateIfNeeded(0);
+  ekf->LogBodyStateIfNeeded(1);
+  
+  ImuState imu_state;
+  imu_state.pos_stability = 0.1;
+  ekf->RegisterIMU(3, imu_state, Eigen::MatrixXd::Identity(6, 6));
+
+  GpsState gps_state;
+  gps_state.pos_stability = 0.2;
+  ekf->RegisterGPS(4, gps_state, Eigen::Matrix3d::Identity());
+
+  CamState cam_state;
+  cam_state.pos_stability = 0.3;
+  ekf->RegisterCamera(5, cam_state, Eigen::MatrixXd::Identity(6, 6));
+
+  ImuState imu_ret = ekf->GetImuState(3);
+  GpsState gps_ret = ekf->GetGpsState(4);
+  CamState cam_ret = ekf->GetCamState(5);
+
+  EXPECT_EQ(imu_ret.pos_stability, 0.1);
+  EXPECT_EQ(gps_ret.pos_stability, 0.2);
+  EXPECT_EQ(cam_ret.pos_stability, 0.3);
+
+  EXPECT_EQ(ekf->GetAugStateSize(), 0);
+}
+
+TEST(test_EKF, AugmentStateIfNeededAndPrune) {
+  EKF::Parameters ekf_params;
+  ekf_params.debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  ekf_params.augmenting_type = AugmentationType::TIME;
+  ekf_params.augmenting_delta_time = 0.5;
+  auto ekf = std::make_shared<EKF>(ekf_params);
+  ekf->InitializeGravity();
+  
+  BodyState body_state;
+  ekf->Initialize(0.0, body_state);
+
+  // 1st augmentation at t=0.0 (empty list triggers line 491 and line 552)
+  ekf->AugmentStateIfNeeded();
+  EXPECT_EQ(ekf->GetAugStateSize(), 6);
+
+  // Set frame received since last aug to true:
+  ekf->AugmentStateIfNeeded(0, 1);
+
+  // 2nd augmentation at t=1.0:
+  ekf->PredictModel(1.0);
+  EXPECT_EQ(ekf->GetAugStateSize(), 12);
+
+  // Set frame received since last aug to true:
+  ekf->AugmentStateIfNeeded(0, 2);
+
+  // 3rd augmentation at t=2.0 (triggers pruning condition line 530 and removes first state)
+  ekf->PredictModel(2.0);
+  EXPECT_EQ(ekf->GetAugStateSize(), 12); // should remain 12 because 1 was added and 1 was pruned
+}
+
+TEST(test_EKF, GetAugStateBranch) {
+  EKF::Parameters ekf_params;
+  ekf_params.debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  ekf_params.augmenting_type = AugmentationType::PRIMARY;
+  auto ekf = std::make_shared<EKF>(ekf_params);
+  ekf->InitializeGravity();
+  
+  BodyState body_state;
+  ekf->Initialize(0.0, body_state);
+
+  ekf->AugmentStateIfNeeded(0, 10);
+  
+  // Call GetAugState with camera_id = 1 (not m_primary_camera_id which is 0) to hit line 641
+  AugState retrieved = ekf->GetAugState(1, 10, 0.0);
+  EXPECT_EQ(retrieved.index, 18);
+}
+
+TEST(test_EKF, AttemptGpsInitialization) {
+  EKF::Parameters ekf_params;
+  ekf_params.debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  ekf_params.gps_init_type = GpsInitType::BASELINE_DIST;
+  ekf_params.gps_init_baseline_dist = 0.5;
+  auto ekf = std::make_shared<EKF>(ekf_params);
+
+  Eigen::Vector3d ref_lla(37.7749, -122.4194, 0.0);
+
+  ekf->m_state.body_state.pos_b_in_l = Eigen::Vector3d(0, 0, 0);
+  ekf->AttemptGpsInitialization(0.0, enu_to_lla(Eigen::Vector3d(0, 0, 0), ref_lla));
+
+  ekf->m_state.body_state.pos_b_in_l = Eigen::Vector3d(10, 0, 0);
+  ekf->AttemptGpsInitialization(1.0, enu_to_lla(Eigen::Vector3d(10, 0, 0), ref_lla));
+
+  ekf->m_state.body_state.pos_b_in_l = Eigen::Vector3d(20, 0, 0);
+  ekf->AttemptGpsInitialization(2.0, enu_to_lla(Eigen::Vector3d(20, 0, 0), ref_lla));
+
+  ekf->m_state.body_state.pos_b_in_l = Eigen::Vector3d(30, 0, 0);
+  ekf->AttemptGpsInitialization(3.0, enu_to_lla(Eigen::Vector3d(30, 0, 0), ref_lla));
+
+  EXPECT_TRUE(ekf->IsLlaInitialized());
+  EXPECT_EQ(ekf->GetGpsTimeVector().size(), 4);
+  EXPECT_EQ(ekf->GetGpsEcefVector().size(), 4);
+  EXPECT_EQ(ekf->GetGpsXyzVector().size(), 4);
+}
+
