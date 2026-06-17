@@ -26,7 +26,6 @@
 #include "utility/gps_helper.hpp"
 
 
-
 TEST(test_EKF, get_counts) {
   EKF::Parameters ekf_params;
   ekf_params.debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
@@ -209,10 +208,10 @@ TEST(test_EKF, LogBodyStateAndGetters) {
   ekf_params.data_log_rate = 10.0;
   ekf_params.log_directory = "/temp/";
   auto ekf = std::make_shared<EKF>(ekf_params);
-  
+
   ekf->LogBodyStateIfNeeded(0);
   ekf->LogBodyStateIfNeeded(1);
-  
+
   ImuState imu_state;
   imu_state.pos_stability = 0.1;
   ekf->RegisterIMU(3, imu_state, Eigen::MatrixXd::Identity(6, 6));
@@ -243,7 +242,7 @@ TEST(test_EKF, AugmentStateIfNeededAndPrune) {
   ekf_params.augmenting_delta_time = 0.5;
   auto ekf = std::make_shared<EKF>(ekf_params);
   ekf->InitializeGravity();
-  
+
   BodyState body_state;
   ekf->Initialize(0.0, body_state);
 
@@ -272,12 +271,12 @@ TEST(test_EKF, GetAugStateBranch) {
   ekf_params.augmenting_type = AugmentationType::PRIMARY;
   auto ekf = std::make_shared<EKF>(ekf_params);
   ekf->InitializeGravity();
-  
+
   BodyState body_state;
   ekf->Initialize(0.0, body_state);
 
   ekf->AugmentStateIfNeeded(0, 10);
-  
+
   // Call GetAugState with camera_id = 1 (not m_primary_camera_id which is 0) to hit line 641
   AugState retrieved = ekf->GetAugState(1, 10, 0.0);
   EXPECT_EQ(retrieved.index, 18);
@@ -309,4 +308,3 @@ TEST(test_EKF, AttemptGpsInitialization) {
   EXPECT_EQ(ekf->GetGpsEcefVector().size(), 4);
   EXPECT_EQ(ekf->GetGpsXyzVector().size(), 4);
 }
-

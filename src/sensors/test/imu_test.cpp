@@ -117,4 +117,3 @@ TEST(test_IMU, Callback) {
   EXPECT_NO_THROW(imu.Callback(imu_message));
   EXPECT_DOUBLE_EQ(ekf->GetCurrentTime(), 1.1);
 }
-

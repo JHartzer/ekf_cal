@@ -133,25 +133,24 @@ TEST(test_TruthEngineSmoother_Helpers, SlidingWindowFilter) {
     Eigen::Vector3d(4.0, 5.0, 6.0),
     Eigen::Vector3d(7.0, 8.0, 9.0)
   };
-  
+
   std::vector<Eigen::Vector3d> result = SlidingWindowFilter(data, 1);
   ASSERT_EQ(result.size(), 3);
-  EXPECT_NEAR(result[0].x(), 5.0/3.0, 1e-6);
+  EXPECT_NEAR(result[0].x(), 5.0 / 3.0, 1e-6);
   EXPECT_NEAR(result[1].x(), 4.0, 1e-6);
-  EXPECT_NEAR(result[2].x(), 11.0/3.0, 1e-6);
+  EXPECT_NEAR(result[2].x(), 11.0 / 3.0, 1e-6);
 }
 
 TEST(test_TruthEngineSmoother_Helpers, MaxAcceleration) {
   std::vector<double> times = {0.0, 1.0, 2.0, 3.0};
-  
+
   std::vector<Eigen::Vector3d> data(10, Eigen::Vector3d::Zero());
   data[0] = Eigen::Vector3d(0.0, 0.0, 0.0);
   data[1] = Eigen::Vector3d(1.0, 1.0, 1.0);
   data[2] = Eigen::Vector3d(4.0, 4.0, 4.0);
   data[3] = Eigen::Vector3d(9.0, 9.0, 9.0);
   data.resize(3);
-  
+
   double max_acc = MaxAcceleration(times, data);
   EXPECT_NEAR(max_acc, 2.0, 1e-6);
 }
-

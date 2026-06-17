@@ -6,7 +6,7 @@ There are multiple methods for combining IMU measurements. Most previous methods
 To explain this, first consider the measurement model for an IMU that is not at the origin of the body-fixed reference frame
 
 \f{align}{
-\boldsymbol{h}(\boldsymbol{x}_{b}) = 
+\boldsymbol{h}(\boldsymbol{x}_{b}) =
 \begin{bmatrix}
     \mathcal{C}(\quat{I_i}{B})^T
     \left(
@@ -24,7 +24,7 @@ To explain this, first consider the measurement model for an IMU that is not at 
 In order to properly develop residuals for this measurement model in the Kalman update step, it is necessary to have state estimates of the position, orientation and their derivatives. Therefore, the body state of the filter is
 
 \f{align}{
-  \boldsymbol{x}_B = 
+  \boldsymbol{x}_B =
   \begin{bmatrix}
     \pose{B}{L} &
     \vel{B}{L} &
@@ -47,16 +47,16 @@ With this extension of the state vector, it is possible to incorporate any IMU m
   \boldsymbol{P}_{k|k-1} =
   \boldsymbol{F}
   \boldsymbol{P}_{k|k-1}
-  \boldsymbol{F}^T + 
+  \boldsymbol{F}^T +
   \boldsymbol{F}
   \boldsymbol{Q}
   \boldsymbol{F}^T
 \f}
 
-where 
+where
 
 \f{align}{
-  \boldsymbol{F} = 
+  \boldsymbol{F} =
   \begin{bmatrix}
     \boldsymbol{I}_3 & \Delta t \boldsymbol{I}_3 & 0 & 0 & 0 & 0 & 0 \\
     0 & \boldsymbol{I}_3 & \Delta t \boldsymbol{I}_3 & 0 & 0 & 0 & 0 \\

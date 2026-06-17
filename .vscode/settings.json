@@ -40,7 +40,9 @@
         }
     },
     "cSpell.words": [
+        "angacc",
         "AngleAxisd",
+        "angvel",
         "ARUCO",
         "arxiv",
         "axvline",
@@ -54,6 +56,7 @@
         "citeulike",
         "cppcheck",
         "cpplint",
+        "crossmat",
         "curdoc",
         "cwise",
         "devcontainer",

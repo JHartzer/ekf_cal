@@ -59,7 +59,7 @@ public:
     double ang_stability {1e-9};                 ///< @brief Angular stability
     double acc_bias_stability {1e-9};            ///< @brief Accelerometer bias stability
     double omg_bias_stability {1e-9};            ///< @brief Gyroscope bias stability
-    double motion_detection_threshold{1.0};      ///< @brief Motion detection chi-Squared threshold
+    double motion_detection_threshold{1.0};      ///< @brief Motion detection chi-squared threshold
     double noise_scale_factor{1.0};              ///< @brief Stationary noise scale factor
     Variance variance;                           ///< @brief Initial state variance
   } Parameters;

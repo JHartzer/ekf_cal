@@ -5,7 +5,7 @@ Camera Filtering {#camera}
 
 The current state of the art methods for multi-camera  -->
 
-## Camera Error Models 
+## Camera Error Models
 
 The error model used for a FeatureTracker is
 

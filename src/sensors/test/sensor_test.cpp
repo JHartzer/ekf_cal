@@ -60,4 +60,3 @@ TEST(test_sensor, GetName) {
 
   EXPECT_EQ(sensor.GetName(), "test_sensor_name");
 }
-

@@ -153,14 +153,16 @@ TEST(test_msckf_updater, state_and_feature_jacobian_correctness) {
   for (bool use_distortion : {false, true}) {
     Eigen::Vector3d pos_f_in_l{2.0, 3.5, 5.0};
     Eigen::Vector3d pos_b_in_l{0.5, -0.2, 1.1};
-    Eigen::Quaterniond ang_b_to_l = Eigen::Quaterniond(Eigen::AngleAxisd(0.2, Eigen::Vector3d::UnitX()) *
-                                                       Eigen::AngleAxisd(-0.3, Eigen::Vector3d::UnitY()) *
-                                                       Eigen::AngleAxisd(0.5, Eigen::Vector3d::UnitZ()));
+    Eigen::Quaterniond ang_b_to_l = Eigen::Quaterniond(
+      Eigen::AngleAxisd(0.2, Eigen::Vector3d::UnitX()) *
+      Eigen::AngleAxisd(-0.3, Eigen::Vector3d::UnitY()) *
+      Eigen::AngleAxisd(0.5, Eigen::Vector3d::UnitZ()));
 
     Eigen::Vector3d pos_c_in_b{0.15, -0.05, 0.03};
-    Eigen::Quaterniond ang_c_to_b = Eigen::Quaterniond(Eigen::AngleAxisd(0.1, Eigen::Vector3d::UnitX()) *
-                                                      Eigen::AngleAxisd(0.2, Eigen::Vector3d::UnitY()) *
-                                                      Eigen::AngleAxisd(-0.1, Eigen::Vector3d::UnitZ()));
+    Eigen::Quaterniond ang_c_to_b = Eigen::Quaterniond(
+      Eigen::AngleAxisd(0.1, Eigen::Vector3d::UnitX()) *
+      Eigen::AngleAxisd(0.2, Eigen::Vector3d::UnitY()) *
+      Eigen::AngleAxisd(-0.1, Eigen::Vector3d::UnitZ()));
 
     Intrinsics intrinsics;
     intrinsics.f_x = 0.01;
@@ -207,7 +209,8 @@ TEST(test_msckf_updater, state_and_feature_jacobian_correctness) {
       Eigen::Vector3d pos_f_perturbed = pos_f_in_l;
       pos_f_perturbed[i] += delta;
       Eigen::Vector2d pred = predict_feature_projection(
-        pos_f_perturbed, pos_b_in_l, ang_b_to_l, pos_c_in_b, ang_c_to_b, intrinsics, use_distortion);
+        pos_f_perturbed, pos_b_in_l, ang_b_to_l, pos_c_in_b, ang_c_to_b, intrinsics,
+        use_distortion);
       H_f_numerical.col(i) = (pred - base_pred) / delta;
     }
     EXPECT_TRUE(EXPECT_EIGEN_NEAR(H_f_analytical, H_f_numerical, 1e-3));
@@ -219,13 +222,15 @@ TEST(test_msckf_updater, state_and_feature_jacobian_correctness) {
       Eigen::Vector3d pos_b_perturbed = pos_b_in_l;
       pos_b_perturbed[i] += delta;
       Eigen::Vector2d pred = predict_feature_projection(
-        pos_f_in_l, pos_b_perturbed, ang_b_to_l, pos_c_in_b, ang_c_to_b, intrinsics, use_distortion);
+        pos_f_in_l, pos_b_perturbed, ang_b_to_l, pos_c_in_b, ang_c_to_b, intrinsics,
+        use_distortion);
       H_pos_numerical.col(i) = (pred - base_pred) / delta;
     }
     EXPECT_TRUE(EXPECT_EIGEN_NEAR(H_pos_analytical, H_pos_numerical, 1e-3));
 
     // Body/Augmented Orientation Jacobian
-    Eigen::MatrixXd H_t_body = rot_b_to_ci * SkewSymmetric(rot_bi_to_l.transpose() * (pos_f_in_l - pos_b_in_l));
+    Eigen::MatrixXd H_t_body = rot_b_to_ci *
+      SkewSymmetric(rot_bi_to_l.transpose() * (pos_f_in_l - pos_b_in_l));
     Eigen::MatrixXd H_rot_analytical_body = H_d * H_p * H_t_body;
 
     Eigen::MatrixXd H_rot_numerical = Eigen::MatrixXd::Zero(2, 3);
@@ -234,7 +239,8 @@ TEST(test_msckf_updater, state_and_feature_jacobian_correctness) {
       rot_perturb[i] = delta;
       Eigen::Quaterniond ang_b_perturbed = ang_b_to_l * RotVecToQuat(rot_perturb);
       Eigen::Vector2d pred = predict_feature_projection(
-        pos_f_in_l, pos_b_in_l, ang_b_perturbed, pos_c_in_b, ang_c_to_b, intrinsics, use_distortion);
+        pos_f_in_l, pos_b_in_l, ang_b_perturbed, pos_c_in_b, ang_c_to_b, intrinsics,
+        use_distortion);
       H_rot_numerical.col(i) = (pred - base_pred) / delta;
     }
     EXPECT_TRUE(EXPECT_EIGEN_NEAR(H_rot_analytical_body, H_rot_numerical, 1e-3));
@@ -246,7 +252,8 @@ TEST(test_msckf_updater, state_and_feature_jacobian_correctness) {
       Eigen::Vector3d pos_c_perturbed = pos_c_in_b;
       pos_c_perturbed[i] += delta;
       Eigen::Vector2d pred = predict_feature_projection(
-        pos_f_in_l, pos_b_in_l, ang_b_to_l, pos_c_perturbed, ang_c_to_b, intrinsics, use_distortion);
+        pos_f_in_l, pos_b_in_l, ang_b_to_l, pos_c_perturbed, ang_c_to_b, intrinsics,
+        use_distortion);
       H_cam_pos_numerical.col(i) = (pred - base_pred) / delta;
     }
     EXPECT_TRUE(EXPECT_EIGEN_NEAR(H_cam_pos_analytical, H_cam_pos_numerical, 1e-3));
@@ -260,7 +267,8 @@ TEST(test_msckf_updater, state_and_feature_jacobian_correctness) {
       rot_perturb[i] = delta;
       Eigen::Quaterniond ang_c_perturbed = ang_c_to_b * RotVecToQuat(rot_perturb);
       Eigen::Vector2d pred = predict_feature_projection(
-        pos_f_in_l, pos_b_in_l, ang_b_to_l, pos_c_in_b, ang_c_perturbed, intrinsics, use_distortion);
+        pos_f_in_l, pos_b_in_l, ang_b_to_l, pos_c_in_b, ang_c_perturbed, intrinsics,
+        use_distortion);
       H_cam_rot_numerical.col(i) = (pred - base_pred) / delta;
     }
     EXPECT_TRUE(EXPECT_EIGEN_NEAR(H_cam_rot_analytical_body, H_cam_rot_numerical, 1e-3));

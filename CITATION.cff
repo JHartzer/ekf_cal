@@ -5,7 +5,7 @@ authors:
   given-names: "Jacob"
   orcid: "https://orcid.org/0000-0002-3051-2213"
 title: "ekf_cal"
-version: 0.4.0
-# doi:
-# date-released:
+version: 0.7.0
+doi: 10.21105/joss.07793
+date-released: 2025-05-29
 url: "https://github.com/unmannedlab/ekf_cal"

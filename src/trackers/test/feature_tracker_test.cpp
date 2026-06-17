@@ -16,6 +16,8 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
@@ -244,7 +246,7 @@ TEST(test_feature_tracker, RANSAC) {
   // Create 10 inliers and 1 outlier
   for (int i = 0; i < 11; ++i) {
     float x_prev = static_cast<float>(i % 3) * 50.0f;
-    float y_prev = static_cast<float>(i / 3) * 50.0f;
+    float y_prev = static_cast<float>(i / 3.0) * 50.0f;
     tracker.m_prev_key_points.emplace_back(cv::Point2f(x_prev, y_prev), 1.0f);
 
     float x_curr, y_curr;
@@ -365,4 +367,3 @@ TEST(test_feature_tracker, TrackDirect) {
 
   EXPECT_EQ(feature_tracker.m_prev_frame_id, 2);
 }
-

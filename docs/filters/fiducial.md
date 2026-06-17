@@ -8,9 +8,9 @@ Issues can arise, however, when performing online calibration of IMU and Camera 
 As such, it can be beneficial to simultaneously estimate the pose of the fiducial alongside the localization of the moving body. This is done by introducing the fiducial pose states into the overall filter as
 
 \f{equation}{
-    \boldsymbol{x}_F = 
+    \boldsymbol{x}_F =
     \begin{bmatrix}
-        \pose{F}{L} & 
+        \pose{F}{L} &
         \quat{F}{L}
     \end{bmatrix}
 \f}
@@ -18,17 +18,17 @@ As such, it can be beneficial to simultaneously estimate the pose of the fiducia
 
 ## Fiducial State Update
 
-The Kalman update step is performed in the typical fashion. The predicted measurement is 
+The Kalman update step is performed in the typical fashion. The predicted measurement is
 
 \f{align}{
-  \hat{\boldsymbol{z}} = 
+  \hat{\boldsymbol{z}} =
   \begin{bmatrix}
     \quatHat{B}{C} (\quatHat{L}{B} (\poseHat{F}{L} - \poseHat{B}{L}) - \poseHat{C}{B}) \\
     \quatHat{B}{C} \quatHat{L}{B} \quatHat{F}{L}
   \end{bmatrix}
 \f}
 
-The measurement residual is 
+The measurement residual is
 \f{align}{
   \boldsymbol{y} = \boldsymbol{z} - \hat{\boldsymbol{z}}
 \f}
@@ -38,7 +38,7 @@ The resultant observation matrix is
 <!-- @TODO: Add observation matrix here -->
 
 \f{align}{
-  \boldsymbol{H} = 
+  \boldsymbol{H} =
   \begin{bmatrix}
     0 & 0 & 0 & 0 & 0 & 0 \\
     0 & 0 & 0 & 0 & 0 & 0s

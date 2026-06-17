@@ -248,12 +248,14 @@ TEST(test_TruthEngine, GenerateVisibleFeaturesAndGetFeature) {
   intrinsics.width = 640.0;
   intrinsics.height = 480.0;
   intrinsics.pixel_size = 1.0;
-  
+
   truth_engine_cyclic.SetCameraIntrinsics(camera_id, intrinsics);
   truth_engine_cyclic.SetCameraPosition(camera_id, Eigen::Vector3d(0.1, 0.2, 0.3));
   truth_engine_cyclic.SetCameraAngularPosition(camera_id, Eigen::Quaterniond::Identity());
 
-  std::vector<cv::Point3d> new_features = truth_engine_cyclic.GenerateVisibleFeatures(0.5, camera_id, 5);
+  std::vector<cv::Point3d> new_features = truth_engine_cyclic.GenerateVisibleFeatures(
+    0.5,
+    camera_id, 5);
   EXPECT_EQ(new_features.size(), 1350 + 5);
   EXPECT_EQ(truth_engine_cyclic.GetFeatures().size(), 1350 + 5);
 
@@ -262,4 +264,3 @@ TEST(test_TruthEngine, GenerateVisibleFeaturesAndGetFeature) {
   EXPECT_EQ(feat_last.y, new_features[1350].y);
   EXPECT_EQ(feat_last.z, new_features[1350].z);
 }
-

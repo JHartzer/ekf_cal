@@ -21,7 +21,7 @@ Once these thresholds are reached, the Kabsch-TODO method of frame-to-frame esti
 Errors in the initial local frame heading estimate can cause issues with estimates of intrinsic sensor parameters over long trajectories. Therefore, it is also desirable to develop an online estimate of just the local frame heading to further improve accuracy with large distances traveled by the body. Additionally, it is desirable to further refine the estimated location of the GPS antenna in the body frame. As such, the local frame heading is incorporated into the state estimate alongside each antenna position in the body frame.
 
 \f{align}{
-    \boldsymbol{x}_G = 
+    \boldsymbol{x}_G =
     \begin{bmatrix}
         \ang{G}{L} &
         \pose{A_1}{B} &
@@ -32,16 +32,16 @@ Errors in the initial local frame heading estimate can cause issues with estimat
 
 ## GPS Update Equations
 
-The Kalman update step is performed in the typical fashion. The predicted measurement is 
+The Kalman update step is performed in the typical fashion. The predicted measurement is
 
 \f{align}{
-  \hat{\boldsymbol{z}} = 
+  \hat{\boldsymbol{z}} =
   \begin{bmatrix}
     \poseHat{L}{G} + \quatHat{L}{G} (\poseHat{B}{L} + \quatHat{B}{L} (\poseHat{A}{B}))
   \end{bmatrix}
 \f}
 
-The measurement residual is 
+The measurement residual is
 \f{align}{
   \boldsymbol{y} = \boldsymbol{z} - \hat{\boldsymbol{z}}
 \f}

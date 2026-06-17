@@ -297,11 +297,11 @@ TEST(test_MathHelper, RemoveStateFromRootCovariance) {
   // Create a 6x6 upper triangular matrix S
   Eigen::MatrixXd S = Eigen::MatrixXd::Zero(6, 6);
   S << 1.0, 0.2, 0.3, 0.4, 0.5, 0.6,
-       0.0, 1.2, 0.1, 0.3, 0.2, 0.1,
-       0.0, 0.0, 0.8, 0.1, 0.4, 0.2,
-       0.0, 0.0, 0.0, 1.5, 0.3, 0.1,
-       0.0, 0.0, 0.0, 0.0, 1.1, 0.5,
-       0.0, 0.0, 0.0, 0.0, 0.0, 0.9;
+    0.0, 1.2, 0.1, 0.3, 0.2, 0.1,
+    0.0, 0.0, 0.8, 0.1, 0.4, 0.2,
+    0.0, 0.0, 0.0, 1.5, 0.3, 0.1,
+    0.0, 0.0, 0.0, 0.0, 1.1, 0.5,
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.9;
 
   Eigen::MatrixXd P = S.transpose() * S;
 
@@ -330,4 +330,3 @@ TEST(test_MathHelper, RemoveStateFromRootCovariance) {
     }
   }
 }
-
