@@ -915,11 +915,6 @@ bool EKF::GetUseFirstEstimateJacobian() const
   return m_use_first_estimate_jacobian;
 }
 
-bool EKF::GetUseRK4() const
-{
-  return m_use_rk4;
-}
-
 double EKF::CalculateLocalTime(double time)
 {
   double local_time;

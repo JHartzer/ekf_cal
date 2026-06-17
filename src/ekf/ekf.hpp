@@ -382,12 +382,6 @@ public:
   bool GetUseFirstEstimateJacobian() const;
 
   ///
-  /// @brief Getter for use RK4 propagation flag
-  /// @return Use RK4 propagation flag
-  ///
-  bool GetUseRK4() const;
-
-  ///
   /// @brief Calculate UTF time to local EKF time
   /// @return EKF time
   ///
