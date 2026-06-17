@@ -285,15 +285,10 @@ typedef struct FeaturePoint
 } FeaturePoint;
 
 ///
-/// @brief FeatureTrack structure
+/// @brief FeatureTrack type
 ///
-typedef struct FeatureTrack
-{
-  std::vector<FeaturePoint> track;        ///< @brief Vector of tracked feature keypoints
-  /// @todo: Remove true feature position once MSCKF complete
-  /// @brief True feature position (sim only)
-  Eigen::Vector3d true_feature_position{Eigen::Vector3d::Zero()};
-} FeatureTrack;
+typedef std::vector<FeaturePoint> FeatureTrack;
+
 
 ///
 /// @brief FeatureTracks type

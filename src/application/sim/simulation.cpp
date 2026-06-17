@@ -349,7 +349,6 @@ int main(int argc, char * argv[])
     track_params.max_track_length = trk_node["max_track_length"].as<unsigned int>(20);
     track_params.min_feat_dist = trk_node["min_feat_dist"].as<double>(1.0);
     track_params.max_feat_dist = trk_node["max_feat_dist"].as<double>(100.0);
-    track_params.use_true_triangulation = sim_node["use_true_triangulation"].as<bool>(false);
     track_params.down_sample = trk_node["down_sample"].as<bool>(false);
     track_params.down_sample_height = trk_node["down_sample_height"].as<int>(480);
     track_params.down_sample_width = trk_node["down_sample_width"].as<int>(640);

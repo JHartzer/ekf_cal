@@ -42,7 +42,6 @@ FeatureTracker::FeatureTracker(FeatureTracker::Parameters params)
     params.data_log_rate,
     params.min_feat_dist,
     params.max_feat_dist,
-    params.use_true_triangulation,
     params.logger
   ),
   m_px_error(params.px_error),
@@ -249,9 +248,7 @@ void FeatureTracker::Track(
       {
         // This feature does not exist in the latest frame
         if (feature_points.size() >= m_min_track_length) {
-          FeatureTrack feature_track;
-          feature_track.track = feature_points;
-          feature_tracks.push_back(feature_track);
+          feature_tracks.push_back(feature_points);
         }
         it = m_feature_points_map.erase(it);
       } else {

@@ -81,7 +81,7 @@ TEST(test_msckf_updater, update) {
   ekf.RegisterCamera(cam_id, cam_state, cam_cov);
 
   auto logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
-  auto msckf_updater = MsckfUpdater(1, false, "", 0.0, 1.0, 100.0, false, logger);
+  auto msckf_updater = MsckfUpdater(1, false, "", 0.0, 1.0, 100.0, logger);
 
   double time {0.3};
   cv::KeyPoint point_1;
@@ -105,9 +105,9 @@ TEST(test_msckf_updater, update) {
   feature_point_3.key_point = point_3;
 
   FeatureTrack feature_points;
-  feature_points.track.push_back(feature_point_1);
-  feature_points.track.push_back(feature_point_2);
-  feature_points.track.push_back(feature_point_3);
+  feature_points.push_back(feature_point_1);
+  feature_points.push_back(feature_point_2);
+  feature_points.push_back(feature_point_3);
 
   FeatureTracks feature_tracks;
   feature_tracks.push_back(feature_points);

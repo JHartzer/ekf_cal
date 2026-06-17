@@ -154,14 +154,7 @@ std::shared_ptr<SimFeatureTrackerMessage> SimFeatureTracker::GenerateMessage(
     {
       // This feature does not exist in the latest frame
       if (feature_points.size() >= m_min_track_length) {
-        FeatureTrack feature_track;
-        feature_track.track = feature_points;
-        auto feature_point_cv = m_truth->GetFeature(feature_points[0].key_point.class_id);
-        feature_track.true_feature_position.x() = feature_point_cv.x;
-        feature_track.true_feature_position.y() = feature_point_cv.y;
-        feature_track.true_feature_position.z() = feature_point_cv.z;
-
-        feature_tracks.push_back(feature_track);
+        feature_tracks.push_back(feature_points);
       }
       feat_it = m_feature_points_map.erase(feat_it);
     } else {
