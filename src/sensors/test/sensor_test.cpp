@@ -15,8 +15,10 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <opencv2/opencv.hpp>
 
+#include "infrastructure/debug_logger.hpp"
 #include "sensors/camera_message.hpp"
 #include "sensors/imu_message.hpp"
 #include "sensors/sensor_message.hpp"
@@ -49,3 +51,13 @@ TEST(test_sensor, Callback) {
   SensorMessage sensor_message;
   sensor.Callback(sensor_message);
 }
+
+TEST(test_sensor, GetName) {
+  Sensor::Parameters sensor_params;
+  sensor_params.logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  sensor_params.name = "test_sensor_name";
+  Sensor sensor(sensor_params);
+
+  EXPECT_EQ(sensor.GetName(), "test_sensor_name");
+}
+

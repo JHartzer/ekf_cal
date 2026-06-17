@@ -15,7 +15,10 @@
 
 #include "utility/sim/sim_rng.hpp"
 
+#include <math.h>
+
 #include <algorithm>
+#include <random>
 
 #include "utility/type_helper.hpp"
 

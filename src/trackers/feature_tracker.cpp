@@ -18,16 +18,17 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <opencv2/features2d.hpp>
 #include <opencv2/opencv.hpp>
 
 #include "ekf/types.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "trackers/tracker.hpp"
 
 
@@ -41,7 +42,6 @@ FeatureTracker::FeatureTracker(FeatureTracker::Parameters params)
     params.data_log_rate,
     params.min_feat_dist,
     params.max_feat_dist,
-    params.use_true_triangulation,
     params.logger
   ),
   m_px_error(params.px_error),
@@ -248,9 +248,7 @@ void FeatureTracker::Track(
       {
         // This feature does not exist in the latest frame
         if (feature_points.size() >= m_min_track_length) {
-          FeatureTrack feature_track;
-          feature_track.track = feature_points;
-          feature_tracks.push_back(feature_track);
+          feature_tracks.push_back(feature_points);
         }
         it = m_feature_points_map.erase(it);
       } else {
@@ -334,10 +332,28 @@ void FeatureTracker::RANSAC(
       curr_key_points[static_cast<unsigned int>(matches_in.at(i).trainIdx)].pt);
   }
 
-  /// @todo: Undistort?
+  // Retrieve camera intrinsics and distortion coefficients from EKF
+  Intrinsics intrinsics;
+  if (m_ekf && m_ekf->m_state.cam_states.find(m_camera_id) != m_ekf->m_state.cam_states.end()) {
+    intrinsics = m_ekf->m_state.cam_states.at(m_camera_id).intrinsics;
+  }
+
+  cv::Mat camera_matrix = intrinsics.ToCameraMatrix();
+  cv::Mat dist_coeffs = intrinsics.ToDistortionVector();
+
+  std::vector<cv::Point2f> points_undistorted_prev;
+  std::vector<cv::Point2f> points_undistorted_curr;
+  cv::undistortPoints(
+    points_good_prev, points_undistorted_prev,
+    camera_matrix, dist_coeffs, cv::noArray(), camera_matrix);
+  cv::undistortPoints(
+    points_good_curr, points_undistorted_curr,
+    camera_matrix, dist_coeffs, cv::noArray(), camera_matrix);
 
   std::vector<uint8_t> mask;
-  cv::findFundamentalMat(points_good_prev, points_good_curr, cv::FM_RANSAC, 1.0, 0.99, mask);
+  cv::findFundamentalMat(
+    points_undistorted_prev, points_undistorted_curr, cv::FM_RANSAC, 1.0, 0.99,
+    mask);
 
   // Apply mask
   for (unsigned int i = 0; i < matches_in.size(); i++) {

@@ -16,7 +16,8 @@
 #ifndef INFRASTRUCTURE__SIM__TRUTH_ENGINE_HPP_
 #define INFRASTRUCTURE__SIM__TRUTH_ENGINE_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <map>
 #include <memory>
@@ -27,7 +28,6 @@
 
 #include "ekf/types.hpp"
 #include "infrastructure/debug_logger.hpp"
-#include "utility/sim/sim_rng.hpp"
 
 ///
 /// @class TruthEngine

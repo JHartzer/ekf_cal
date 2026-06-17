@@ -15,9 +15,13 @@
 
 #include "ekf/ekf.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -91,7 +95,14 @@ Eigen::MatrixXd EKF::GetStateTransition(double delta_time)
 {
   Eigen::MatrixXd state_transition =
     Eigen::MatrixXd::Identity(g_body_state_size, g_body_state_size);
-  state_transition.block<3, 3>(0, 3) = Eigen::MatrixXd::Identity(3, 3) * delta_time;
+  Eigen::Matrix3d rot_l_to_b = m_state.body_state.ang_b_to_l.conjugate().toRotationMatrix();
+
+  state_transition.block<3, 3>(0, 3) = Eigen::Matrix3d::Identity() * delta_time;
+  state_transition.block<3, 3>(3, 6) = Eigen::Matrix3d::Identity() * delta_time;
+  state_transition.block<3, 3>(0, 6) = Eigen::Matrix3d::Identity() * (delta_time * delta_time);
+  state_transition.block<3, 3>(9, 12) = rot_l_to_b * delta_time;
+  state_transition.block<3, 3>(12, 15) = Eigen::Matrix3d::Identity() * delta_time;
+  state_transition.block<3, 3>(9, 15) = rot_l_to_b * (delta_time * delta_time);
   return state_transition;
 }
 
@@ -172,7 +183,8 @@ void EKF::PredictModel(double local_time)
       Eigen::Quaterniond K4 = omega_4 * q4;
 
       Eigen::Quaterniond q_next;
-      q_next.coeffs() = q_n.coeffs() + (h / 12.0) * (K1.coeffs() + 2.0 * K2.coeffs() + 2.0 * K3.coeffs() + K4.coeffs());
+      q_next.coeffs() = q_n.coeffs() + (h / 12.0) *
+        (K1.coeffs() + 2.0 * K2.coeffs() + 2.0 * K3.coeffs() + K4.coeffs());
       q_next.normalize();
 
       m_state.body_state.ang_b_to_l = q_next;
@@ -187,16 +199,14 @@ void EKF::PredictModel(double local_time)
 
     m_state.body_state.vel_b_in_l += delta_time * acceleration_local;
     m_state.body_state.pos_b_in_l += delta_time * m_state.body_state.vel_b_in_l;
+    m_state.body_state.ang_vel_b_in_l += delta_time * m_state.body_state.ang_acc_b_in_l;
 
     Eigen::MatrixXd state_transition = GetStateTransition(delta_time);
     unsigned int alt_size = m_state_size - g_body_state_size;
 
     if (m_use_root_covariance) {
-      m_cov.block<g_body_state_size, g_body_state_size>(0, 0) =
-        m_cov.block<g_body_state_size, g_body_state_size>(0, 0) * state_transition.transpose();
-
-      m_cov.block(0, g_body_state_size, g_body_state_size, alt_size) =
-        state_transition * m_cov.block(0, g_body_state_size, g_body_state_size, alt_size);
+      m_cov.block(0, 0, m_state_size, g_body_state_size) =
+        m_cov.block(0, 0, m_state_size, g_body_state_size) * state_transition.transpose();
 
       m_cov = QR_r(m_cov, m_process_noise * std::sqrt(delta_time));
     } else {
@@ -424,11 +434,11 @@ Eigen::MatrixXd EKF::AugmentCovariance(const Eigen::MatrixXd & in_cov, unsigned 
 
   if (m_use_root_covariance) {
     // Left
-    out_cov.block(0, 0, index, index) = in_cov.block(0, 0, index, index);
+    out_cov.block(0, 0, in_rows, index) = in_cov.block(0, 0, in_rows, index);
 
     // Middle
-    out_cov.block<3, 3>(0, index) = in_cov.block<3, 3>(0, 0);
-    out_cov.block<12, 3>(0, index + 3) = in_cov.block<12, 3>(0, 9);
+    out_cov.block(0, index, in_rows, 3) = in_cov.block(0, 0, in_rows, 3);
+    out_cov.block(0, index + 3, in_rows, 3) = in_cov.block(0, 9, in_rows, 3);
 
     // Right
     out_cov.block(0, index + g_aug_state_size, in_rows, in_cols - index) =
@@ -526,7 +536,11 @@ void EKF::AugmentStateIfNeeded()
 
       // Prune old states
       m_state.aug_states[0].erase(m_state.aug_states[0].begin() + i);
-      m_cov = RemoveFromMatrix(m_cov, aug_index, aug_index, g_aug_state_size);
+      if (m_use_root_covariance) {
+        m_cov = RemoveStateFromRootCovariance(m_cov, aug_index, g_aug_state_size);
+      } else {
+        m_cov = RemoveFromMatrix(m_cov, aug_index, aug_index, g_aug_state_size);
+      }
 
       RefreshIndices();
     }
@@ -586,7 +600,11 @@ void EKF::AugmentStateIfNeeded(unsigned int camera_id, unsigned int frame_id)
       m_state.aug_states[camera_id].erase(m_state.aug_states[camera_id].begin());
 
       // Remove first element from covariance
-      m_cov = RemoveFromMatrix(m_cov, aug_start, aug_start, g_aug_state_size);
+      if (m_use_root_covariance) {
+        m_cov = RemoveStateFromRootCovariance(m_cov, aug_start, g_aug_state_size);
+      } else {
+        m_cov = RemoveFromMatrix(m_cov, aug_start, aug_start, g_aug_state_size);
+      }
     }
 
     RefreshIndices();
@@ -895,11 +913,6 @@ bool EKF::GetUseRootCovariance() const
 bool EKF::GetUseFirstEstimateJacobian() const
 {
   return m_use_first_estimate_jacobian;
-}
-
-bool EKF::GetUseRK4() const
-{
-  return m_use_rk4;
 }
 
 double EKF::CalculateLocalTime(double time)

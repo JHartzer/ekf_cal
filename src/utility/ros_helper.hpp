@@ -16,7 +16,7 @@
 #ifndef UTILITY__ROS_HELPER_HPP_
 #define UTILITY__ROS_HELPER_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
 #include <array>
 

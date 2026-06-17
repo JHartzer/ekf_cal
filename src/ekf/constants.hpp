@@ -16,7 +16,7 @@
 #ifndef EKF__CONSTANTS_HPP_
 #define EKF__CONSTANTS_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
 
 static constexpr unsigned int g_body_state_size {18};

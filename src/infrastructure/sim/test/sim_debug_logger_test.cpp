@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <string>
 
 #include "infrastructure/debug_logger.hpp"

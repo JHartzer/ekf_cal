@@ -16,11 +16,12 @@
 #ifndef SENSORS__IMU_HPP_
 #define SENSORS__IMU_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <memory>
-#include <string>
 
+#include "ekf/ekf.hpp"
 #include "ekf/update/imu_updater.hpp"
 #include "sensors/imu_message.hpp"
 #include "sensors/sensor.hpp"

@@ -16,7 +16,8 @@
 #ifndef EKF__EKF_HPP_
 #define EKF__EKF_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <stddef.h>
 
 #include <memory>
@@ -150,7 +151,7 @@ public:
   /// @param delta_time State transition time
   /// @return State transition matrix
   ///
-  static Eigen::MatrixXd GetStateTransition(double delta_time);
+  Eigen::MatrixXd GetStateTransition(double delta_time);
 
   ///
   /// @brief EKF state initialization method
@@ -379,12 +380,6 @@ public:
   /// @return Use first estimate Jacobians
   ///
   bool GetUseFirstEstimateJacobian() const;
-
-  ///
-  /// @brief Getter for use RK4 propagation flag
-  /// @return Use RK4 propagation flag
-  ///
-  bool GetUseRK4() const;
 
   ///
   /// @brief Calculate UTF time to local EKF time

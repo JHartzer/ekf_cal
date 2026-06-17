@@ -17,7 +17,7 @@
 #ifndef SENSORS__GPS_MESSAGE_HPP_
 #define SENSORS__GPS_MESSAGE_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
 #include "sensors/sensor_message.hpp"
 

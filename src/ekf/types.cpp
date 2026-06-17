@@ -15,8 +15,8 @@
 
 #include "ekf/types.hpp"
 
-#include <eigen3/Eigen/Eigen>
-#include <memory>
+#include <Eigen/Core>
+#include <map>
 #include <utility>
 #include <vector>
 

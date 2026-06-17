@@ -22,6 +22,8 @@
 #include <opencv2/opencv.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
+#include "ekf/ekf.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "sensors/camera.hpp"
 #include "sensors/ros/ros_camera_message.hpp"
 #include "sensors/ros/ros_camera.hpp"

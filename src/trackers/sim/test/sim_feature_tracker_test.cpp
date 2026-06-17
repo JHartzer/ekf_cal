@@ -17,8 +17,9 @@
 
 #include <memory>
 
+#include "ekf/ekf.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "trackers/feature_tracker.hpp"
-#include "trackers/sim/sim_feature_tracker.hpp"
 
 TEST(test_feature_tracker, constructor) {
   EKF::Parameters ekf_params;

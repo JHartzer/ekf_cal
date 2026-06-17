@@ -15,12 +15,14 @@
 
 #include <gtest/gtest.h>
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <memory>
+#include <vector>
 
+#include "infrastructure/debug_logger.hpp"
 #include "infrastructure/sim/truth_engine_cyclic.hpp"
 #include "utility/custom_assertions.hpp"
-#include "utility/sim/sim_rng.hpp"
-#include "utility/type_helper.hpp"
 
 
 TEST(test_TruthEngine, InheritedFunctions) {
@@ -215,3 +217,49 @@ TEST(test_TruthEngineCyclic, SetLocalPosition) {
   EXPECT_TRUE(EXPECT_EIGEN_NEAR(truth_engine_cyclic.GetLocalPosition(), lla_reference, 1e-6));
   EXPECT_EQ(truth_engine_cyclic.GetLocalHeading(), lla_heading);
 }
+
+TEST(test_TruthEngine, GenerateVisibleFeaturesAndGetFeature) {
+  Eigen::Vector3d pos_frequency{1, 2, 3};
+  Eigen::Vector3d ang_frequency{4, 5, 6};
+  Eigen::Vector3d pos_offset{1, 2, 3};
+  Eigen::Vector3d ang_offset{0.1, 0.2, 0.3};
+  double pos_amplitude = 1.0;
+  double ang_amplitude = 0.1;
+  double stationary_time{0.0};
+  double max_time{1.0};
+  auto logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+
+  TruthEngineCyclic truth_engine_cyclic(
+    pos_frequency,
+    ang_frequency,
+    pos_offset,
+    ang_offset,
+    pos_amplitude,
+    ang_amplitude,
+    stationary_time,
+    max_time,
+    logger
+  );
+
+  unsigned int camera_id = 1;
+  Intrinsics intrinsics;
+  intrinsics.f_x = 500.0;
+  intrinsics.f_y = 500.0;
+  intrinsics.width = 640.0;
+  intrinsics.height = 480.0;
+  intrinsics.pixel_size = 1.0;
+  
+  truth_engine_cyclic.SetCameraIntrinsics(camera_id, intrinsics);
+  truth_engine_cyclic.SetCameraPosition(camera_id, Eigen::Vector3d(0.1, 0.2, 0.3));
+  truth_engine_cyclic.SetCameraAngularPosition(camera_id, Eigen::Quaterniond::Identity());
+
+  std::vector<cv::Point3d> new_features = truth_engine_cyclic.GenerateVisibleFeatures(0.5, camera_id, 5);
+  EXPECT_EQ(new_features.size(), 1350 + 5);
+  EXPECT_EQ(truth_engine_cyclic.GetFeatures().size(), 1350 + 5);
+
+  cv::Point3d feat_last = truth_engine_cyclic.GetFeature(1350);
+  EXPECT_EQ(feat_last.x, new_features[1350].x);
+  EXPECT_EQ(feat_last.y, new_features[1350].y);
+  EXPECT_EQ(feat_last.z, new_features[1350].z);
+}
+

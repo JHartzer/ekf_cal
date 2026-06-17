@@ -15,15 +15,15 @@
 
 #include "ekf/update/fiducial_updater.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
-#include <algorithm>
 #include <chrono>
 #include <cmath>
-#include <iomanip>
 #include <map>
 #include <memory>
 #include <ostream>
+#include <sstream>
 #include <string>
 
 #include <opencv2/opencv.hpp>
@@ -31,6 +31,7 @@
 #include "ekf/constants.hpp"
 #include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
+#include "ekf/update/updater.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "utility/math_helper.hpp"
 #include "utility/string_helper.hpp"
@@ -104,7 +105,6 @@ Eigen::MatrixXd FiducialUpdater::GetMeasurementJacobian(EKF & ekf)
   jacobian.block<3, 3>(3, 9) = -rot_l_to_c * rot_f_to_l *
     QuaternionJacobian(ang_b_to_l).transpose();
 
-  /// @todo Test camera calibration jacobians
   if (m_is_cam_extrinsic) {
     unsigned int cam_index = ekf.m_state.cam_states[m_camera_id].index;
     jacobian.block<3, 3>(0, cam_index + 0) = -rot_b_to_c;
@@ -168,7 +168,9 @@ void FiducialUpdater::UpdateEKF(
   // Residuals for this frame
   Eigen::VectorXd res = Eigen::VectorXd::Zero(g_fid_measurement_size);
   res.segment<3>(0) = pos_measured - pred_meas.segment<3>(0);
-  res.segment<3>(3) = QuatToRotVec(RotVecToQuat(pred_meas.segment<3>(3)) * ang_measured.conjugate());
+  res.segment<3>(3) = QuatToRotVec(
+    RotVecToQuat(pred_meas.segment<3>(3)) *
+    ang_measured.conjugate());
 
   Eigen::MatrixXd jacobian = GetMeasurementJacobian(ekf);
 

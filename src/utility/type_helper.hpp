@@ -16,13 +16,13 @@
 #ifndef UTILITY__TYPE_HELPER_HPP_
 #define UTILITY__TYPE_HELPER_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <vector>
 
 #include <opencv2/opencv.hpp>
 
-#include "ekf/types.hpp"
 
 ///
 /// @brief Converts std::vector into Eigen Quaternion

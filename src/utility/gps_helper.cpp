@@ -15,9 +15,10 @@
 
 #include "gps_helper.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
-#include <iostream>
+#include <math.h>
+
 #include <cmath>
 
 

@@ -16,8 +16,6 @@
 #ifndef TRACKERS__SIM__SIM_FEATURE_TRACKER_MESSAGE_HPP_
 #define TRACKERS__SIM__SIM_FEATURE_TRACKER_MESSAGE_HPP_
 
-#include <vector>
-
 #include "ekf/types.hpp"
 #include "sensors/sensor_message.hpp"
 

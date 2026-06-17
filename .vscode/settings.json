@@ -1,22 +1,43 @@
 {
-    "editor.formatOnSave": true,
-    "editor.rulers": [
-        99
-    ],
-    "python.autoComplete.extraPaths": [
-        "/opt/venv/lib/python3.12/site-packages",
-        "/opt/ros/jazzy/lib/python3.12/site-packages"
-    ],
-    "files.exclude": {
-        "**/__pycache__": true
-    },
     "[cpp]": {
-        "editor.wordBasedSuggestions": "off",
-        "editor.suggest.insertMode": "replace",
-        "editor.semanticHighlighting.enabled": true,
-        "editor.tabSize": 2,
+        "editor.defaultFormatter": "zachflower.uncrustify",
         "editor.detectIndentation": false,
-        "editor.defaultFormatter": "zachflower.uncrustify"
+        "editor.insertSpaces": true,
+        "editor.semanticHighlighting.enabled": true,
+        "editor.suggest.insertMode": "replace",
+        "editor.tabSize": 2,
+        "editor.wordBasedSuggestions": "off"
+    },
+    "[markdown]": {
+        "editor.wordWrap": "wordWrapColumn",
+        "editor.wordWrapColumn": 99
+    },
+    "[yaml]": {
+        "diffEditor.ignoreTrimWhitespace": false,
+        "editor.autoIndent": "keep",
+        "editor.formatOnSave": false,
+        "editor.insertSpaces": true,
+        "editor.quickSuggestions": {
+            "comments": false,
+            "other": true,
+            "strings": true
+        },
+        "editor.tabSize": 4
+    },
+    "cmake.configureOnOpen": true,
+    "cmake.debugConfig": {
+        "args": [
+            "${workspaceFolder}/config/regression/one_imu_cam.yaml",
+            "${workspaceFolder}/config/regression/one_imu_cam/"
+        ]
+    },
+    "cmake.options.advanced": {
+        "cpack": {
+            "statusBarVisibility": "hidden"
+        },
+        "packagePreset": {
+            "statusBarVisibility": "hidden"
+        }
     },
     "cSpell.words": [
         "AngleAxisd",
@@ -139,123 +160,133 @@
         "Zhong",
         "Zhuochun"
     ],
-    "terminal.integrated.scrollback": 5000,
-    "cmake.buildDirectory": "${workspaceFolder}/../../build/ekf_cal/",
+    "editor.formatOnSave": true,
+    "editor.rulers": [
+        99
+    ],
     "files.associations": {
+        "__bit_reference": "cpp",
+        "__config": "cpp",
+        "__hash_table": "cpp",
+        "__locale": "cpp",
+        "__node_handle": "cpp",
+        "__nullptr": "cpp",
+        "__split_buffer": "cpp",
+        "__tree": "cpp",
+        "*.in": "cpp",
+        "*.ipp": "cpp",
+        "*.tcc": "cpp",
+        "*.txx": "cpp",
+        "algorithm": "cpp",
+        "any": "cpp",
+        "array": "cpp",
+        "atomic": "cpp",
+        "bit": "cpp",
+        "bitset": "cpp",
         "cctype": "cpp",
+        "cfenv": "cpp",
+        "charconv": "cpp",
+        "chrono": "cpp",
+        "cinttypes": "cpp",
         "clocale": "cpp",
         "cmath": "cpp",
+        "codecvt": "cpp",
+        "compare": "cpp",
+        "complex": "cpp",
+        "concepts": "cpp",
+        "condition_variable": "cpp",
+        "core": "cpp",
+        "coroutine": "cpp",
         "csignal": "cpp",
         "cstdarg": "cpp",
         "cstddef": "cpp",
+        "cstdint": "cpp",
         "cstdio": "cpp",
         "cstdlib": "cpp",
         "cstring": "cpp",
         "ctime": "cpp",
         "cwchar": "cpp",
         "cwctype": "cpp",
-        "array": "cpp",
-        "atomic": "cpp",
-        "strstream": "cpp",
-        "*.tcc": "cpp",
-        "bitset": "cpp",
-        "chrono": "cpp",
-        "complex": "cpp",
-        "condition_variable": "cpp",
-        "cstdint": "cpp",
         "deque": "cpp",
-        "list": "cpp",
-        "unordered_map": "cpp",
-        "unordered_set": "cpp",
-        "vector": "cpp",
+        "eigen": "cpp",
         "exception": "cpp",
-        "algorithm": "cpp",
-        "functional": "cpp",
-        "iterator": "cpp",
-        "map": "cpp",
-        "memory": "cpp",
-        "memory_resource": "cpp",
-        "numeric": "cpp",
-        "optional": "cpp",
-        "random": "cpp",
-        "ratio": "cpp",
-        "set": "cpp",
-        "string": "cpp",
-        "string_view": "cpp",
-        "system_error": "cpp",
-        "tuple": "cpp",
-        "type_traits": "cpp",
-        "utility": "cpp",
+        "filesystem": "cpp",
+        "format": "cpp",
+        "forward_list": "cpp",
         "fstream": "cpp",
+        "functional": "cpp",
         "future": "cpp",
         "initializer_list": "cpp",
         "iomanip": "cpp",
+        "ios": "cpp",
         "iosfwd": "cpp",
         "iostream": "cpp",
         "istream": "cpp",
+        "iterator": "cpp",
         "limits": "cpp",
+        "list": "cpp",
+        "locale": "cpp",
+        "map": "cpp",
+        "memory": "cpp",
+        "memory_resource": "cpp",
         "mutex": "cpp",
         "new": "cpp",
+        "numbers": "cpp",
+        "numeric": "cpp",
+        "optional": "cpp",
         "ostream": "cpp",
+        "queue": "cpp",
+        "random": "cpp",
+        "ratio": "cpp",
+        "regex": "cpp",
+        "semaphore": "cpp",
+        "set": "cpp",
+        "shared_mutex": "cpp",
+        "source_location": "cpp",
+        "span": "cpp",
+        "splines": "cpp",
         "sstream": "cpp",
+        "stack": "cpp",
         "stdexcept": "cpp",
+        "stdfloat": "cpp",
+        "stop_token": "cpp",
         "streambuf": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "strstream": "cpp",
+        "system_error": "cpp",
         "thread": "cpp",
-        "cfenv": "cpp",
-        "cinttypes": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
         "typeindex": "cpp",
         "typeinfo": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "utility": "cpp",
         "valarray": "cpp",
         "variant": "cpp",
-        "bit": "cpp",
-        "*.ipp": "cpp",
-        "shared_mutex": "cpp",
-        "any": "cpp",
-        "codecvt": "cpp",
-        "compare": "cpp",
-        "concepts": "cpp",
-        "forward_list": "cpp",
-        "numbers": "cpp",
-        "semaphore": "cpp",
-        "stop_token": "cpp",
-        "eigen": "cpp",
-        "*.txx": "cpp",
-        "core": "cpp",
-        "splines": "cpp",
-        "regex": "cpp",
-        "*.in": "cpp",
-        "__nullptr": "cpp",
-        "queue": "cpp",
-        "stack": "cpp",
-        "coroutine": "cpp",
-        "source_location": "cpp",
-        "__locale": "cpp",
-        "__node_handle": "cpp",
-        "ios": "cpp",
-        "__split_buffer": "cpp",
-        "__hash_table": "cpp",
-        "__tree": "cpp",
-        "__bit_reference": "cpp",
-        "locale": "cpp",
-        "filesystem": "cpp",
-        "__config": "cpp",
-        "charconv": "cpp",
-        "format": "cpp",
-        "span": "cpp",
-        "stdfloat": "cpp"
+        "vector": "cpp"
     },
-    "cmake.configureOnOpen": true,
+    "files.exclude": {
+        "**/__pycache__": true
+    },
     "flake8.args": [
         "--ignore=CNL100",
-        "--max-line-length=100",
+        "--max-line-length=100"
     ],
-    "terminal.integrated.gpuAcceleration": "off",
-    "cmake.debugConfig": {
-        "args": [
-            "${workspaceFolder}/config/regression/one_imu_cam.yaml",
-            "${workspaceFolder}/config/regression/one_imu_cam/"
-        ]
+    "python.analysis.extraPaths": [
+        "/opt/venv/lib/python3.12/site-packages",
+        "/opt/ros/jazzy/lib/python3.12/site-packages"
+    ],
+    "python.autoComplete.extraPaths": [
+        "/opt/venv/lib/python3.12/site-packages",
+        "/opt/ros/jazzy/lib/python3.12/site-packages"
+    ],
+    "search.exclude": {
+        ".git/": true
     },
+    "terminal.integrated.gpuAcceleration": "off",
+    "terminal.integrated.scrollback": 5000,
     "todo.embedded.exclude": [
         "**/_output/**",
         "**/.*",
@@ -284,34 +315,10 @@
         "docs/software/todo.md",
         "uncrustify.cfg"
     ],
-    "search.exclude": {
-        ".git/": true
-    },
-    "python.analysis.extraPaths": [
-        "/opt/venv/lib/python3.12/site-packages",
-        "/opt/ros/jazzy/lib/python3.12/site-packages"
-    ],
-    "yaml.schemaStore.enable": false,
     "yaml.schemas": {
         "./.vscode/ekf_cal-schema.json": [
             "/config/**"
         ]
     },
-    "[yaml]": {
-        "editor.insertSpaces": true,
-        "editor.tabSize": 4,
-        "editor.autoIndent": "keep",
-        "diffEditor.ignoreTrimWhitespace": false,
-        "editor.quickSuggestions": {
-            "other": true,
-            "comments": false,
-            "strings": true
-        },
-        "editor.formatOnSave": false
-    },
-    "[markdown]": {
-        "editor.wordWrap": "wordWrapColumn",
-        "editor.wordWrapColumn": 99
-    },
-    "python.defaultInterpreterPath": "/opt/venv/bin/python3"
+    "yaml.schemaStore.enable": false
 }

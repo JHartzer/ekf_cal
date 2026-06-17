@@ -16,8 +16,6 @@
 #ifndef SENSORS__ROS__ROS_IMU_HPP_
 #define SENSORS__ROS__ROS_IMU_HPP_
 
-#include <memory>
-
 #include "sensors/imu.hpp"
 #include "sensors/ros/ros_imu_message.hpp"
 

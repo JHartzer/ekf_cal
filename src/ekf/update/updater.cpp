@@ -17,6 +17,8 @@
 
 #include <memory>
 
+#include "ekf/ekf.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "utility/math_helper.hpp"
 
 Updater::Updater(unsigned int sensor_id, std::shared_ptr<DebugLogger> logger)

@@ -16,13 +16,14 @@
 #ifndef INFRASTRUCTURE__SIM__TRUTH_ENGINE_SMOOTHER_HPP_
 #define INFRASTRUCTURE__SIM__TRUTH_ENGINE_SMOOTHER_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <memory>
 #include <vector>
 
+#include "infrastructure/debug_logger.hpp"
 #include "infrastructure/sim/truth_engine.hpp"
-#include "utility/sim/sim_rng.hpp"
 
 ///
 /// @class TruthEngineSmoother

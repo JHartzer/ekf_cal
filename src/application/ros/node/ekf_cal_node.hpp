@@ -29,6 +29,7 @@
 #include <std_msgs/msg/float64_multi_array.hpp>
 
 #include "ekf/ekf.hpp"
+#include "ekf/types.hpp"
 #include "infrastructure/data_logger.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "sensors/camera.hpp"
@@ -37,7 +38,9 @@
 #include "sensors/ros/ros_camera.hpp"
 #include "sensors/ros/ros_gps.hpp"
 #include "sensors/ros/ros_imu.hpp"
+#include "sensors/sensor.hpp"
 #include "trackers/feature_tracker.hpp"
+#include "trackers/fiducial_tracker.hpp"
 
 ///
 /// @class EkfCalNode

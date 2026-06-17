@@ -14,7 +14,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <gtest/gtest.h>
+#include <memory>
 
+#include "ekf/ekf.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "trackers/fiducial_tracker.hpp"
 #include "trackers/sim/sim_fiducial_tracker.hpp"
 #include "infrastructure/sim/truth_engine_cyclic.hpp"

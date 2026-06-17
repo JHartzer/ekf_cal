@@ -15,8 +15,10 @@
 
 #include <gtest/gtest.h>
 
-#include <eigen3/Eigen/Eigen>
-#include <memory>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <math.h>
+#include <vector>
 
 #include "utility/custom_assertions.hpp"
 #include "utility/math_helper.hpp"
@@ -116,11 +118,13 @@ TEST(test_MathHelper, ApplyLeftNullspace) {
   Eigen::VectorXd res(6);
   res << 1, 2, 3, 4, 5, 6;
 
-  ApplyLeftNullspace(H_f, H_x, res);
+  Eigen::MatrixXd H_f_copy = H_f;
+  ApplyLeftNullspace(H_f, H_f_copy, res);
 
   EXPECT_EQ(res.size(), 3);
-  EXPECT_EQ(H_x.rows(), 3);
-  EXPECT_EQ(H_x.cols(), 5);
+  EXPECT_EQ(H_f_copy.rows(), 3);
+  EXPECT_EQ(H_f_copy.cols(), 3);
+  EXPECT_NEAR(H_f_copy.norm(), 0.0, 1e-9);
 }
 
 TEST(test_MathHelper, CompressMeasurements) {
@@ -288,3 +292,42 @@ TEST(test_MathHelper, matrix2d_from_vectors3d) {
   EXPECT_EQ(out_mat(0, 2), 2);
   EXPECT_EQ(out_mat(0, 3), 3);
 }
+
+TEST(test_MathHelper, RemoveStateFromRootCovariance) {
+  // Create a 6x6 upper triangular matrix S
+  Eigen::MatrixXd S = Eigen::MatrixXd::Zero(6, 6);
+  S << 1.0, 0.2, 0.3, 0.4, 0.5, 0.6,
+       0.0, 1.2, 0.1, 0.3, 0.2, 0.1,
+       0.0, 0.0, 0.8, 0.1, 0.4, 0.2,
+       0.0, 0.0, 0.0, 1.5, 0.3, 0.1,
+       0.0, 0.0, 0.0, 0.0, 1.1, 0.5,
+       0.0, 0.0, 0.0, 0.0, 0.0, 0.9;
+
+  Eigen::MatrixXd P = S.transpose() * S;
+
+  // Remove state at index 2 of size 2
+  unsigned int remove_idx = 2;
+  unsigned int remove_size = 2;
+
+  Eigen::MatrixXd S_new = RemoveStateFromRootCovariance(S, remove_idx, remove_size);
+  Eigen::MatrixXd P_new_from_S = S_new.transpose() * S_new;
+
+  Eigen::MatrixXd P_expected = RemoveFromMatrix(P, remove_idx, remove_idx, remove_size);
+
+  EXPECT_EQ(S_new.rows(), 4);
+  EXPECT_EQ(S_new.cols(), 4);
+  // Check that S_new is upper triangular
+  for (int i = 0; i < S_new.rows(); ++i) {
+    for (int j = 0; j < i; ++j) {
+      EXPECT_NEAR(S_new(i, j), 0.0, 1e-9);
+    }
+  }
+
+  // Check that S_new^T * S_new matches P_expected
+  for (int i = 0; i < P_expected.rows(); ++i) {
+    for (int j = 0; j < P_expected.cols(); ++j) {
+      EXPECT_NEAR(P_new_from_S(i, j), P_expected(i, j), 1e-9);
+    }
+  }
+}
+

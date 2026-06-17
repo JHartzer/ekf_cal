@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install system packages
 RUN apt-get update && apt-get -y install \
     build-essential \
-    clang-15 \
+    clang \
     cloc \
     cmake \
     doxygen \
@@ -21,6 +21,7 @@ RUN apt-get update && apt-get -y install \
     libyaml-cpp-dev \
     linux-tools-generic \
     locales \
+    ninja-build \
     python3 python3-pip python3-venv \
     unzip \
     wget \

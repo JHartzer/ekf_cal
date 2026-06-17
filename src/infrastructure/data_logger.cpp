@@ -15,8 +15,10 @@
 
 #include "infrastructure/data_logger.hpp"
 
-#include <fstream>
+#include <cstddef>
+#include <memory>
 #include <sstream>
+#include <string>
 #include <vector>
 #include "infrastructure/hdf5_log_manager.hpp"
 
@@ -96,8 +98,8 @@ void DataLogger::InitializeHdf5()
     cparms.setChunk(2, chunk_dims);
 
     hsize_t dims[2] = {0, m_num_cols};
-    hsize_t maxdims[2] = {H5S_UNLIMITED, m_num_cols};
-    H5::DataSpace dataspace(2, dims, maxdims);
+    hsize_t max_dims[2] = {H5S_UNLIMITED, m_num_cols};
+    H5::DataSpace dataspace(2, dims, max_dims);
 
     size_t pos = dataset_path.find('/');
     if (pos != std::string::npos) {

@@ -16,9 +16,9 @@
 #ifndef SENSORS__CAMERA_HPP_
 #define SENSORS__CAMERA_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
-#include <algorithm>
 #include <map>
 #include <memory>
 #include <string>
@@ -26,6 +26,7 @@
 
 #include <opencv2/opencv.hpp>
 
+#include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
 #include "sensors/camera_message.hpp"
 #include "sensors/sensor.hpp"

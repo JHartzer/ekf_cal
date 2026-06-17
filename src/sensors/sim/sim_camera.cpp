@@ -15,27 +15,26 @@
 
 #include "sensors/sim/sim_camera.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
-#include <algorithm>
-#include <string>
 #include <cmath>
 #include <memory>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include <opencv2/opencv.hpp>
 
-#include "ekf/ekf.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "infrastructure/sim/truth_engine.hpp"
+#include "sensors/camera.hpp"
 #include "sensors/sim/sim_camera_message.hpp"
 #include "ekf/types.hpp"
-#include "trackers/sim/sim_feature_tracker_message.hpp"
+#include "sensors/sim/sim_sensor.hpp"
 #include "trackers/sim/sim_feature_tracker.hpp"
 #include "trackers/sim/sim_fiducial_tracker.hpp"
-#include "trackers/sim/sim_fiducial_tracker_message.hpp"
 #include "utility/sim/sim_rng.hpp"
-#include "utility/type_helper.hpp"
 
 
 SimCamera::SimCamera(

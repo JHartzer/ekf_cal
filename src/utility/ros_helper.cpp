@@ -15,8 +15,9 @@
 
 #include "utility/ros_helper.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
+#include <array>
 #include <geometry_msgs/msg/vector3.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/header.hpp>

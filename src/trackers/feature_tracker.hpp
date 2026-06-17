@@ -17,17 +17,13 @@
 #define TRACKERS__FEATURE_TRACKER_HPP_
 
 #include <map>
-#include <memory>
-#include <string>
 #include <vector>
 
 #include <opencv2/features2d.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
 #include "ekf/update/msckf_updater.hpp"
-#include "infrastructure/debug_logger.hpp"
 #include "trackers/tracker.hpp"
 
 ///
@@ -80,7 +76,6 @@ public:
     double px_error{1e-9};                    ///< @brief Pixel error standard deviation
     double min_feat_dist {1.0};               ///< @brief Minimum feature distance to consider
     double max_feat_dist {100.0};             ///< @brief Maximum feature distance to consider
-    bool use_true_triangulation {false};      ///< @brief Flag to use true feature position for triangulation
     bool down_sample {false};                 ///< @brief Flag to perform down-sampling
     int down_sample_height {480};             ///< @brief Down-sampled height to use for tracking
     int down_sample_width {640};              ///< @brief Down-sampled width to use for tracking

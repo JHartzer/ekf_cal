@@ -16,8 +16,6 @@
 #ifndef SENSORS__ROS__ROS_GPS_HPP_
 #define SENSORS__ROS__ROS_GPS_HPP_
 
-#include <memory>
-
 #include "sensors/gps.hpp"
 #include "sensors/ros/ros_gps_message.hpp"
 

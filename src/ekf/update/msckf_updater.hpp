@@ -16,15 +16,17 @@
 #ifndef EKF__UPDATE__MSCKF_UPDATER_HPP_
 #define EKF__UPDATE__MSCKF_UPDATER_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <memory>
 #include <string>
-#include <vector>
 
+#include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
 #include "ekf/update/updater.hpp"
 #include "infrastructure/data_logger.hpp"
+#include "infrastructure/debug_logger.hpp"
 
 ///
 /// @class MsckfUpdater
@@ -49,7 +51,6 @@ public:
     double data_log_rate,
     double min_feat_dist,
     double max_feat_dist,
-    bool use_true_triangulation,
     std::shared_ptr<DebugLogger> logger
   );
 
@@ -120,7 +121,6 @@ private:
   double m_min_feat_dist{1.0};
   double m_max_feat_dist{100.0};
   bool m_is_first_estimate{true};
-  bool m_use_true_triangulation{false};
   Intrinsics m_intrinsics;
   Eigen::Vector3d m_pos_c_in_b{0.0, 0.0, 0.0};
   Eigen::Quaterniond m_ang_c_to_b{1.0, 0.0, 0.0, 0.0};

@@ -15,12 +15,11 @@
 
 #include "sensors/ros/ros_imu_message.hpp"
 
-#include <eigen3/Eigen/Eigen>
-
-#include <memory>
+#include <Eigen/Core>
 
 #include <sensor_msgs/msg/imu.hpp>
 
+#include "ekf/types.hpp"
 #include "utility/ros_helper.hpp"
 
 RosImuMessage::RosImuMessage(const sensor_msgs::msg::Imu::SharedPtr msg)

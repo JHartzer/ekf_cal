@@ -202,11 +202,11 @@ def get_matching_datasets(h5_path, run_group_name, prefix):
 
     all_paths = _h5_dataset_cache[cache_key]
     matched_paths = []
-    
+
     # If run_group_name is provided, filter datasets under that run group.
     # Otherwise, match truth/root level.
-    prefix_to_match = f"{run_group_name}/" if run_group_name else ""
-    
+    prefix_to_match = f'{run_group_name}/' if run_group_name else ''
+
     for path in all_paths:
         if prefix_to_match:
             if not path.startswith(prefix_to_match):
@@ -214,7 +214,7 @@ def get_matching_datasets(h5_path, run_group_name, prefix):
             rel_path = path[len(prefix_to_match):]
         else:
             rel_path = path
-            
+
         matched = False
         if prefix == 'body_truth':
             matched = (rel_path == 'truth/body')
@@ -230,7 +230,7 @@ def get_matching_datasets(h5_path, run_group_name, prefix):
             )
         if matched:
             matched_paths.append(path)
-            
+
     matched_paths.sort()
     return matched_paths
 

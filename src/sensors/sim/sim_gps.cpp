@@ -15,15 +15,20 @@
 
 #include "sensors/sim/sim_gps.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
-#include <algorithm>
 #include <memory>
 #include <cmath>
+#include <string>
+#include <vector>
 
-#include "ekf/constants.hpp"
+#include "ekf/types.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "infrastructure/sim/truth_engine.hpp"
+#include "sensors/gps.hpp"
 #include "sensors/sim/sim_gps_message.hpp"
+#include "sensors/sim/sim_sensor.hpp"
 #include "utility/gps_helper.hpp"
 #include "utility/sim/sim_rng.hpp"
 

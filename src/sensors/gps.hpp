@@ -16,14 +16,12 @@
 #ifndef SENSORS__GPS_HPP_
 #define SENSORS__GPS_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
-#include <string>
 #include <memory>
 
-#include "ekf/types.hpp"
+#include "ekf/ekf.hpp"
 #include "ekf/update/gps_updater.hpp"
-#include "infrastructure/debug_logger.hpp"
 #include "sensors/gps_message.hpp"
 #include "sensors/sensor.hpp"
 

@@ -13,11 +13,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#include "ekf/types.hpp"
 #include "sensors/ros/ros_gps_message.hpp"
+#include "utility/ros_helper.hpp"
 
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
-
-#include "utility/ros_helper.hpp"
 
 
 RosGpsMessage::RosGpsMessage(const sensor_msgs::msg::NavSatFix::SharedPtr msg)

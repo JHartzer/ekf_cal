@@ -16,13 +16,16 @@
 #ifndef EKF__UPDATE__IMU_UPDATER_HPP_
 #define EKF__UPDATE__IMU_UPDATER_HPP_
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include <memory>
 #include <string>
 
+#include "ekf/ekf.hpp"
 #include "ekf/update/updater.hpp"
 #include "infrastructure/data_logger.hpp"
+#include "infrastructure/debug_logger.hpp"
 
 ///
 /// @class ImuUpdater

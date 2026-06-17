@@ -14,14 +14,21 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <gtest/gtest.h>
+#include <memory>
+#include <vector>
 
+#include "ekf/ekf.hpp"
+#include "ekf/types.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "infrastructure/sim/truth_engine_cyclic.hpp"
 #include "sensors/camera.hpp"
+#include "sensors/sim/sim_camera_message.hpp"
 #include "sensors/sim/sim_camera.hpp"
 #include "trackers/feature_tracker.hpp"
 #include "trackers/fiducial_tracker.hpp"
 #include "trackers/sim/sim_feature_tracker.hpp"
 #include "trackers/sim/sim_fiducial_tracker.hpp"
+#include "utility/sim/sim_rng.hpp"
 
 TEST(test_SimCamera, feature_track) {
   EKF::Parameters ekf_params;

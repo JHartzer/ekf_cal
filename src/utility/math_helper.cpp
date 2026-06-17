@@ -15,9 +15,14 @@
 
 #include "utility/math_helper.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
+#include <Eigen/QR>
+#include <Eigen/SVD>
 
 #include <algorithm>
+#include <cmath>
 #include <vector>
 
 #include <opencv2/opencv.hpp>
@@ -110,7 +115,7 @@ void ApplyLeftNullspace(const Eigen::MatrixXd & H_f, Eigen::MatrixXd & H_x, Eige
 {
   Eigen::HouseholderQR<Eigen::MatrixXd> QR_decomp(H_f);
   Eigen::MatrixXd Q_decomp = QR_decomp.householderQ();
-  Eigen::MatrixXd Q_null = Q_decomp.block(H_f.cols(), 0, H_f.rows() - H_f.cols(), H_f.rows());
+  Eigen::MatrixXd Q_null = Q_decomp.transpose().block(H_f.cols(), 0, H_f.rows() - H_f.cols(), H_f.rows());
   H_x = Q_null * H_x;
   res = Q_null * res;
 }
@@ -309,3 +314,18 @@ Eigen::MatrixXd QR_r(const Eigen::MatrixXd & left, const Eigen::MatrixXd & right
 
   return R_decomp;
 }
+
+Eigen::MatrixXd RemoveStateFromRootCovariance(
+  const Eigen::MatrixXd & S, unsigned int index, unsigned int size)
+{
+  auto rows = static_cast<unsigned int>(S.rows());
+  auto cols = static_cast<unsigned int>(S.cols());
+  Eigen::MatrixXd S_new(rows, cols - size);
+  S_new.leftCols(index) = S.leftCols(index);
+  S_new.rightCols(cols - index - size) = S.rightCols(cols - index - size);
+  Eigen::HouseholderQR<Eigen::MatrixXd> qr(S_new);
+  Eigen::MatrixXd R =
+    qr.matrixQR().block(0, 0, cols - size, cols - size).triangularView<Eigen::Upper>();
+  return R;
+}
+

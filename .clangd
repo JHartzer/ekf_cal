@@ -1,0 +1,16 @@
+Diagnostics:
+  UnusedIncludes: Strict
+  MissingIncludes: Strict
+Index:
+  Background: Build
+---
+If:
+  PathMatch: .*
+Diagnostics:
+  Includes:
+    IgnoreHeader:
+      - .*Eigen/.*
+      - .*yaml-cpp/.*
+      - .*opencv2/.*
+      - .*/hdf5/.*
+      - .*H5.*

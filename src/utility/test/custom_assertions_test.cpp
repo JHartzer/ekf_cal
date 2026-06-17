@@ -15,7 +15,8 @@
 
 #include <gtest/gtest.h>
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 #include "utility/custom_assertions.hpp"
 

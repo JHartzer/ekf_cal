@@ -13,9 +13,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <memory>
-
 #include "sensors/ros/ros_gps.hpp"
+#include "infrastructure/debug_logger.hpp"
+#include "sensors/gps.hpp"
 #include "sensors/ros/ros_gps_message.hpp"
 
 void RosGPS::Callback(const RosGpsMessage & ros_gps_message)

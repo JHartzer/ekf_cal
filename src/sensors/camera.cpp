@@ -15,22 +15,19 @@
 
 #include "sensors/camera.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 
 #include <memory>
 #include <string>
-#include <vector>
 
 #include <opencv2/opencv.hpp>
 
-#include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "sensors/camera_message.hpp"
 #include "sensors/sensor.hpp"
 #include "trackers/feature_tracker.hpp"
 #include "trackers/fiducial_tracker.hpp"
-#include "utility/math_helper.hpp"
 
 
 /// @todo add detector/extractor parameters to input
@@ -75,8 +72,6 @@ void Camera::Callback(const CameraMessage & camera_message)
         for (auto const & track_iter : m_trackers) {
           m_trackers[track_iter.first]->Track(
             camera_message.time, frameID, camera_message.image, m_out_img);
-          /// @todo Undistort points post track?
-          // cv::undistortPoints();
         }
       }
 

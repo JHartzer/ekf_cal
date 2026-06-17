@@ -15,11 +15,16 @@
 
 #include "infrastructure/sim/truth_engine_cyclic.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
+#include <math.h>
 
 #include <cmath>
 #include <memory>
 
+#include "infrastructure/debug_logger.hpp"
+#include "infrastructure/sim/truth_engine.hpp"
 #include "utility/type_helper.hpp"
 
 

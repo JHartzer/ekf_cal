@@ -13,23 +13,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <yaml-cpp/yaml.h>
 
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+#include <sstream>
 
 #include <opencv2/opencv.hpp>
 
+#include "ekf/constants.hpp"
 #include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
-#include "infrastructure/data_logger.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "infrastructure/ekf_cal_version.hpp"
 #include "infrastructure/sim/truth_engine_cyclic.hpp"
@@ -37,6 +38,7 @@
 #include "infrastructure/sim/truth_engine_spline.hpp"
 #include "infrastructure/sim/truth_engine.hpp"
 #include "sensors/camera.hpp"
+#include "sensors/gps.hpp"
 #include "sensors/imu.hpp"
 #include "sensors/sensor_message.hpp"
 #include "sensors/sensor.hpp"
@@ -46,12 +48,14 @@
 #include "sensors/sim/sim_gps.hpp"
 #include "sensors/sim/sim_imu_message.hpp"
 #include "sensors/sim/sim_imu.hpp"
+#include "sensors/sim/sim_sensor.hpp"
 #include "trackers/feature_tracker.hpp"
+#include "trackers/fiducial_tracker.hpp"
 #include "trackers/sim/sim_feature_tracker.hpp"
 #include "trackers/sim/sim_fiducial_tracker.hpp"
+#include "trackers/tracker.hpp"
 #include "utility/gps_helper.hpp"
 #include "utility/sim/sim_rng.hpp"
-#include "utility/string_helper.hpp"
 #include "utility/type_helper.hpp"
 
 
@@ -261,7 +265,23 @@ int main(int argc, char * argv[])
   auto ang_b_to_l_err =
     StdToEigVec(sim_params["ang_b_to_l_error"].as<std::vector<double>>(def_vec));
   BodyState initial_state;
-  initial_state.pos_b_in_l = SimRNG::VecNormRand(ekf_params.pos_b_in_l, pos_b_in_l_err);
+  bool has_gps = !gps_list.empty();
+  bool has_camera_fiducial = false;
+  for (const auto & camera_name : cameras) {
+    YAML::Node cam_node = root["/EkfCalNode"]["ros__parameters"]["camera"][camera_name];
+    if (cam_node && cam_node["fiducial"] && !cam_node["fiducial"].as<std::string>("").empty()) {
+      has_camera_fiducial = true;
+      break;
+    }
+  }
+
+  // Only assign errors to initial position if global position sensor is used
+  if (has_gps || has_camera_fiducial) {
+    initial_state.pos_b_in_l = SimRNG::VecNormRand(ekf_params.pos_b_in_l, pos_b_in_l_err);
+  } else {
+    initial_state.pos_b_in_l = ekf_params.pos_b_in_l;
+  }
+
   initial_state.ang_b_to_l =
     Eigen::AngleAxisd(SimRNG::NormRand(0, ang_b_to_l_err[0]), Eigen::Vector3d::UnitX()) *
     Eigen::AngleAxisd(SimRNG::NormRand(0, ang_b_to_l_err[1]), Eigen::Vector3d::UnitY()) *
@@ -345,7 +365,6 @@ int main(int argc, char * argv[])
     track_params.max_track_length = trk_node["max_track_length"].as<unsigned int>(20);
     track_params.min_feat_dist = trk_node["min_feat_dist"].as<double>(1.0);
     track_params.max_feat_dist = trk_node["max_feat_dist"].as<double>(100.0);
-    track_params.use_true_triangulation = sim_node["use_true_triangulation"].as<bool>(false);
     track_params.down_sample = trk_node["down_sample"].as<bool>(false);
     track_params.down_sample_height = trk_node["down_sample_height"].as<int>(480);
     track_params.down_sample_width = trk_node["down_sample_width"].as<int>(640);

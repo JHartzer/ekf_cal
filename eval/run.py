@@ -53,7 +53,7 @@ def print_err(err):
     traceback.print_exception(type(err), err, err.__traceback__)
 
 
-def run_sim(yaml_path: str):
+def run_sim(yaml_path: str, sim_bin: str = None):
     """Run simulation given an input yaml."""
     # Get (and create) yaml directory
     yaml_dir = yaml_path.split('.yaml')[0] + os.sep
@@ -63,9 +63,25 @@ def run_sim(yaml_path: str):
             f_git_ignore.write('*\n')
 
     # Run simulation
-    base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
-    sim_path = os.path.join(base_path, '..', '..', 'build', 'ekf_cal', 'sim')
-    proc = subprocess.run([sim_path, yaml_path, yaml_dir],
+    if sim_bin is None:
+        base_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
+        candidate_sim_bin_paths = [
+            os.path.join(base_path, '..', '..', 'build', 'ekf_cal', 'sim'),
+            os.path.join(base_path, 'build', 'RelWithDebInfo', 'sim'),
+        ]
+        max_mtime = -1
+        for path in candidate_sim_bin_paths:
+            if os.path.isfile(path):
+                mtime = os.path.getmtime(path)
+                if mtime > max_mtime:
+                    max_mtime = mtime
+                    sim_bin = path
+
+    if not sim_bin or not os.path.isfile(sim_bin):
+        err_msg = "The 'sim' binary was not found in any of the candidate paths."
+        raise FileNotFoundError(err_msg)
+
+    proc = subprocess.run([sim_bin, yaml_path, yaml_dir],
                           stdout=subprocess.PIPE,
                           stderr=subprocess.PIPE)
 
@@ -138,6 +154,8 @@ def add_jobs(args):
     cpu_count = args.jobs if (args.jobs) else multiprocessing.cpu_count() - 1
     pool = multiprocessing.Pool(cpu_count)
 
+    sim_bin = getattr(args, 'sim_bin', None)
+
     for yaml_file in args.inputs:
         input_yaml_path = os.path.abspath(yaml_file)
         list_of_runs = generate_mc_from_yaml(
@@ -146,7 +164,7 @@ def add_jobs(args):
             time=args.time
         )
         for single_run in list_of_runs:
-            pool.apply_async(run_sim, args=(single_run,), error_callback=print_err)
+            pool.apply_async(run_sim, args=(single_run, sim_bin), error_callback=print_err)
 
     pool.close()
     pool.join()

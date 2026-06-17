@@ -15,8 +15,11 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 
+#include "ekf/ekf.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "sensors/gps.hpp"
 #include "sensors/ros/ros_gps_message.hpp"
 #include "sensors/ros/ros_gps.hpp"

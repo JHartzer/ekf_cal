@@ -16,7 +16,6 @@
 #include <stddef.h>
 
 #include <string>
-#include <type_traits>
 
 #include <rclcpp/rclcpp.hpp>
 

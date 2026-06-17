@@ -13,11 +13,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
 #include <gtest/gtest.h>
 
 #include <array>
-#include <vector>
 
 #include <geometry_msgs/msg/vector3.hpp>
 #include <rclcpp/rclcpp.hpp>

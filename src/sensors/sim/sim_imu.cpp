@@ -15,20 +15,23 @@
 
 #include "sensors/sim/sim_imu.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <Eigen/LU>
 
-#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "ekf/constants.hpp"
 #include "ekf/types.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "infrastructure/sim/truth_engine.hpp"
+#include "sensors/imu.hpp"
 #include "sensors/sim/sim_imu_message.hpp"
+#include "sensors/sim/sim_sensor.hpp"
 #include "utility/sim/sim_rng.hpp"
-#include "utility/type_helper.hpp"
 
 SimIMU::SimIMU(SimIMU::Parameters params, std::shared_ptr<TruthEngine> truth_engine)
 : IMU(params.imu_params), SimSensor(params)

@@ -15,12 +15,9 @@
 
 #include "trackers/sim/sim_feature_tracker.hpp"
 
-#include <algorithm>
 #include <cmath>
-#include <iostream>
 #include <map>
 #include <memory>
-#include <ostream>
 #include <utility>
 #include <vector>
 
@@ -28,7 +25,8 @@
 
 #include "ekf/types.hpp"
 #include "ekf/update/msckf_updater.hpp"
-#include "infrastructure/debug_logger.hpp"
+#include "infrastructure/sim/truth_engine.hpp"
+#include "trackers/feature_tracker.hpp"
 #include "trackers/sim/sim_feature_tracker_message.hpp"
 #include "utility/type_helper.hpp"
 
@@ -156,14 +154,7 @@ std::shared_ptr<SimFeatureTrackerMessage> SimFeatureTracker::GenerateMessage(
     {
       // This feature does not exist in the latest frame
       if (feature_points.size() >= m_min_track_length) {
-        FeatureTrack feature_track;
-        feature_track.track = feature_points;
-        auto feature_point_cv = m_truth->GetFeature(feature_points[0].key_point.class_id);
-        feature_track.true_feature_position.x() = feature_point_cv.x;
-        feature_track.true_feature_position.y() = feature_point_cv.y;
-        feature_track.true_feature_position.z() = feature_point_cv.z;
-
-        feature_tracks.push_back(feature_track);
+        feature_tracks.push_back(feature_points);
       }
       feat_it = m_feature_points_map.erase(feat_it);
     } else {

@@ -16,8 +16,10 @@
 #include "sensors/sensor.hpp"
 
 #include <memory>
+#include <sstream>
 #include <string>
 
+#include "infrastructure/debug_logger.hpp"
 #include "sensors/sensor_message.hpp"
 
 // Initialize static variable

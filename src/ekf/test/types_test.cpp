@@ -13,13 +13,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 #include <gtest/gtest.h>
 
 #include <map>
-#include <memory>
 #include <vector>
 
+#include "ekf/constants.hpp"
 #include "ekf/types.hpp"
 
 TEST(test_ekf_types, state_plus_equals_state) {

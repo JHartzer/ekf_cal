@@ -15,11 +15,15 @@
 
 #include "infrastructure/sim/truth_engine.hpp"
 
-#include <eigen3/Eigen/Eigen>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <cmath>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
+#include "ekf/constants.hpp"
 #include "ekf/types.hpp"
 #include "infrastructure/data_logger.hpp"
 #include "infrastructure/debug_logger.hpp"
