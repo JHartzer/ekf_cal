@@ -241,10 +241,10 @@ Eigen::Vector2d MsckfUpdater::Distort(
   double r2 = x2 + y2;
   Eigen::Vector2d xy;
 
-  xy(0) = xy_norm(0) * (1 + intrinsics.k_1 * r2 + intrinsics.k_1 * r2 * r2) +
+  xy(0) = xy_norm(0) * (1 + intrinsics.k_1 * r2 + intrinsics.k_2 * r2 * r2) +
     2 * intrinsics.p_1 * xy_norm(0) * xy_norm(1) + intrinsics.p_2 * (r2 + 2 * x2);
 
-  xy(1) = xy_norm(1) * (1 + intrinsics.k_1 * r2 + intrinsics.k_1 * r2 * r2) +
+  xy(1) = xy_norm(1) * (1 + intrinsics.k_1 * r2 + intrinsics.k_2 * r2 * r2) +
     2 * intrinsics.p_2 * xy_norm(0) * xy_norm(1) + intrinsics.p_1 * (r2 + 2 * y2);
 
   return xy;
@@ -324,7 +324,8 @@ void MsckfUpdater::UpdateEKF(
       // Project the current feature into the current frame of reference
       Eigen::Vector3d pos_f_in_bi = rot_bi_to_l.transpose() * (pos_f_in_l - pos_bi_in_l);
       Eigen::Vector3d pos_f_in_ci = rot_ci_to_b.transpose() * (pos_f_in_bi - m_pos_c_in_b);
-      Eigen::Vector2d xy_predicted = Project(pos_f_in_ci);
+      Eigen::Vector2d xy_norm = Project(pos_f_in_ci);
+      Eigen::Vector2d xy_predicted = Distort(xy_norm, m_intrinsics);
 
       Eigen::Vector2d xy_measured;
       xy_measured(0) = (static_cast<double>(feature_track.track[i].key_point.pt.x) -
@@ -340,7 +341,7 @@ void MsckfUpdater::UpdateEKF(
 
       // Distortion Jacobian
       Eigen::MatrixXd H_d(2, 2);
-      DistortionJacobian(xy_measured, m_intrinsics, H_d);
+      DistortionJacobian(xy_norm, m_intrinsics, H_d);
 
       // Entire feature Jacobian
       H_f.block<2, 3>(2 * i, 0) = H_d * H_p * rot_l_to_ci;
@@ -348,14 +349,11 @@ void MsckfUpdater::UpdateEKF(
       // Augmented state Jacobian
       Eigen::MatrixXd H_t = Eigen::MatrixXd::Zero(3, g_aug_state_size);
       H_t.block<3, 3>(0, 0) = -rot_l_to_ci;
-      H_t.block<3, 3>(0, 3) = rot_l_to_ci * SkewSymmetric(pos_f_in_l - pos_bi_in_l) *
-        QuaternionJacobian(aug_state_i.ang_b_to_l).transpose();
+      H_t.block<3, 3>(0, 3) = rot_b_to_ci * SkewSymmetric(rot_bi_to_l.transpose() * (pos_f_in_l - pos_bi_in_l));
 
       if (m_is_cam_extrinsic) {
         H_c.block<2, 3>(2 * i, cam_index + 0) = -H_d * H_p * rot_b_to_ci;
-        H_c.block<2, 3>(2 * i, cam_index + 3) = H_d * H_p * rot_b_to_ci *
-          SkewSymmetric(rot_bi_to_l.transpose() * (pos_f_in_l - pos_bi_in_l) - m_pos_c_in_b) *
-          QuaternionJacobian(m_ang_c_to_b).transpose();
+        H_c.block<2, 3>(2 * i, cam_index + 3) = H_d * H_p * SkewSymmetric(pos_f_in_ci);
       }
 
       if (aug_state_i.alpha != 0.0) {
