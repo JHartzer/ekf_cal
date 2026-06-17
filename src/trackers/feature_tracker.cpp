@@ -332,10 +332,28 @@ void FeatureTracker::RANSAC(
       curr_key_points[static_cast<unsigned int>(matches_in.at(i).trainIdx)].pt);
   }
 
-  /// @todo: Undistort?
+  // Retrieve camera intrinsics and distortion coefficients from EKF
+  Intrinsics intrinsics;
+  if (m_ekf && m_ekf->m_state.cam_states.find(m_camera_id) != m_ekf->m_state.cam_states.end()) {
+    intrinsics = m_ekf->m_state.cam_states.at(m_camera_id).intrinsics;
+  }
+
+  cv::Mat camera_matrix = intrinsics.ToCameraMatrix();
+  cv::Mat dist_coeffs = intrinsics.ToDistortionVector();
+
+  std::vector<cv::Point2f> points_undistorted_prev;
+  std::vector<cv::Point2f> points_undistorted_curr;
+  cv::undistortPoints(
+    points_good_prev, points_undistorted_prev,
+    camera_matrix, dist_coeffs, cv::noArray(), camera_matrix);
+  cv::undistortPoints(
+    points_good_curr, points_undistorted_curr,
+    camera_matrix, dist_coeffs, cv::noArray(), camera_matrix);
 
   std::vector<uint8_t> mask;
-  cv::findFundamentalMat(points_good_prev, points_good_curr, cv::FM_RANSAC, 1.0, 0.99, mask);
+  cv::findFundamentalMat(
+    points_undistorted_prev, points_undistorted_curr, cv::FM_RANSAC, 1.0, 0.99,
+    mask);
 
   // Apply mask
   for (unsigned int i = 0; i < matches_in.size(); i++) {

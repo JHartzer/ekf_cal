@@ -225,6 +225,15 @@ TEST(test_feature_tracker, RANSAC) {
   FeatureTracker::Parameters params;
   params.ekf = std::make_shared<EKF>(ekf_params);
   params.camera_id = 1;
+
+  // Register camera with non-zero distortion parameters to verify undistortion code path
+  CamState cam_state;
+  cam_state.intrinsics.k_1 = -0.1;
+  cam_state.intrinsics.k_2 = 0.02;
+  cam_state.intrinsics.p_1 = 0.001;
+  cam_state.intrinsics.p_2 = 0.001;
+  params.ekf->RegisterCamera(1, cam_state, Eigen::MatrixXd::Zero(6, 6));
+
   FeatureTracker tracker{params};
 
   // Populate m_prev_key_points
