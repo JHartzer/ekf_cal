@@ -2,6 +2,7 @@
     "[cpp]": {
         "editor.defaultFormatter": "zachflower.uncrustify",
         "editor.detectIndentation": false,
+        "editor.insertSpaces": true,
         "editor.semanticHighlighting.enabled": true,
         "editor.suggest.insertMode": "replace",
         "editor.tabSize": 2,

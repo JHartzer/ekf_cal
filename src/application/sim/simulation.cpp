@@ -265,7 +265,23 @@ int main(int argc, char * argv[])
   auto ang_b_to_l_err =
     StdToEigVec(sim_params["ang_b_to_l_error"].as<std::vector<double>>(def_vec));
   BodyState initial_state;
-  initial_state.pos_b_in_l = SimRNG::VecNormRand(ekf_params.pos_b_in_l, pos_b_in_l_err);
+  bool has_gps = !gps_list.empty();
+  bool has_camera_fiducial = false;
+  for (const auto & camera_name : cameras) {
+    YAML::Node cam_node = root["/EkfCalNode"]["ros__parameters"]["camera"][camera_name];
+    if (cam_node && cam_node["fiducial"] && !cam_node["fiducial"].as<std::string>("").empty()) {
+      has_camera_fiducial = true;
+      break;
+    }
+  }
+
+  // Only assign errors to initial position if global position sensor is used
+  if (has_gps || has_camera_fiducial) {
+    initial_state.pos_b_in_l = SimRNG::VecNormRand(ekf_params.pos_b_in_l, pos_b_in_l_err);
+  } else {
+    initial_state.pos_b_in_l = ekf_params.pos_b_in_l;
+  }
+
   initial_state.ang_b_to_l =
     Eigen::AngleAxisd(SimRNG::NormRand(0, ang_b_to_l_err[0]), Eigen::Vector3d::UnitX()) *
     Eigen::AngleAxisd(SimRNG::NormRand(0, ang_b_to_l_err[1]), Eigen::Vector3d::UnitY()) *
