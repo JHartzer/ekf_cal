@@ -32,7 +32,7 @@
         gps_init_baseline_dist: 100.0         # Baseline distance threshold to initialize
         gps_init_pos_thresh: 1.0              # Local frame position error threshold
         gps_init_ang_thresh: 0.1              # Local frame heading error threshold
-        motion_detection_chi_squared: 1.0     # Chi-Squared value for motion detection
+        motion_detection_chi_squared: 1.0     # Chi-squared value for motion detection
         use_root_covariance: true             # Flag to utilize the square root form of covariance
         use_first_estimate_jacobian: true     # Flag to utilize the first estimate Jacobian
         use_rk4:                     true     # Flag to use the RK4 estimate of orientation

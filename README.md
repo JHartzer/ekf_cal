@@ -1,26 +1,25 @@
 # ekf_cal
-[![All Tests](https://github.com/UnmannedLab/ekf_cal/actions/workflows/all-tests.yaml/badge.svg)](https://github.com/UnmannedLab/ekf_cal/actions/workflows/all-tests.yaml)
 
 Extended Kalman Filter Calibration and Localization: ekf_cal is a package focused on the simulation and development of a multi-sensor online calibration kalman filter. It combines the architecture of a Multi-State Constraint Kalman Filter (MSCKF) with a multi-sensor calibration filter to provide intrinsic and extrinsic estimates for the following sensors:
-- [IMU](https://unmannedlab.org/ekf_cal/imu.html)
-- [GPS](https://unmannedlab.org/ekf_cal/gps.html)
-- [Cameras](https://unmannedlab.org/ekf_cal/camera.html)
-- [Fiducials](https://unmannedlab.org/ekf_cal/fiducial.html)
+- [IMU](docs/filters/imu.md#imu)
+- [GPS](docs/filters/gps.md#gps)
+- [Cameras](docs/filters/camera.md#camera)
+- [Fiducials](docs/filters/fiducial.md#fiducial)
 
-The full [project documentation](https://www.unmannedlab.org/ekf_cal/) is available online.
+![Frame Graph](docs/doxygen/html/images/setup.svg)
 
-![setup](docs/doxygen/html/images/setup.svg)
+![Experimental Feature Tracking](docs/doxygen/html/images/feature-tracking.gif)
 
 ## Quick Start
 
 ### Clone the Repository
 
-This guide assumes you have the [ekf_cal](https://github.com/unmannedlab/ekf_cal/) repository in a colcon workspace.
+This guide assumes you have the [ekf_cal](https://github.com/jhartzer/ekf_cal/) repository in a colcon workspace.
 ```bash
 mkdir ekf_cal_ws/
 mkdir ekf_cal_ws/src/
 cd ekf_cal_ws/src/
-git clone git@github.com:unmannedlab/ekf_cal.git
+git clone git@github.com:JHartzer/ekf_cal.git
 cd ../
 ```
 
@@ -68,7 +67,7 @@ Alternatively, a Dockerfile is provided, which can be used either inside a VS Co
 
 ### Input Files
 
-This repository offers two main ways to utilize the Kalman filter framework: a simulation and ROS2 node. Both the simulation and ROS node are configurable and runnable using identically formatted YAML files. Further documentation on how to configure this YAML file for a particular setup can be found on the [Parameters](https://unmannedlab.org/ekf_cal/parameters.html) page.
+This repository offers two main ways to utilize the Kalman filter framework: a simulation and ROS2 node. Both the simulation and ROS node are configurable and runnable using identically formatted YAML files. Further documentation on how to configure this YAML file for a particular setup can be found on the [Parameters](docs/parameters.md#parameters) page.
 
 ### Simulation
 

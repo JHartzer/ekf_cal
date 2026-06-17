@@ -2,8 +2,6 @@ Package Features:
     - Implement filter status output
     - Outlier rejection by gating / Mahalanobis distance
     - Play rosbag through as fast as possible given yaml
-    - Multiple Single-IMU filters to a multi-sensor filter
-    - Multi-Threading in EKF std::lock_guard lock(mutex);
     - Reduce state with single IMU
 
 Simulation:
@@ -17,16 +15,5 @@ Simulation:
         - https://docs.opencv.org/4.6.0/d3/d96/tutorial_basic_geometric_drawing.html
         - https://docs.opencv.org/4.x/d7/d9e/tutorial_video_write.html
 
-Documentation:
-    - Simulation diagram
-    - Add gif to main readme
-    - Write page on coordinate systems
-    - Outline Filter documentation
-    - Add page for initialization
-    - Add page for augmenting states
-    - Add Jacobians to documentation
-    - Add page for Multi-IMU Filter
-
 Test:
     - Test multiple fiducial detection
-    - Numerical Jacobian tests

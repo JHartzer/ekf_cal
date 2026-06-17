@@ -115,7 +115,9 @@ void ApplyLeftNullspace(const Eigen::MatrixXd & H_f, Eigen::MatrixXd & H_x, Eige
 {
   Eigen::HouseholderQR<Eigen::MatrixXd> QR_decomp(H_f);
   Eigen::MatrixXd Q_decomp = QR_decomp.householderQ();
-  Eigen::MatrixXd Q_null = Q_decomp.transpose().block(H_f.cols(), 0, H_f.rows() - H_f.cols(), H_f.rows());
+  Eigen::MatrixXd Q_null = Q_decomp.transpose().block(
+    H_f.cols(), 0, H_f.rows() - H_f.cols(),
+    H_f.rows());
   H_x = Q_null * H_x;
   res = Q_null * res;
 }
@@ -269,9 +271,10 @@ double maximum_distance(const std::vector<Eigen::Vector3d> & eigen_points)
   std::vector<cv::Point2f> points;
   std::vector<cv::Point2f> hull;
   for (const auto & eigen_point : eigen_points) {
-    points.push_back(cv::Point2f(
-      static_cast<float>(eigen_point.x()),
-      static_cast<float>(eigen_point.y())
+    points.push_back(
+      cv::Point2f(
+        static_cast<float>(eigen_point.x()),
+        static_cast<float>(eigen_point.y())
     ));
   }
   cv::convexHull(points, hull);
@@ -328,4 +331,3 @@ Eigen::MatrixXd RemoveStateFromRootCovariance(
     qr.matrixQR().block(0, 0, cols - size, cols - size).triangularView<Eigen::Upper>();
   return R;
 }
-

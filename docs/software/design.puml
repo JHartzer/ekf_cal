@@ -1,0 +1,65 @@
+@startuml design
+
+skinparam Style strictuml
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+box "Simulation Environment" #LightBlue
+participant "Main Application (simulation.cpp)" as App
+participant "TruthEngine" as Truth
+participant "SimSensor (SimIMU / SimCamera / SimGPS)" as Sensor
+end box
+
+box "Estimation Filter" #LightYellow
+participant "EKF" as EKF
+end box
+
+== Initialization ==
+App -> Truth : Instantiate trajectory engine\n(cyclic, spline, or smoother)
+App -> EKF : Initialize(time, initial_body_state)
+App -> EKF : Register sensors (IMUs, Cameras, GPS, Fiducials)
+
+== Data Generation ==
+loop For each registered sensor
+    App -> Sensor : Instantiate(parameters, TruthEngine)
+    App -> Sensor : GenerateMessages()
+    activate Sensor
+    loop Over simulation duration at sensor rate
+        Sensor -> Truth : Query ground truth states (pos, vel, acc, ori, etc.)
+        Truth --> Sensor : Ground truth values
+        Sensor -> Sensor : Apply calibration parameters,\nnoise models, and biases
+        Sensor -> Sensor : Queue SensorMessage
+    end
+    Sensor --> App : Return list of SensorMessages
+    deactivate Sensor
+end
+
+App -> App : Merge and sort all messages\nchronologically by timestamp
+
+== Execution Loop ==
+loop For each sorted message in queue
+    alt Message from IMU
+        App -> Sensor : Callback(SimImuMessage)
+        activate Sensor
+        alt Multi-IMU Mode
+            Sensor -> EKF : Update(imu_meas, imu_cov)
+            note over EKF : Updates acceleration/velocity states\nusing standard Kalman Update
+        else Single IMU Mode
+            Sensor -> EKF : Direct integration of measurements
+        end
+        Sensor -> EKF : PredictModel(time)
+        note over EKF : Propagates state covariance\nand kinematics to message time
+        deactivate Sensor
+    else Message from Camera / GPS / Fiducial
+        App -> Sensor : Callback(SensorMessage)
+        activate Sensor
+        Sensor -> EKF : PredictModel(time)
+        Sensor -> EKF : Update(meas, covariance)
+        note over EKF : Performs measurement update\nand corrects state estimate
+        deactivate Sensor
+    end
+end
+
+App -> App : Write final logs and metrics\n(sim.stdout, sim.stderr, csv logs)
+
+@enduml

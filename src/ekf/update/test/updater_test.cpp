@@ -33,7 +33,7 @@ TEST(test_updater, root_covariance) {
   ekf_params.debug_logger = logger;
   ekf_params.use_root_covariance = true;
   EKF ekf(ekf_params);
-  
+
   BodyState body_state;
   ekf.Initialize(0.0, body_state);
 

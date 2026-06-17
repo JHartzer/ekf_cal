@@ -5,17 +5,17 @@ Camera Filtering {#camera}
 
 The current state of the art methods for multi-camera  -->
 
-## Camera Error Models 
+## Camera Error Models
 
 The error model used for a FeatureTracker is
 
 \f{align}{
     \begin{bmatrix}
-        \pose{f_x}{C} \\
-        \pose{f_y}{C} \\
-        \pose{f_z}{C}
+        \Pose{f_x}{C} \\
+        \Pose{f_y}{C} \\
+        \Pose{f_z}{C}
     \end{bmatrix} =
-    R(\quat{L}{C})(p^L_F - p^L_C)
+    R(\Quat{L}{C})(p^L_F - p^L_C)
 \f}
 
 \f{align}{
@@ -24,8 +24,8 @@ The error model used for a FeatureTracker is
         y_n
     \end{bmatrix} =
     \begin{bmatrix}
-        \pose{f_x}{C} / \pose{f_z}{C} \\
-        \pose{f_y}{C} / \pose{f_z}{C}
+        \Pose{f_x}{C} / \Pose{f_z}{C} \\
+        \Pose{f_y}{C} / \Pose{f_z}{C}
     \end{bmatrix}
 \f}
 
