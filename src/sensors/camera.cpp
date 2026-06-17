@@ -72,8 +72,6 @@ void Camera::Callback(const CameraMessage & camera_message)
         for (auto const & track_iter : m_trackers) {
           m_trackers[track_iter.first]->Track(
             camera_message.time, frameID, camera_message.image, m_out_img);
-          /// @todo Undistort points post track?
-          // cv::undistortPoints();
         }
       }
 
