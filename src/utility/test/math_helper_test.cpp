@@ -118,11 +118,13 @@ TEST(test_MathHelper, ApplyLeftNullspace) {
   Eigen::VectorXd res(6);
   res << 1, 2, 3, 4, 5, 6;
 
-  ApplyLeftNullspace(H_f, H_x, res);
+  Eigen::MatrixXd H_f_copy = H_f;
+  ApplyLeftNullspace(H_f, H_f_copy, res);
 
   EXPECT_EQ(res.size(), 3);
-  EXPECT_EQ(H_x.rows(), 3);
-  EXPECT_EQ(H_x.cols(), 5);
+  EXPECT_EQ(H_f_copy.rows(), 3);
+  EXPECT_EQ(H_f_copy.cols(), 3);
+  EXPECT_NEAR(H_f_copy.norm(), 0.0, 1e-9);
 }
 
 TEST(test_MathHelper, CompressMeasurements) {
