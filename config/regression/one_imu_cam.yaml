@@ -9,6 +9,7 @@
         sim_params:
             seed: 1
             max_time: 300.0
+            room_size: 5
             stationary_time: 0.1
             truth_type: "cyclic"
             pos_frequency: [0.3, 0.5, 0.7]
@@ -70,7 +71,6 @@
                 max_track_length: 10
                 sim_params:
                     feature_count: 200
-                    room_size: 5.0
 
         fiducial: {}
 

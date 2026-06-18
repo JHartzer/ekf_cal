@@ -84,6 +84,14 @@ void TruthEngine::SetImuPosition(unsigned int sensor_id, const Eigen::Vector3d &
   m_imu_pos[sensor_id] = imu_pos;
 }
 
+void TruthEngine::SetRoomSize(int room_size)
+{
+  m_room_size = static_cast<double>(room_size);
+  m_feature_points.clear();
+  m_feature_points_map.clear();
+  GenerateGridFeatures();
+}
+
 void TruthEngine::SetImuAngularPosition(
   unsigned int sensor_id,
   const Eigen::Quaterniond & imu_ang_pos)

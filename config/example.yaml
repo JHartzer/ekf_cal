@@ -42,6 +42,7 @@
             max_time: 10.0                    # Maximum simulation time
             number_of_runs: 20                # Number of runs for Multi-Threaded Simulation
             run_number: 0                     # Start run number (also used to initialize seed)
+            room_size: 5                      # Simulated feature room size
             stationary_time: 0.1              # Time to be stationary before motion begins
             truth_type: "cyclic"              # TruthType:
                                               #   "cyclic"
@@ -176,7 +177,6 @@
                 sim_params:
                     no_errors: false        # Flag to disable errors in simulation
                     feature_count: 500            # Total number of trackable features
-                    room_size: 5.0                # Maximum distance of features
 
         fiducial:
             charuco:
@@ -222,4 +222,3 @@
                     time_error: 1.0e-9               # Measurement time error
                     lla_error:  [5.0, 5.0, 5.0]      # LLA measurement error
                     pos_a_in_b_err: [0.0, 0.0, 0.0]  # Antenna position error
-

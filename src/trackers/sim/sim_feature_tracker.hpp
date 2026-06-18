@@ -43,7 +43,6 @@ public:
   typedef struct Parameters
   {
     unsigned int feature_count{0};              ///< @brief Total feature count
-    double room_size{10.0};                     ///< @brief Size of "Room" for features
     bool no_errors {false};                     ///< @brief Perfect measurements flag
     FeatureTracker::Parameters tracker_params;  ///< @brief Tracker parameters
   } Parameters;
