@@ -207,7 +207,7 @@ int main(int argc, char * argv[])
   unsigned int rng_seed = sim_params["seed"].as<unsigned int>(1);
   unsigned int run_number = sim_params["run_number"].as<unsigned int>(0);
   double max_time = sim_params["max_time"].as<double>(10.0);
-  int room_size = sim_params["room_size"].as<int>(10);
+  int room_size = sim_params["room_size"].as<int>(4);
 
   if (rng_seed > 0) {
     SimRNG::SetSeed(rng_seed);
@@ -377,6 +377,7 @@ int main(int argc, char * argv[])
 
     SimFeatureTracker::Parameters sim_tracker_params;
     sim_tracker_params.feature_count = sim_node["feature_count"].as<unsigned int>(100);
+    sim_tracker_params.detection_rate = sim_node["detection_rate"].as<double>(0.90);
     sim_tracker_params.no_errors = sim_node["no_errors"].as<bool>(false);
     sim_tracker_params.tracker_params = track_params;
 

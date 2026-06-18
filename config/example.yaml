@@ -176,7 +176,8 @@
                 max_track_length: 20        # Maximum track length
                 sim_params:
                     no_errors: false        # Flag to disable errors in simulation
-                    feature_count: 500            # Total number of trackable features
+                    feature_count: 500      # Total number of trackable features
+                    detection_rate: 0.90    # Probability a visible feature is detected
 
         fiducial:
             charuco:

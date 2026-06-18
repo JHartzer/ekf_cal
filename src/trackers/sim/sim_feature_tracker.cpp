@@ -15,6 +15,7 @@
 
 #include "trackers/sim/sim_feature_tracker.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <map>
 #include <memory>
@@ -28,6 +29,7 @@
 #include "infrastructure/sim/truth_engine.hpp"
 #include "trackers/feature_tracker.hpp"
 #include "trackers/sim/sim_feature_tracker_message.hpp"
+#include "utility/sim/sim_rng.hpp"
 #include "utility/type_helper.hpp"
 
 SimFeatureTracker::SimFeatureTracker(
@@ -36,6 +38,7 @@ SimFeatureTracker::SimFeatureTracker(
 : FeatureTracker(params.tracker_params)
 {
   m_px_error = params.tracker_params.px_error;
+  m_detection_rate = std::max(0.0, std::min(params.detection_rate, 1.0));
   m_no_errors = params.no_errors;
   m_feature_count = params.feature_count;
   m_max_track_length = params.tracker_params.max_track_length;
@@ -117,6 +120,9 @@ std::vector<cv::KeyPoint> SimFeatureTracker::FilterInvisiblePoints(
       projected_points[i].x <= intrinsics.width &&
       projected_points[i].y <= intrinsics.height)
     {
+      if (!m_no_errors && SimRNG::UniRand(0.0, 1.0) > m_detection_rate) {
+        continue;
+      }
       cv::KeyPoint feat;
       feat.class_id = static_cast<int>(i);
       if (m_no_errors) {

@@ -222,6 +222,7 @@ The following is an example of a tracker input configuration.
                 sim_params:
                     no_errors: false        # Flag to disable errors in simulation
                     feature_count: 500      # Total number of trackable features
+                    detection_rate: 0.90    # Probability a visible feature is detected
 ```
 
 ## Fiducial parameters

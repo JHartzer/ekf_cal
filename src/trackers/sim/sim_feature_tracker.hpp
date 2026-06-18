@@ -43,6 +43,7 @@ public:
   typedef struct Parameters
   {
     unsigned int feature_count{0};              ///< @brief Total feature count
+    double detection_rate{0.90};                ///< @brief Probability a visible feature is detected
     bool no_errors {false};                     ///< @brief Perfect measurements flag
     FeatureTracker::Parameters tracker_params;  ///< @brief Tracker parameters
   } Parameters;
@@ -98,6 +99,7 @@ public:
 
 private:
   double m_px_error;
+  double m_detection_rate {0.90};
   std::shared_ptr<TruthEngine> m_truth;
   bool m_no_errors {false};
   unsigned int m_feature_count {0};
