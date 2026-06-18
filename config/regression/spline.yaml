@@ -14,6 +14,7 @@
             max_time: 60.0
             number_of_runs: 10
             run_number: 0
+            room_size: 4
             stationary_time: 0.0
             truth_type: "spline"
             positions: [
@@ -92,7 +93,6 @@
                 pixel_error: 1.0
                 sim_params:
                     feature_count: 100
-                    room_size: 10.0
 
         fiducial: {}
 

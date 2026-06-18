@@ -45,6 +45,8 @@ The basic structure of the YAML files is a set of ROS parameters, lists that def
             seed: 0.0                         # Seed to provide to random number generator
             use_seed: true                    # Flag to use seed (required for deterministic runs)
             max_time: 10.0                    # Maximum simulation time
+            room_size: 4                      # Simulated room width/depth; height is room_size/2
+            generate_video: false             # Write simulated camera video alongside run outputs
             number_of_runs: 10                # Number of runs for Multi-Threaded Simulation
             run_number: 0                     # Start run number (also used to initialize seed)
             stationary_time: 0.1              # Time to be stationary before motion begins
@@ -221,7 +223,7 @@ The following is an example of a tracker input configuration.
                 sim_params:
                     no_errors: false        # Flag to disable errors in simulation
                     feature_count: 500      # Total number of trackable features
-                    room_size: 5.0          # Maximum distance of features
+                    detection_rate: 0.90    # Probability a visible feature is detected
 ```
 
 ## Fiducial parameters

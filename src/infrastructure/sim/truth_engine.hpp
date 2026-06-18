@@ -148,6 +148,12 @@ public:
   void SetImuPosition(unsigned int sensor_id, const Eigen::Vector3d & imu_pos);
 
   ///
+  /// @brief Set the room size used for simulated feature generation
+  /// @param room_size Room width/depth parameter
+  ///
+  void SetRoomSize(int room_size);
+
+  ///
   /// @brief True sensor orientation setter
   /// @param sensor_id sensor ID
   /// @param imu_ang_pos sensor parameter

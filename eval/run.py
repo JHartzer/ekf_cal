@@ -34,7 +34,9 @@ import multiprocessing
 import os
 import random
 import subprocess
+import tempfile
 import traceback
+import copy
 
 from input_parser import InputParser
 import yaml
@@ -53,14 +55,33 @@ def print_err(err):
     traceback.print_exception(type(err), err, err.__traceback__)
 
 
-def run_sim(yaml_path: str, sim_bin: str = None):
+def run_sim(
+    yaml_path: str,
+    sim_bin: str = None,
+    output_dir: str = None,
+    override_yaml: dict = None
+):
     """Run simulation given an input yaml."""
     # Get (and create) yaml directory
-    yaml_dir = yaml_path.split('.yaml')[0] + os.sep
+    yaml_dir = output_dir if output_dir is not None else yaml_path.split('.yaml')[0] + os.sep
     if (not os.path.isdir(yaml_dir)):
         os.mkdir(yaml_dir)
         with open(os.path.join(yaml_dir, '.gitignore'), 'w') as f_git_ignore:
             f_git_ignore.write('*\n')
+
+    run_yaml_path = yaml_path
+    temp_yaml_path = None
+    if override_yaml is not None:
+        with tempfile.NamedTemporaryFile(
+            mode='w',
+            suffix='.yaml',
+            prefix='.sim_override_',
+            dir=yaml_dir,
+            delete=False
+        ) as temp_yaml:
+            yaml.dump(override_yaml, temp_yaml)
+            temp_yaml_path = temp_yaml.name
+            run_yaml_path = temp_yaml_path
 
     # Run simulation
     if sim_bin is None:
@@ -81,9 +102,13 @@ def run_sim(yaml_path: str, sim_bin: str = None):
         err_msg = "The 'sim' binary was not found in any of the candidate paths."
         raise FileNotFoundError(err_msg)
 
-    proc = subprocess.run([sim_bin, yaml_path, yaml_dir],
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE)
+    try:
+        proc = subprocess.run([sim_bin, run_yaml_path, yaml_dir],
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+    finally:
+        if temp_yaml_path is not None and os.path.isfile(temp_yaml_path):
+            os.remove(temp_yaml_path)
 
     # Write stdout
     if (proc.stdout):
@@ -100,53 +125,76 @@ def run_sim(yaml_path: str, sim_bin: str = None):
 def generate_mc_from_yaml(
     yaml_file,
     runs=None,
-    time=None
+    time=None,
+    generate_video=False
 ):
     """Generate a Monte Carlo list of inputs given a top-level yaml."""
+    yaml_jobs = []
     with open(yaml_file, 'r') as yaml_stream:
         try:
             top_yaml = yaml.safe_load(yaml_stream)
             sim_yaml = top_yaml['/EkfCalNode']['ros__parameters']['sim_params']
-            if (runs):
-                num_runs = runs
-            else:
-                num_runs = sim_yaml['number_of_runs']
+            num_runs = runs if runs is not None else sim_yaml['number_of_runs']
+            yaml_dir = yaml_file.split('.yaml')[0] + os.sep
+            seed = sim_yaml['seed']
+
             if (num_runs > 1):
-                yaml_files = []
                 top_name = os.path.basename(yaml_file).split('.yaml')[0]
-                yaml_dir = yaml_file.split('.yaml')[0] + os.sep
                 if (not os.path.isdir(yaml_dir)):
                     os.mkdir(yaml_dir)
                 add_gitignore(yaml_dir)
                 runs_dir = os.path.join(yaml_dir, 'runs')
                 if (not os.path.isdir(runs_dir)):
                     os.mkdir(runs_dir)
-
-                seed = sim_yaml['seed']
                 if (seed):
                     random.seed(seed)
-
                 n_digits = math.ceil(math.log10(num_runs))
-                for i in range(num_runs):
-                    sub_yaml = top_yaml
+
+            for i in range(num_runs):
+                if (num_runs == 1 and runs is None and time is None and not generate_video):
+                    yaml_jobs.append({
+                        'yaml_path': yaml_file,
+                        'output_dir': None,
+                        'override_yaml': None
+                    })
+                    continue
+
+                sub_yaml = copy.deepcopy(top_yaml)
+                sub_sim_params = sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']
+                sub_sim_params['number_of_runs'] = 1
+
+                if (num_runs > 1):
                     if (seed):
-                        new_seed = random.randint(0, 1000000000)
-                        sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']['seed'] = new_seed
-                    sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']['number_of_runs'] = 1
-                    sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']['run_number'] += i
-                    if (time):
-                        sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']['max_time'] = time
+                        sub_sim_params['seed'] = random.randint(0, 1000000000)
+                    sub_sim_params['run_number'] = sim_yaml['run_number'] + i
+                if (time is not None):
+                    sub_sim_params['max_time'] = time
+                if (generate_video):
+                    sub_sim_params['generate_video'] = True
+
+                if (num_runs > 1):
                     sub_file = os.path.join(
                         runs_dir, '{}_{:0{:d}.0f}.yaml'.format(top_name, i, n_digits))
-                    yaml_files.append(sub_file)
                     with open(sub_file, 'w') as f:
                         yaml.dump(sub_yaml, f)
-            else:
-                yaml_files = [yaml_file]
+                    yaml_jobs.append({
+                        'yaml_path': sub_file,
+                        'output_dir': None,
+                        'override_yaml': None
+                    })
+                else:
+                    if (not os.path.isdir(yaml_dir)):
+                        os.mkdir(yaml_dir)
+                    add_gitignore(yaml_dir)
+                    yaml_jobs.append({
+                        'yaml_path': yaml_file,
+                        'output_dir': yaml_dir,
+                        'override_yaml': sub_yaml
+                    })
         except yaml.YAMLError as exc:
             print(exc)
 
-    return yaml_files
+    return yaml_jobs
 
 
 def add_jobs(args):
@@ -158,13 +206,22 @@ def add_jobs(args):
 
     for yaml_file in args.inputs:
         input_yaml_path = os.path.abspath(yaml_file)
-        list_of_runs = generate_mc_from_yaml(
+        job_list = generate_mc_from_yaml(
             input_yaml_path,
             runs=args.runs,
-            time=args.time
+            time=args.time,
+            generate_video=args.generate_video
         )
-        for single_run in list_of_runs:
-            pool.apply_async(run_sim, args=(single_run, sim_bin), error_callback=print_err)
+        for job in job_list:
+            pool.apply_async(
+                run_sim,
+                kwds={
+                    'yaml_path': job['yaml_path'],
+                    'sim_bin': sim_bin,
+                    'output_dir': job['output_dir'],
+                    'override_yaml': job['override_yaml']
+                },
+                error_callback=print_err)
 
     pool.close()
     pool.join()

@@ -31,3 +31,8 @@ unsigned int Tracker::GetID() const
 {
   return m_id;
 }
+
+unsigned int Tracker::GetMaxTrackLength() const
+{
+  return m_max_track_length;
+}

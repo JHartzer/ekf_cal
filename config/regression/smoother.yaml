@@ -11,6 +11,7 @@
             max_time: 60.0
             number_of_runs: 20
             run_number: 0
+            room_size: 4
             stationary_time: 0.0
             truth_type: "smoother"
 
@@ -72,7 +73,6 @@
                 max_track_length: 10
                 sim_params:
                     feature_count: 100
-                    room_size: 5.0
 
         fiducial: {}
 

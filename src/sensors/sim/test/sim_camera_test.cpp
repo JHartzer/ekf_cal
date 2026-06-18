@@ -100,6 +100,82 @@ TEST(test_SimCamera, feature_track) {
   }
 }
 
+TEST(test_SimCamera, feature_detection_rate) {
+  EKF::Parameters ekf_params;
+  ekf_params.debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  auto ekf = std::make_shared<EKF>(ekf_params);
+  Eigen::Vector3d pos_frequency{1, 2, 3};
+  Eigen::Vector3d ang_frequency{4, 5, 6};
+  Eigen::Vector3d pos_offset{0, 0, 0};
+  Eigen::Vector3d ang_offset{0, 0, 0};
+  double stationary_time{0.0};
+  double max_time{1.0};
+  double pos_amplitude = 1.0;
+  double ang_amplitude = 0.1;
+
+  auto truth_engine = std::make_shared<TruthEngineCyclic>(
+    pos_frequency,
+    ang_frequency,
+    pos_offset,
+    ang_offset,
+    pos_amplitude,
+    ang_amplitude,
+    stationary_time,
+    max_time,
+    ekf_params.debug_logger
+  );
+
+  Intrinsics intrinsics;
+  intrinsics.f_x = 0.01;
+  intrinsics.f_y = 0.01;
+  intrinsics.width = 640.0;
+  intrinsics.height = 480.0;
+  intrinsics.k_1 = 0.0;
+  intrinsics.k_2 = 0.0;
+  intrinsics.p_1 = 0.0;
+  intrinsics.p_2 = 0.0;
+  intrinsics.pixel_size = 5.0e-6;
+
+  Camera::Parameters cam_params;
+  cam_params.ekf = ekf;
+  cam_params.logger = ekf_params.debug_logger;
+  cam_params.rate = 20.0;
+  cam_params.intrinsics = intrinsics;
+  cam_params.ang_c_to_b = Eigen::Quaterniond{-0.5, 0.5, -0.5, 0.5};
+
+  SimCamera::Parameters sim_camera_params;
+  sim_camera_params.cam_params = cam_params;
+  sim_camera_params.no_errors = true;
+
+  SimCamera sim_camera(sim_camera_params, truth_engine);
+
+  truth_engine->SetCameraPosition(sim_camera.GetId(), cam_params.pos_c_in_b);
+  truth_engine->SetCameraAngularPosition(sim_camera.GetId(), cam_params.ang_c_to_b);
+
+  FeatureTracker::Parameters feature_params;
+  feature_params.ekf = ekf;
+  feature_params.logger = ekf_params.debug_logger;
+  feature_params.camera_id = sim_camera.GetId();
+
+  SimFeatureTracker::Parameters perfect_params;
+  perfect_params.tracker_params = feature_params;
+  perfect_params.detection_rate = 1.0;
+  auto perfect_tracker = std::make_shared<SimFeatureTracker>(perfect_params, truth_engine);
+
+  SimRNG::SetSeed(1);
+  auto perfect_key_points = perfect_tracker->GetVisibleKeypoints(0.0);
+  EXPECT_GT(perfect_key_points.size(), 0);
+
+  SimFeatureTracker::Parameters dropped_params;
+  dropped_params.tracker_params = feature_params;
+  dropped_params.detection_rate = 0.0;
+  auto dropped_tracker = std::make_shared<SimFeatureTracker>(dropped_params, truth_engine);
+
+  SimRNG::SetSeed(1);
+  auto dropped_key_points = dropped_tracker->GetVisibleKeypoints(0.0);
+  EXPECT_EQ(dropped_key_points.size(), 0);
+}
+
 TEST(test_SimCamera, fiducial_track) {
   EKF::Parameters ekf_params;
   ekf_params.debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");

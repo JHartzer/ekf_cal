@@ -207,6 +207,8 @@ int main(int argc, char * argv[])
   unsigned int rng_seed = sim_params["seed"].as<unsigned int>(1);
   unsigned int run_number = sim_params["run_number"].as<unsigned int>(0);
   double max_time = sim_params["max_time"].as<double>(10.0);
+  int room_size = sim_params["room_size"].as<int>(4);
+  bool generate_video = sim_params["generate_video"].as<bool>(false);
 
   if (rng_seed > 0) {
     SimRNG::SetSeed(rng_seed);
@@ -257,6 +259,10 @@ int main(int argc, char * argv[])
     std::stringstream msg;
     msg << "Unknown truth engine type: " << truth_type;
     debug_logger->Log(LogLevel::ERROR, msg.str());
+  }
+
+  if (truth_engine) {
+    truth_engine->SetRoomSize(room_size);
   }
 
   // Local Position Error
@@ -372,7 +378,7 @@ int main(int argc, char * argv[])
 
     SimFeatureTracker::Parameters sim_tracker_params;
     sim_tracker_params.feature_count = sim_node["feature_count"].as<unsigned int>(100);
-    sim_tracker_params.room_size = sim_node["room_size"].as<double>(10.0);
+    sim_tracker_params.detection_rate = sim_node["detection_rate"].as<double>(0.90);
     sim_tracker_params.no_errors = sim_node["no_errors"].as<bool>(false);
     sim_tracker_params.tracker_params = track_params;
 
@@ -455,6 +461,8 @@ int main(int argc, char * argv[])
     LoadSimSensorParams(sim_cam_params, sim_node);
     sim_cam_params.pos_error = StdToEigVec(sim_node["pos_error"].as<std::vector<double>>(def_vec));
     sim_cam_params.ang_error = StdToEigVec(sim_node["ang_error"].as<std::vector<double>>(def_vec));
+    sim_cam_params.room_size = room_size;
+    sim_cam_params.generate_video = generate_video;
     sim_cam_params.cam_params = cam_params;
 
     // Add sensor to map

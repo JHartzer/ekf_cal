@@ -27,7 +27,7 @@ class SimFeatureTrackerMessage : public SensorMessage
 {
 public:
   SimFeatureTrackerMessage() {}
-  unsigned int tracker_id {0};                            ///< @brief Associated Tracker ID
+  unsigned int tracker_id {0};   ///< @brief Associated Tracker ID
   FeatureTracks feature_tracks;  ///< @brief Feature Tracks
 };
 

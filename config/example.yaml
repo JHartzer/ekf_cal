@@ -42,6 +42,8 @@
             max_time: 10.0                    # Maximum simulation time
             number_of_runs: 20                # Number of runs for Multi-Threaded Simulation
             run_number: 0                     # Start run number (also used to initialize seed)
+            room_size: 4                      # Simulated room width/depth; height is room_size/2
+            generate_video: false             # Write simulated camera video alongside run outputs
             stationary_time: 0.1              # Time to be stationary before motion begins
             truth_type: "cyclic"              # TruthType:
                                               #   "cyclic"
@@ -175,8 +177,8 @@
                 max_track_length: 20        # Maximum track length
                 sim_params:
                     no_errors: false        # Flag to disable errors in simulation
-                    feature_count: 500            # Total number of trackable features
-                    room_size: 5.0                # Maximum distance of features
+                    feature_count: 500      # Total number of trackable features
+                    detection_rate: 0.90    # Probability a visible feature is detected
 
         fiducial:
             charuco:
@@ -192,8 +194,8 @@
                 starting_id: 0                              # Aprilgrid starting ID
                 border_bits: 2                              # Aprilgrid number of border bits
                 separation_bits: 3                          # Aprilgrid number of separation bits
-                pos_f_in_l: [5.0, 0.0, 0.0]                 # Board position in local frame
-                ang_f_to_l: [1.0, 0.0, 0.0, 0.0]            # Board orientation in local frame
+                pos_f_in_l: [2.0, 0.0, 0.0]                 # Board position in local frame
+                ang_f_to_l: [0.707, 0.0, 0.707, 0.0]        # Board orientation in local frame
                 variance:
                     pos: 0.1                                # Position variance
                     ang: 0.1                                # Orientation variance
@@ -222,4 +224,3 @@
                     time_error: 1.0e-9               # Measurement time error
                     lla_error:  [5.0, 5.0, 5.0]      # LLA measurement error
                     pos_a_in_b_err: [0.0, 0.0, 0.0]  # Antenna position error
-

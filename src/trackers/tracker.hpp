@@ -58,6 +58,12 @@ public:
   ///
   unsigned int GetID() const;
 
+  ///
+  /// @brief Getter for maximum track length
+  /// @return Maximum track length
+  ///
+  unsigned int GetMaxTrackLength() const;
+
 protected:
   unsigned int m_id;                      ///< @brief Tracker ID
   unsigned int m_camera_id;               ///< @brief Associated camera ID of tracker

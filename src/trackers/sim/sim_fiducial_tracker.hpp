@@ -79,6 +79,12 @@ public:
   ///
   void Callback(const double time, const SimFiducialTrackerMessage & msg);
 
+  ///
+  /// @brief Get the rendered board corners in local frame
+  /// @return Board perimeter corners in local frame
+  ///
+  std::vector<cv::Point3d> GetBoardCornersInLocalFrame() const;
+
 private:
   bool EstimatePoseBoard(
     const cv::Mat & img_in,
@@ -94,6 +100,8 @@ private:
   Eigen::Vector3d m_r_vec_error;
   std::shared_ptr<TruthEngine> m_truth;
   bool m_no_errors {false};
+  double m_board_width {1.0};
+  double m_board_height {1.0};
 
   unsigned int m_min_track_length {0};
   unsigned int m_max_track_length {1};
