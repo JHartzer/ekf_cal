@@ -674,17 +674,17 @@ def _calc_errors_for_single_run(run_args):
 
                 run_errors[f'fiducial_nees_{sensor_id}'] = np.column_stack((est_time, nees))
 
-                # Fiducial board measurement Euler angles
-                if 'board_meas_ang_0' in fid_df:
-                    board_qw = fid_df['board_meas_ang_0'].to_numpy()
-                    board_qx = fid_df['board_meas_ang_1'].to_numpy()
-                    board_qy = fid_df['board_meas_ang_2'].to_numpy()
-                    board_qz = fid_df['board_meas_ang_3'].to_numpy()
-                    quats = np.column_stack((board_qw, board_qx, board_qy, board_qz))
-                    board_rot = Rotation.from_quat(quats, scalar_first=True)
-                    board_eul = board_rot.as_euler('XYZ')
-                    run_errors[f'fiducial_meas_euler_{sensor_id}'] = np.column_stack(
-                        (fid_df['time'].to_numpy(), board_eul))
+            # Fiducial board measurement Euler angles
+            if 'board_meas_ang_0' in fid_df:
+                board_qw = fid_df['board_meas_ang_0'].to_numpy()
+                board_qx = fid_df['board_meas_ang_1'].to_numpy()
+                board_qy = fid_df['board_meas_ang_2'].to_numpy()
+                board_qz = fid_df['board_meas_ang_3'].to_numpy()
+                quats = np.column_stack((board_qw, board_qx, board_qy, board_qz))
+                board_rot = Rotation.from_quat(quats, scalar_first=True)
+                board_eul = board_rot.as_euler('XYZ')
+                run_errors[f'fiducial_meas_euler_{sensor_id}'] = np.column_stack(
+                    (fid_df['time'].to_numpy(), board_eul))
 
     # 6. Augmented State Euler Angles
     if aug_state is not None and 'aug_ang_0' in aug_state:
@@ -736,9 +736,6 @@ def save_errors_to_hdf5(data_dirs, body_state_dfs_dict, body_truth_dfs_dict,
             h5_files = [f for f in os.listdir(grandparent_dir) if f.endswith('.h5')]
             if h5_files:
                 single_h5_path = os.path.join(grandparent_dir, h5_files[0])
-
-    if not single_h5_path or not os.path.exists(single_h5_path):
-        return
 
     # Prepare inputs for parallel processing
     jobs = []
@@ -824,29 +821,57 @@ def save_errors_to_hdf5(data_dirs, body_state_dfs_dict, body_truth_dfs_dict,
         )
         results = [_calc_errors_for_single_run(job) for job in jobs]
 
-    try:
-        with h5py.File(single_h5_path, 'a') as f:
-            for i, data_dir, run_errors in results:
-                run_name = os.path.basename(data_dir.rstrip(os.sep))
-                import re
-                matches = re.findall(r'[0-9]+$', run_name)
-                group_name = f'run_{int(matches[-1])}' if matches else run_name
+    if single_h5_path and os.path.exists(single_h5_path):
+        try:
+            with h5py.File(single_h5_path, 'a') as f:
+                for i, data_dir, run_errors in results:
+                    run_name = os.path.basename(data_dir.rstrip(os.sep))
+                    import re
+                    matches = re.findall(r'[0-9]+$', run_name)
+                    group_name = f'run_{int(matches[-1])}' if matches else run_name
 
-                if group_name not in f:
-                    continue
-                run_group = f[group_name]
-                errors_group = run_group.require_group('errors')
+                    if group_name not in f:
+                        continue
+                    run_group = f[group_name]
+                    errors_group = run_group.require_group('errors')
 
-                for err_name, err_data in run_errors.items():
-                    if err_name in errors_group:
-                        del errors_group[err_name]
-                    ds = errors_group.create_dataset(err_name, data=err_data)
-                    if err_data.shape[1] == 2:
-                        ds.attrs['column_names'] = 'time,nees'
-                    else:
-                        ds.attrs['column_names'] = 'time,x,y,z'
-    except Exception as e:
-        print(f'Warning: Failed to save error time series: {e}')
+                    for err_name, err_data in run_errors.items():
+                        if err_name in errors_group:
+                            del errors_group[err_name]
+                        ds = errors_group.create_dataset(err_name, data=err_data)
+                        if err_data.shape[1] == 2:
+                            ds.attrs['column_names'] = 'time,nees'
+                        else:
+                            ds.attrs['column_names'] = 'time,x,y,z'
+        except Exception as e:
+            print(f'Warning: Failed to save error time series: {e}')
+    else:
+        for _, data_dir, run_errors in results:
+            if os.path.exists(data_dir):
+                h5_files = [f for f in os.listdir(data_dir) if f.endswith('.h5')]
+            else:
+                h5_files = []
+            if h5_files:
+                h5_path = os.path.join(data_dir, h5_files[0])
+            else:
+                h5_path = os.path.join(data_dir, 'simulation_data.h5')
+
+            if not os.path.exists(h5_path):
+                continue
+
+            try:
+                with h5py.File(h5_path, 'a') as f:
+                    errors_group = f.require_group('errors')
+                    for err_name, err_data in run_errors.items():
+                        if err_name in errors_group:
+                            del errors_group[err_name]
+                        ds = errors_group.create_dataset(err_name, data=err_data)
+                        if err_data.shape[1] == 2:
+                            ds.attrs['column_names'] = 'time,nees'
+                        else:
+                            ds.attrs['column_names'] = 'time,x,y,z'
+            except Exception as e:
+                print(f'Warning: Failed to save error time series to {h5_path}: {e}')
 
 
 def save_stats_to_hdf5(data_dirs, stats):
