@@ -134,70 +134,63 @@ def generate_mc_from_yaml(
         try:
             top_yaml = yaml.safe_load(yaml_stream)
             sim_yaml = top_yaml['/EkfCalNode']['ros__parameters']['sim_params']
-            has_overrides = runs is not None or time is not None or generate_video
-            if (runs):
-                num_runs = runs
-            else:
-                num_runs = sim_yaml['number_of_runs']
+            num_runs = runs if runs is not None else sim_yaml['number_of_runs']
+            yaml_dir = yaml_file.split('.yaml')[0] + os.sep
+            seed = sim_yaml['seed']
+
             if (num_runs > 1):
                 top_name = os.path.basename(yaml_file).split('.yaml')[0]
-                yaml_dir = yaml_file.split('.yaml')[0] + os.sep
                 if (not os.path.isdir(yaml_dir)):
                     os.mkdir(yaml_dir)
                 add_gitignore(yaml_dir)
                 runs_dir = os.path.join(yaml_dir, 'runs')
                 if (not os.path.isdir(runs_dir)):
                     os.mkdir(runs_dir)
-
-                seed = sim_yaml['seed']
                 if (seed):
                     random.seed(seed)
-
                 n_digits = math.ceil(math.log10(num_runs))
-                for i in range(num_runs):
-                    sub_yaml = copy.deepcopy(top_yaml)
+
+            for i in range(num_runs):
+                if (num_runs == 1 and runs is None and time is None and not generate_video):
+                    yaml_jobs.append({
+                        'yaml_path': yaml_file,
+                        'output_dir': None,
+                        'override_yaml': None
+                    })
+                    continue
+
+                sub_yaml = copy.deepcopy(top_yaml)
+                sub_sim_params = sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']
+                sub_sim_params['number_of_runs'] = 1
+
+                if (num_runs > 1):
                     if (seed):
-                        new_seed = random.randint(0, 1000000000)
-                        sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']['seed'] = new_seed
-                    sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']['number_of_runs'] = 1
-                    sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']['run_number'] = (
-                        sim_yaml['run_number'] + i)
-                    if (time):
-                        sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']['max_time'] = time
-                    if (generate_video):
-                        sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']['generate_video'] = True
+                        sub_sim_params['seed'] = random.randint(0, 1000000000)
+                    sub_sim_params['run_number'] = sim_yaml['run_number'] + i
+                if (time is not None):
+                    sub_sim_params['max_time'] = time
+                if (generate_video):
+                    sub_sim_params['generate_video'] = True
+
+                if (num_runs > 1):
                     sub_file = os.path.join(
                         runs_dir, '{}_{:0{:d}.0f}.yaml'.format(top_name, i, n_digits))
+                    with open(sub_file, 'w') as f:
+                        yaml.dump(sub_yaml, f)
                     yaml_jobs.append({
                         'yaml_path': sub_file,
                         'output_dir': None,
                         'override_yaml': None
                     })
-                    with open(sub_file, 'w') as f:
-                        yaml.dump(sub_yaml, f)
-            else:
-                if has_overrides:
-                    yaml_dir = yaml_file.split('.yaml')[0] + os.sep
+                else:
                     if (not os.path.isdir(yaml_dir)):
                         os.mkdir(yaml_dir)
                     add_gitignore(yaml_dir)
-                    sub_yaml = copy.deepcopy(top_yaml)
-                    sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']['number_of_runs'] = 1
-                    if (time):
-                        sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']['max_time'] = time
-                    if (generate_video):
-                        sub_yaml['/EkfCalNode']['ros__parameters']['sim_params']['generate_video'] = True
-                    yaml_jobs = [{
+                    yaml_jobs.append({
                         'yaml_path': yaml_file,
                         'output_dir': yaml_dir,
                         'override_yaml': sub_yaml
-                    }]
-                else:
-                    yaml_jobs = [{
-                        'yaml_path': yaml_file,
-                        'output_dir': None,
-                        'override_yaml': None
-                    }]
+                    })
         except yaml.YAMLError as exc:
             print(exc)
 
