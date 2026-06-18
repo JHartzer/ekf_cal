@@ -9,7 +9,7 @@
         sim_params:
             seed: 1
             max_time: 10.0
-            room_size: 5
+            room_size: 4
             stationary_time: 0.1
             truth_type: "cyclic"
             pos_frequency: [0.3, 0.5, 0.7]

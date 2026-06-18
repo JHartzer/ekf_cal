@@ -11,7 +11,7 @@
             max_time: 60.0
             number_of_runs: 20
             run_number: 0
-            room_size: 5
+            room_size: 4
             stationary_time: 0.0
             truth_type: "smoother"
 

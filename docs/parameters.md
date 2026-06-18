@@ -45,7 +45,7 @@ The basic structure of the YAML files is a set of ROS parameters, lists that def
             seed: 0.0                         # Seed to provide to random number generator
             use_seed: true                    # Flag to use seed (required for deterministic runs)
             max_time: 10.0                    # Maximum simulation time
-            room_size: 5                      # Simulated feature room size
+            room_size: 4                      # Simulated room width/depth; height is room_size/2
             number_of_runs: 10                # Number of runs for Multi-Threaded Simulation
             run_number: 0                     # Start run number (also used to initialize seed)
             stationary_time: 0.1              # Time to be stationary before motion begins
