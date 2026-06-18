@@ -185,3 +185,13 @@ void SimFeatureTracker::Callback(const double time, const SimFeatureTrackerMessa
     msg.feature_tracks,
     m_px_error);
 }
+
+FeatureTracks SimFeatureTracker::GetActiveFeatureTracks() const
+{
+  FeatureTracks active_feature_tracks;
+  active_feature_tracks.reserve(m_feature_points_map.size());
+  for (const auto & feature_track : m_feature_points_map) {
+    active_feature_tracks.push_back(feature_track.second);
+  }
+  return active_feature_tracks;
+}

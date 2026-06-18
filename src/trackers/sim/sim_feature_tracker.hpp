@@ -97,6 +97,12 @@ public:
   ///
   void Callback(const double time, const SimFeatureTrackerMessage & msg);
 
+  ///
+  /// @brief Return currently active feature tracks
+  /// @return Active feature tracks
+  ///
+  FeatureTracks GetActiveFeatureTracks() const;
+
 private:
   double m_px_error;
   double m_detection_rate {0.90};

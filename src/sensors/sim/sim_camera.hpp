@@ -24,11 +24,13 @@
 #include <memory>
 #include <vector>
 
+#include "ekf/types.hpp"
 #include "infrastructure/sim/truth_engine.hpp"
 #include "sensors/camera.hpp"
 #include "sensors/sim/sim_camera_message.hpp"
 #include "sensors/sim/sim_sensor.hpp"
 #include "trackers/sim/sim_feature_tracker.hpp"
+#include "trackers/sim/sim_feature_tracker_message.hpp"
 #include "trackers/sim/sim_fiducial_tracker.hpp"
 
 
@@ -87,10 +89,29 @@ private:
 
   static cv::Scalar GetTrackColor(unsigned int tracker_id, unsigned int feature_id);
   static bool ShouldShowTrack(unsigned int feature_id);
-  void OverlayFeatureTrack(
+  static double GetTrackAlpha(unsigned int age, unsigned int max_track_length);
+  bool GetFeatureDepth(double time, int feature_id, double & depth) const;
+  static int GetFeatureRadius(double depth);
+  void BlendCircle(
+    cv::Mat & image,
+    const cv::Point & center,
+    int radius,
+    const cv::Scalar & color,
+    double alpha
+  ) const;
+  void BlendLine(
+    cv::Mat & image,
+    const cv::Point & point_1,
+    const cv::Point & point_2,
+    const cv::Scalar & color,
+    double alpha,
+    int thickness
+  ) const;
+  void OverlayBufferedFeatureTrack(
     std::map<unsigned int, cv::Mat> & frame_buffer,
     const FeatureTrack & feature_track,
-    unsigned int tracker_id
+    unsigned int tracker_id,
+    unsigned int max_track_length
   ) const;
   void FlushReadyFrames(
     std::map<unsigned int, cv::Mat> & frame_buffer,

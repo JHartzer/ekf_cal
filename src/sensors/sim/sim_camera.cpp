@@ -121,8 +121,13 @@ std::vector<std::shared_ptr<SimCameraMessage>> SimCamera::GenerateMessages()
       auto trk_msg = m_trackers[trk_iter.first]->GenerateMessage(measurement_time, frame_id);
       cam_msg->feature_track_messages.push_back(trk_msg);
       if (m_generate_video) {
+        unsigned int tracker_max_track_length = m_trackers[trk_iter.first]->GetMaxTrackLength();
         for (const auto & feature_track : trk_msg->feature_tracks) {
-          OverlayFeatureTrack(frame_buffer, feature_track, trk_msg->tracker_id);
+          OverlayBufferedFeatureTrack(
+            frame_buffer,
+            feature_track,
+            trk_msg->tracker_id,
+            tracker_max_track_length);
         }
       }
     }
@@ -135,6 +140,20 @@ std::vector<std::shared_ptr<SimCameraMessage>> SimCamera::GenerateMessages()
 
     messages.push_back(cam_msg);
     FlushReadyFrames(frame_buffer, frame_id, max_track_length, false);
+  }
+
+  if (m_generate_video) {
+    for (const auto & tracker_iter : m_trackers) {
+      FeatureTracks active_feature_tracks = tracker_iter.second->GetActiveFeatureTracks();
+      unsigned int tracker_max_track_length = tracker_iter.second->GetMaxTrackLength();
+      for (const auto & feature_track : active_feature_tracks) {
+        OverlayBufferedFeatureTrack(
+          frame_buffer,
+          feature_track,
+          tracker_iter.second->GetID(),
+          tracker_max_track_length);
+      }
+    }
   }
 
   FlushReadyFrames(frame_buffer, 0, max_track_length, true);
@@ -186,45 +205,163 @@ bool SimCamera::ShouldShowTrack(unsigned int feature_id)
   return SHOW_NTH_TRACK <= 1 || (feature_id % SHOW_NTH_TRACK) == 0;
 }
 
-void SimCamera::OverlayFeatureTrack(
+double SimCamera::GetTrackAlpha(unsigned int age, unsigned int max_track_length)
+{
+  if (max_track_length == 0) {
+    return 1.0;
+  }
+
+  double alpha = 1.0 - (static_cast<double>(age) / static_cast<double>(max_track_length));
+  return std::max(0.0, std::min(alpha, 1.0));
+}
+
+bool SimCamera::GetFeatureDepth(double time, int feature_id, double & depth) const
+{
+  if (feature_id < 0) {
+    return false;
+  }
+
+  cv::Point3d feature_point = m_truth->GetFeature(feature_id);
+  Eigen::Vector3d pos_b_in_l = m_truth->GetBodyPosition(time);
+  Eigen::Quaterniond ang_b_to_l = m_truth->GetBodyAngularPosition(time);
+  Eigen::Vector3d pos_c_in_b = m_truth->GetCameraPosition(m_id);
+  Eigen::Quaterniond ang_c_to_b = m_truth->GetCameraAngularPosition(m_id);
+  Eigen::Matrix3d rot_l_to_c = (ang_b_to_l * ang_c_to_b).toRotationMatrix().transpose();
+  Eigen::Vector3d pos_l_in_c = rot_l_to_c * (-(pos_b_in_l + ang_b_to_l * pos_c_in_b));
+  Eigen::Vector3d point_in_l(feature_point.x, feature_point.y, feature_point.z);
+  Eigen::Vector3d point_in_c = rot_l_to_c * point_in_l + pos_l_in_c;
+
+  depth = point_in_c.z();
+  return depth > 0.0;
+}
+
+int SimCamera::GetFeatureRadius(double depth)
+{
+  constexpr int min_feature_radius = 2;
+  constexpr int max_feature_radius = 8;
+  if (depth <= 0.0) {
+    return min_feature_radius;
+  }
+
+  double scaled_radius = static_cast<double>(max_feature_radius) / depth;
+  int radius = static_cast<int>(std::round(scaled_radius));
+  return std::max(min_feature_radius, std::min(radius, max_feature_radius));
+}
+
+void SimCamera::BlendCircle(
+  cv::Mat & image,
+  const cv::Point & center,
+  int radius,
+  const cv::Scalar & color,
+  double alpha
+) const
+{
+  if (alpha <= 0.0 || radius <= 0) {
+    return;
+  }
+
+  int padding = radius + 2;
+  cv::Rect roi(
+    std::max(0, center.x - padding),
+    std::max(0, center.y - padding),
+    std::min(image.cols, center.x + padding + 1) - std::max(0, center.x - padding),
+    std::min(image.rows, center.y + padding + 1) - std::max(0, center.y - padding));
+  if (roi.width <= 0 || roi.height <= 0) {
+    return;
+  }
+
+  cv::Mat overlay = image(roi).clone();
+  cv::circle(
+    overlay,
+    cv::Point(center.x - roi.x, center.y - roi.y),
+    radius,
+    color,
+    cv::FILLED,
+    cv::LINE_AA);
+  cv::addWeighted(overlay, alpha, image(roi), 1.0 - alpha, 0.0, image(roi));
+}
+
+void SimCamera::BlendLine(
+  cv::Mat & image,
+  const cv::Point & point_1,
+  const cv::Point & point_2,
+  const cv::Scalar & color,
+  double alpha,
+  int thickness
+) const
+{
+  if (alpha <= 0.0) {
+    return;
+  }
+
+  int padding = thickness + 2;
+  int min_x = std::max(0, std::min(point_1.x, point_2.x) - padding);
+  int min_y = std::max(0, std::min(point_1.y, point_2.y) - padding);
+  int max_x = std::min(image.cols - 1, std::max(point_1.x, point_2.x) + padding);
+  int max_y = std::min(image.rows - 1, std::max(point_1.y, point_2.y) + padding);
+  cv::Rect roi(min_x, min_y, max_x - min_x + 1, max_y - min_y + 1);
+  if (roi.width <= 0 || roi.height <= 0) {
+    return;
+  }
+
+  cv::Mat overlay = image(roi).clone();
+  cv::line(
+    overlay,
+    cv::Point(point_1.x - roi.x, point_1.y - roi.y),
+    cv::Point(point_2.x - roi.x, point_2.y - roi.y),
+    color,
+    thickness,
+    cv::LINE_AA);
+  cv::addWeighted(overlay, alpha, image(roi), 1.0 - alpha, 0.0, image(roi));
+}
+
+void SimCamera::OverlayBufferedFeatureTrack(
   std::map<unsigned int, cv::Mat> & frame_buffer,
   const FeatureTrack & feature_track,
-  unsigned int tracker_id
+  unsigned int tracker_id,
+  unsigned int max_track_length
 ) const
 {
   if (feature_track.empty()) {
     return;
   }
 
-  unsigned int feature_id = 0;
-  if (feature_track.front().key_point.class_id >= 0) {
-    feature_id = static_cast<unsigned int>(feature_track.front().key_point.class_id);
+  int class_id = feature_track.back().key_point.class_id;
+  if (class_id < 0) {
+    return;
   }
+
+  unsigned int feature_id = static_cast<unsigned int>(class_id);
   if (!ShouldShowTrack(feature_id)) {
     return;
   }
+
   cv::Scalar color = GetTrackColor(tracker_id, feature_id);
-
-  std::vector<cv::Point> history_points;
-  history_points.reserve(feature_track.size());
-  for (const auto & feature_point : feature_track) {
-    history_points.emplace_back(
-      cvRound(feature_point.key_point.pt.x), cvRound(feature_point.key_point.pt.y));
-  }
-
   for (unsigned int idx = 0; idx < feature_track.size(); ++idx) {
     auto frame_iter = frame_buffer.find(feature_track[idx].frame_id);
     if (frame_iter == frame_buffer.end()) {
       continue;
     }
 
-    std::vector<cv::Point> partial_history(
-      history_points.begin(), history_points.begin() + static_cast<long>(idx + 1));
-    if (partial_history.size() > 1) {
-      cv::polylines(frame_iter->second, partial_history, false, color, 1, cv::LINE_AA);
+    cv::Mat & image = frame_iter->second;
+    for (unsigned int seg_idx = 1; seg_idx <= idx; ++seg_idx) {
+      unsigned int age = idx - seg_idx;
+      double alpha = GetTrackAlpha(age, max_track_length);
+      cv::Point point_1(
+        cvRound(feature_track[seg_idx - 1].key_point.pt.x),
+        cvRound(feature_track[seg_idx - 1].key_point.pt.y));
+      cv::Point point_2(
+        cvRound(feature_track[seg_idx].key_point.pt.x),
+        cvRound(feature_track[seg_idx].key_point.pt.y));
+      BlendLine(image, point_1, point_2, color, alpha, 2);
     }
-    for (const auto & point : partial_history) {
-      cv::circle(frame_iter->second, point, 2, color, cv::FILLED, cv::LINE_AA);
+
+    double depth = 0.0;
+    if (GetFeatureDepth(feature_track[idx].frame_time, class_id, depth)) {
+      cv::Point center(
+        cvRound(feature_track[idx].key_point.pt.x),
+        cvRound(feature_track[idx].key_point.pt.y));
+      BlendCircle(image, center, GetFeatureRadius(depth), color, 1.0);
     }
   }
 }
