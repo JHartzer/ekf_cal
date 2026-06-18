@@ -89,7 +89,7 @@
             - "charuco"
 
         gps_list:       # List of gps. Can be empty but list must exist
-            - "gps_1"
+            # - "gps_1"
 
         imu:
             imu_1:
@@ -132,7 +132,7 @@
                     pos: 0.1                        # Position variance
                     ang: 0.1                        # Orientation variance
                 tracker: "orb"                      # Tracker to use
-                fiducial: "charuco"                 # Fiducial to use
+                # fiducial: "charuco"                 # Fiducial to use
                 pos_stability: 1.0e-9               # Position stability
                 ang_stability: 1.0e-9               # Orientation stability
                 data_log_rate: 10.0                 # Data logging rate
