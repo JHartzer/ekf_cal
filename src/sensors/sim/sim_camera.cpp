@@ -104,79 +104,6 @@ std::vector<std::shared_ptr<SimCameraMessage>> SimCamera::GenerateMessages()
   m_logger->Log(
     LogLevel::INFO, "Generating " + std::to_string(measurement_times.size()) + " Camera frames");
 
-  auto track_color = [](unsigned int tracker_id, unsigned int feature_id) -> cv::Scalar {
-      unsigned int seed = tracker_id * 2654435761U + feature_id * 2246822519U;
-      return cv::Scalar(
-        64 + static_cast<int>(seed % 192U),
-        64 + static_cast<int>((seed / 7U) % 192U),
-        64 + static_cast<int>((seed / 17U) % 192U));
-    };
-
-  auto overlay_feature_track = [&](const FeatureTrack & feature_track, unsigned int tracker_id) {
-      if (feature_track.empty()) {
-        return;
-      }
-
-      unsigned int feature_id = 0;
-      if (feature_track.front().key_point.class_id >= 0) {
-        feature_id = static_cast<unsigned int>(feature_track.front().key_point.class_id);
-      }
-      if (SHOW_NTH_TRACK > 1 && (feature_id % SHOW_NTH_TRACK) != 0) {
-        return;
-      }
-      cv::Scalar color = track_color(tracker_id, feature_id);
-
-      std::vector<cv::Point> history_points;
-      history_points.reserve(feature_track.size());
-      for (const auto & feature_point : feature_track) {
-        history_points.emplace_back(
-          cvRound(feature_point.key_point.pt.x), cvRound(feature_point.key_point.pt.y));
-      }
-
-      for (unsigned int idx = 0; idx < feature_track.size(); ++idx) {
-        auto frame_iter = frame_buffer.find(feature_track[idx].frame_id);
-        if (frame_iter == frame_buffer.end()) {
-          continue;
-        }
-
-        std::vector<cv::Point> partial_history(
-          history_points.begin(), history_points.begin() + static_cast<long>(idx + 1));
-        if (partial_history.size() > 1) {
-          cv::polylines(frame_iter->second, partial_history, false, color, 1, cv::LINE_AA);
-        }
-        for (const auto & point : partial_history) {
-          cv::circle(frame_iter->second, point, 2, color, cv::FILLED, cv::LINE_AA);
-        }
-      }
-    };
-
-  auto flush_ready_frames = [&](unsigned int current_frame_id, bool flush_all) {
-      if (!m_generate_video || !m_video_writer.isOpened()) {
-        return;
-      }
-
-      while (!frame_buffer.empty()) {
-        auto frame_iter = frame_buffer.begin();
-        bool should_flush = flush_all;
-        if (!flush_all) {
-          if (max_track_length == 0) {
-            should_flush = true;
-          } else if (current_frame_id < max_track_length) {
-            should_flush = false;
-          } else {
-            should_flush = frame_iter->first <= current_frame_id - max_track_length;
-          }
-        }
-
-        if (!should_flush) {
-          break;
-        }
-
-        m_video_writer.write(frame_iter->second);
-        frame_buffer.erase(frame_iter);
-      }
-    };
-
   for (double measurement_time : measurement_times) {
     unsigned int frame_id = GenerateFrameID();
     cv::Mat blank_img;
@@ -195,7 +122,7 @@ std::vector<std::shared_ptr<SimCameraMessage>> SimCamera::GenerateMessages()
       cam_msg->feature_track_messages.push_back(trk_msg);
       if (m_generate_video) {
         for (const auto & feature_track : trk_msg->feature_tracks) {
-          overlay_feature_track(feature_track, trk_msg->tracker_id);
+          OverlayFeatureTrack(frame_buffer, feature_track, trk_msg->tracker_id);
         }
       }
     }
@@ -207,10 +134,10 @@ std::vector<std::shared_ptr<SimCameraMessage>> SimCamera::GenerateMessages()
     }
 
     messages.push_back(cam_msg);
-    flush_ready_frames(frame_id, false);
+    FlushReadyFrames(frame_buffer, frame_id, max_track_length, false);
   }
 
-  flush_ready_frames(0, true);
+  FlushReadyFrames(frame_buffer, 0, max_track_length, true);
   if (m_video_writer.isOpened()) {
     m_video_writer.release();
   }
@@ -245,6 +172,96 @@ void SimCamera::Callback(const SimCameraMessage & sim_camera_message)
   }
 }
 
+cv::Scalar SimCamera::GetTrackColor(unsigned int tracker_id, unsigned int feature_id)
+{
+  unsigned int seed = tracker_id * 2654435761U + feature_id * 2246822519U;
+  return cv::Scalar(
+    64 + static_cast<int>(seed % 192U),
+    64 + static_cast<int>((seed / 7U) % 192U),
+    64 + static_cast<int>((seed / 17U) % 192U));
+}
+
+bool SimCamera::ShouldShowTrack(unsigned int feature_id)
+{
+  return SHOW_NTH_TRACK <= 1 || (feature_id % SHOW_NTH_TRACK) == 0;
+}
+
+void SimCamera::OverlayFeatureTrack(
+  std::map<unsigned int, cv::Mat> & frame_buffer,
+  const FeatureTrack & feature_track,
+  unsigned int tracker_id
+) const
+{
+  if (feature_track.empty()) {
+    return;
+  }
+
+  unsigned int feature_id = 0;
+  if (feature_track.front().key_point.class_id >= 0) {
+    feature_id = static_cast<unsigned int>(feature_track.front().key_point.class_id);
+  }
+  if (!ShouldShowTrack(feature_id)) {
+    return;
+  }
+  cv::Scalar color = GetTrackColor(tracker_id, feature_id);
+
+  std::vector<cv::Point> history_points;
+  history_points.reserve(feature_track.size());
+  for (const auto & feature_point : feature_track) {
+    history_points.emplace_back(
+      cvRound(feature_point.key_point.pt.x), cvRound(feature_point.key_point.pt.y));
+  }
+
+  for (unsigned int idx = 0; idx < feature_track.size(); ++idx) {
+    auto frame_iter = frame_buffer.find(feature_track[idx].frame_id);
+    if (frame_iter == frame_buffer.end()) {
+      continue;
+    }
+
+    std::vector<cv::Point> partial_history(
+      history_points.begin(), history_points.begin() + static_cast<long>(idx + 1));
+    if (partial_history.size() > 1) {
+      cv::polylines(frame_iter->second, partial_history, false, color, 1, cv::LINE_AA);
+    }
+    for (const auto & point : partial_history) {
+      cv::circle(frame_iter->second, point, 2, color, cv::FILLED, cv::LINE_AA);
+    }
+  }
+}
+
+void SimCamera::FlushReadyFrames(
+  std::map<unsigned int, cv::Mat> & frame_buffer,
+  unsigned int current_frame_id,
+  unsigned int max_track_length,
+  bool flush_all
+)
+{
+  if (!m_generate_video || !m_video_writer.isOpened()) {
+    return;
+  }
+
+  while (!frame_buffer.empty()) {
+    auto frame_iter = frame_buffer.begin();
+    bool should_flush = flush_all;
+    if (!flush_all) {
+      if (max_track_length == 0) {
+        should_flush = true;
+      } else if (current_frame_id < max_track_length) {
+        should_flush = false;
+      } else {
+        should_flush = frame_iter->first <= current_frame_id - max_track_length;
+      }
+    }
+
+    if (!should_flush) {
+      break;
+    }
+
+    m_video_writer.write(frame_iter->second);
+    frame_buffer.erase(frame_iter);
+  }
+}
+
 cv::Mat SimCamera::RenderFrame(double time) const
 {
   Intrinsics intrinsics = m_truth->GetCameraIntrinsics(m_id);
@@ -272,19 +289,6 @@ cv::Mat SimCamera::RenderFrame(double time) const
   t_vec.at<double>(1) = pos_l_in_c[1];
   t_vec.at<double>(2) = pos_l_in_c[2];
 
-  auto draw_world_line = [&](const Eigen::Vector3d & start, const Eigen::Vector3d & end,
-      int thickness) {
-      DrawProjectedLine(
-        image,
-        cv::Point3d(start.x(), start.y(), start.z()),
-        cv::Point3d(end.x(), end.y(), end.z()),
-        r_vec,
-        t_vec,
-        intrinsics,
-        cv::Scalar(255, 255, 255),
-        thickness);
-    };
-
   double half_width = static_cast<double>(m_room_size) / 2.0;
   double half_height = static_cast<double>(m_room_size) / 4.0;
   double grid_spacing = 0.5;
@@ -304,60 +308,115 @@ cv::Mat SimCamera::RenderFrame(double time) const
     {0, 4}, {1, 5}, {2, 6}, {3, 7}};
 
   for (double value = -half_width; value <= half_width + 1.0e-9; value += grid_spacing) {
-    draw_world_line(
+    DrawWorldLine(
+      image,
       Eigen::Vector3d(value, -half_width, -half_height),
       Eigen::Vector3d(value, half_width, -half_height),
+      r_vec,
+      t_vec,
+      intrinsics,
       1);
-    draw_world_line(
+    DrawWorldLine(
+      image,
       Eigen::Vector3d(-half_width, value, -half_height),
       Eigen::Vector3d(half_width, value, -half_height),
+      r_vec,
+      t_vec,
+      intrinsics,
       1);
-    draw_world_line(
+    DrawWorldLine(
+      image,
       Eigen::Vector3d(value, -half_width, half_height),
       Eigen::Vector3d(value, half_width, half_height),
+      r_vec,
+      t_vec,
+      intrinsics,
       1);
-    draw_world_line(
+    DrawWorldLine(
+      image,
       Eigen::Vector3d(-half_width, value, half_height),
       Eigen::Vector3d(half_width, value, half_height),
+      r_vec,
+      t_vec,
+      intrinsics,
       1);
-    draw_world_line(
+    DrawWorldLine(
+      image,
       Eigen::Vector3d(value, -half_width, -half_height),
       Eigen::Vector3d(value, -half_width, half_height),
+      r_vec,
+      t_vec,
+      intrinsics,
       1);
-    draw_world_line(
+    DrawWorldLine(
+      image,
       Eigen::Vector3d(value, half_width, -half_height),
       Eigen::Vector3d(value, half_width, half_height),
+      r_vec,
+      t_vec,
+      intrinsics,
       1);
-    draw_world_line(
+    DrawWorldLine(
+      image,
       Eigen::Vector3d(-half_width, value, -half_height),
       Eigen::Vector3d(-half_width, value, half_height),
+      r_vec,
+      t_vec,
+      intrinsics,
       1);
-    draw_world_line(
+    DrawWorldLine(
+      image,
       Eigen::Vector3d(half_width, value, -half_height),
       Eigen::Vector3d(half_width, value, half_height),
+      r_vec,
+      t_vec,
+      intrinsics,
       1);
   }
   for (double value = -half_height; value <= half_height + 1.0e-9; value += grid_spacing) {
-    draw_world_line(
+    DrawWorldLine(
+      image,
       Eigen::Vector3d(-half_width, -half_width, value),
       Eigen::Vector3d(half_width, -half_width, value),
+      r_vec,
+      t_vec,
+      intrinsics,
       1);
-    draw_world_line(
+    DrawWorldLine(
+      image,
       Eigen::Vector3d(-half_width, half_width, value),
       Eigen::Vector3d(half_width, half_width, value),
+      r_vec,
+      t_vec,
+      intrinsics,
       1);
-    draw_world_line(
+    DrawWorldLine(
+      image,
       Eigen::Vector3d(-half_width, -half_width, value),
       Eigen::Vector3d(-half_width, half_width, value),
+      r_vec,
+      t_vec,
+      intrinsics,
       1);
-    draw_world_line(
+    DrawWorldLine(
+      image,
       Eigen::Vector3d(half_width, -half_width, value),
       Eigen::Vector3d(half_width, half_width, value),
+      r_vec,
+      t_vec,
+      intrinsics,
       1);
   }
 
   for (const auto & edge : room_edges) {
-    draw_world_line(room_corners[edge.first], room_corners[edge.second], 2);
+    DrawWorldLine(
+      image,
+      room_corners[edge.first],
+      room_corners[edge.second],
+      r_vec,
+      t_vec,
+      intrinsics,
+      2);
   }
 
   for (const auto & fid_iter : m_fiducials) {
@@ -379,6 +438,27 @@ cv::Mat SimCamera::RenderFrame(double time) const
   }
 
   return image;
+}
+
+void SimCamera::DrawWorldLine(
+  cv::Mat & image,
+  const Eigen::Vector3d & start,
+  const Eigen::Vector3d & end,
+  const cv::Mat & r_vec,
+  const cv::Mat & t_vec,
+  const Intrinsics & intrinsics,
+  int thickness
+) const
+{
+  DrawProjectedLine(
+    image,
+    cv::Point3d(start.x(), start.y(), start.z()),
+    cv::Point3d(end.x(), end.y(), end.z()),
+    r_vec,
+    t_vec,
+    intrinsics,
+    cv::Scalar(255, 255, 255),
+    thickness);
 }
 
 bool SimCamera::DrawProjectedLine(

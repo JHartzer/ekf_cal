@@ -85,7 +85,29 @@ public:
 private:
   static constexpr unsigned int SHOW_NTH_TRACK = 10;
 
+  static cv::Scalar GetTrackColor(unsigned int tracker_id, unsigned int feature_id);
+  static bool ShouldShowTrack(unsigned int feature_id);
+  void OverlayFeatureTrack(
+    std::map<unsigned int, cv::Mat> & frame_buffer,
+    const FeatureTrack & feature_track,
+    unsigned int tracker_id
+  ) const;
+  void FlushReadyFrames(
+    std::map<unsigned int, cv::Mat> & frame_buffer,
+    unsigned int current_frame_id,
+    unsigned int max_track_length,
+    bool flush_all
+  );
   cv::Mat RenderFrame(double time) const;
+  void DrawWorldLine(
+    cv::Mat & image,
+    const Eigen::Vector3d & start,
+    const Eigen::Vector3d & end,
+    const cv::Mat & r_vec,
+    const cv::Mat & t_vec,
+    const Intrinsics & intrinsics,
+    int thickness
+  ) const;
   bool DrawProjectedLine(
     cv::Mat & image,
     const cv::Point3d & point_1,
