@@ -208,6 +208,7 @@ int main(int argc, char * argv[])
   unsigned int run_number = sim_params["run_number"].as<unsigned int>(0);
   double max_time = sim_params["max_time"].as<double>(10.0);
   int room_size = sim_params["room_size"].as<int>(4);
+  bool generate_video = sim_params["generate_video"].as<bool>(false);
 
   if (rng_seed > 0) {
     SimRNG::SetSeed(rng_seed);
@@ -460,6 +461,8 @@ int main(int argc, char * argv[])
     LoadSimSensorParams(sim_cam_params, sim_node);
     sim_cam_params.pos_error = StdToEigVec(sim_node["pos_error"].as<std::vector<double>>(def_vec));
     sim_cam_params.ang_error = StdToEigVec(sim_node["ang_error"].as<std::vector<double>>(def_vec));
+    sim_cam_params.room_size = room_size;
+    sim_cam_params.generate_video = generate_video;
     sim_cam_params.cam_params = cam_params;
 
     // Add sensor to map

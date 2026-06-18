@@ -15,6 +15,7 @@
 
 #include "trackers/sim/sim_fiducial_tracker.hpp"
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 
@@ -39,6 +40,11 @@ SimFiducialTracker::SimFiducialTracker(
   m_ang_error = params.ang_error;
   m_t_vec_error = params.t_vec_error;
   m_r_vec_error = params.r_vec_error;
+  double side_length = std::max(
+    static_cast<double>(params.fiducial_params.square_length),
+    static_cast<double>(params.fiducial_params.marker_length));
+  m_board_width = std::max(1, params.fiducial_params.squares_x) * side_length;
+  m_board_height = std::max(1, params.fiducial_params.squares_y) * side_length;
   m_min_track_length = params.fiducial_params.min_track_length;
   m_max_track_length = params.fiducial_params.max_track_length;
 
@@ -158,6 +164,25 @@ void SimFiducialTracker::Callback(const double time, const SimFiducialTrackerMes
   if (msg.is_board_visible) {
     m_fiducial_updater.UpdateEKF(*m_ekf, time, msg.board_detection);
   }
+}
+
+std::vector<cv::Point3d> SimFiducialTracker::GetBoardCornersInLocalFrame() const
+{
+  Eigen::Vector3d pos_f_in_l = m_truth->GetBoardPosition(m_id);
+  Eigen::Quaterniond ang_f_to_l = m_truth->GetBoardOrientation(m_id);
+  std::vector<Eigen::Vector3d> board_corners = {
+    Eigen::Vector3d(0.0, 0.0, 0.0),
+    Eigen::Vector3d(m_board_width, 0.0, 0.0),
+    Eigen::Vector3d(m_board_width, m_board_height, 0.0),
+    Eigen::Vector3d(0.0, m_board_height, 0.0)};
+
+  std::vector<cv::Point3d> out_corners;
+  out_corners.reserve(board_corners.size());
+  for (const auto & board_corner : board_corners) {
+    Eigen::Vector3d corner_in_l = pos_f_in_l + ang_f_to_l * board_corner;
+    out_corners.emplace_back(corner_in_l.x(), corner_in_l.y(), corner_in_l.z());
+  }
+  return out_corners;
 }
 
 bool SimFiducialTracker::EstimatePoseBoard(

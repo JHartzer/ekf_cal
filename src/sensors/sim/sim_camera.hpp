@@ -19,6 +19,7 @@
 
 #include <Eigen/Core>
 
+#include <string>
 #include <map>
 #include <memory>
 #include <vector>
@@ -45,6 +46,8 @@ public:
   {
     Eigen::Vector3d pos_error {0.0, 0.0, 0.0};  ///< @brief Position offset error
     Eigen::Vector3d ang_error {0.0, 0.0, 0.0};  ///< @brief Angular offset error
+    int room_size {4};                          ///< @brief Room width/depth
+    bool generate_video {false};                ///< @brief Render simulated video feed
     Camera::Parameters cam_params;              ///< @brief Camera sensor parameters
   } Parameters;
 
@@ -80,8 +83,26 @@ public:
   std::vector<std::shared_ptr<SimCameraMessage>> GenerateMessages();
 
 private:
+  static constexpr unsigned int SHOW_NTH_TRACK = 10;
+
+  cv::Mat RenderFrame(double time) const;
+  bool DrawProjectedLine(
+    cv::Mat & image,
+    const cv::Point3d & point_1,
+    const cv::Point3d & point_2,
+    const cv::Mat & r_vec,
+    const cv::Mat & t_vec,
+    const Intrinsics & intrinsics,
+    const cv::Scalar & color,
+    int thickness
+  ) const;
+
   Eigen::Vector3d m_pos_error;
   Eigen::Vector3d m_ang_error;
+  int m_room_size {4};
+  bool m_generate_video {false};
+  std::string m_video_path;
+  mutable cv::VideoWriter m_video_writer;
 
   std::map<unsigned int, std::shared_ptr<SimFeatureTracker>> m_trackers;
   std::map<unsigned int, std::shared_ptr<SimFiducialTracker>> m_fiducials;
