@@ -92,35 +92,32 @@ Eigen::MatrixXd FiducialUpdater::GetMeasurementJacobian(EKF & ekf)
   Eigen::Matrix3d rot_f_to_l = m_ang_f_to_l.toRotationMatrix();
   Eigen::Matrix3d rot_l_to_b = ang_b_to_l.toRotationMatrix().transpose();
   Eigen::Matrix3d rot_l_to_c = rot_b_to_c * rot_l_to_b;
+  Eigen::Matrix3d rot_f_to_c = rot_l_to_c * rot_f_to_l;
+  Eigen::Vector3d pos_f_in_b = rot_l_to_b * (m_pos_f_in_l - pos_b_in_l);
+  Eigen::Vector3d pos_f_in_c = rot_b_to_c * (pos_f_in_b - m_pos_c_in_b);
 
   unsigned int state_size = ekf.GetStateSize();
   Eigen::MatrixXd jacobian = Eigen::MatrixXd::Zero(g_fid_measurement_size, state_size);
 
   jacobian.block<3, 3>(0, 0) = -rot_l_to_c;
 
-  jacobian.block<3, 3>(0, 9) = rot_l_to_c *
-    SkewSymmetric(m_pos_f_in_l - pos_b_in_l) *
-    QuaternionJacobian(ang_b_to_l).transpose();
+  jacobian.block<3, 3>(0, 9) = rot_b_to_c * SkewSymmetric(pos_f_in_b);
 
-  jacobian.block<3, 3>(3, 9) = -rot_l_to_c * rot_f_to_l *
-    QuaternionJacobian(ang_b_to_l).transpose();
+  jacobian.block<3, 3>(3, 9) = -rot_b_to_c;
 
   if (m_is_cam_extrinsic) {
     unsigned int cam_index = ekf.m_state.cam_states[m_camera_id].index;
     jacobian.block<3, 3>(0, cam_index + 0) = -rot_b_to_c;
 
-    jacobian.block<3, 3>(0, cam_index + 3) = rot_b_to_c *
-      SkewSymmetric(rot_l_to_b * (m_pos_f_in_l - pos_b_in_l) - m_pos_c_in_b) *
-      QuaternionJacobian(m_ang_c_to_b).transpose();
+    jacobian.block<3, 3>(0, cam_index + 3) = SkewSymmetric(pos_f_in_c);
 
-    jacobian.block<3, 3>(3, cam_index + 3) = -rot_b_to_c *
-      QuaternionJacobian(m_ang_c_to_b).transpose() * rot_l_to_b * rot_f_to_l;
+    jacobian.block<3, 3>(3, cam_index + 3) = -Eigen::Matrix3d::Identity();
   }
 
   if (m_is_fid_extrinsic) {
     unsigned int fid_index = ekf.m_state.fid_states[m_id].index;
-    jacobian.block<3, 3>(0, fid_index + 0) = Eigen::Matrix3d::Identity();
-    jacobian.block<3, 3>(3, fid_index + 3) = Eigen::Matrix3d::Identity();
+    jacobian.block<3, 3>(0, fid_index + 0) = rot_l_to_c;
+    jacobian.block<3, 3>(3, fid_index + 3) = rot_f_to_c;
   }
 
   return jacobian;
@@ -169,8 +166,8 @@ void FiducialUpdater::UpdateEKF(
   Eigen::VectorXd res = Eigen::VectorXd::Zero(g_fid_measurement_size);
   res.segment<3>(0) = pos_measured - pred_meas.segment<3>(0);
   res.segment<3>(3) = QuatToRotVec(
-    RotVecToQuat(pred_meas.segment<3>(3)) *
-    ang_measured.conjugate());
+    ang_measured *
+    RotVecToQuat(pred_meas.segment<3>(3)).conjugate());
 
   Eigen::MatrixXd jacobian = GetMeasurementJacobian(ekf);
 
