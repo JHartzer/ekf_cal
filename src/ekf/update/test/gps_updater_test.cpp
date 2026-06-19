@@ -133,7 +133,7 @@ TEST(test_gps_updater, multi_update) {
   for (int i = 0; i < 4; ++i) {
     double time = static_cast<double>(i + 1);
     Eigen::Vector3d gps_lla = gps_state.pos_a_in_b + Eigen::Vector3d(0.0001 * i, 0.0001 * i, 0.0);
-    ekf.AttemptGpsInitialization(time, gps_lla);
+    ekf.AttemptGpsInitialization(time, gps_lla, ekf.m_state.body_state.pos_b_in_l);
   }
 
   // Set reference GPS LLA and angle manually so MultiUpdateEKF has non-zero references

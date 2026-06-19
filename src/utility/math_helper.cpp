@@ -205,7 +205,7 @@ Eigen::MatrixXd matrix2d_from_vectors3d(const std::vector<Eigen::Vector3d> & inp
 
 double affine_angle(const Eigen::Affine3d & transform)
 {
-  return std::acos((transform.linear().trace() - 1) / 2);
+  return std::atan2(transform.linear()(1, 0), transform.linear()(0, 0));
 }
 
 bool kabsch_2d(
@@ -250,7 +250,7 @@ bool kabsch_2d(
   double sum_count{0};
   for (unsigned int i = 0; i < points_tgt.size(); ++i) {
     Eigen::Vector3d pos_error = points_tgt[i] - transform * points_src[i];
-    double baseline_dist = (points_tgt[i] - centroid_src).norm();
+    double baseline_dist = (points_tgt[i] - centroid_tgt).norm();
     pos_errors.push_back(pos_error);
     if (baseline_dist > pos_error.norm()) {
       sum_square_slopes += std::pow(pos_error.norm() / baseline_dist, 2);

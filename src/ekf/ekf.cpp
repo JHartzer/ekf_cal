@@ -811,11 +811,12 @@ void EKF::RefreshIndices()
 
 void EKF::AttemptGpsInitialization(
   double time,
-  const Eigen::Vector3d & gps_lla)
+  const Eigen::Vector3d & gps_lla,
+  const Eigen::Vector3d & pos_a_in_l)
 {
   m_gps_time_vec.push_back(time);
   m_gps_ecef_vec.push_back(lla_to_ecef(gps_lla));
-  m_gps_xyz_vec.push_back(m_state.body_state.pos_b_in_l);
+  m_gps_xyz_vec.push_back(pos_a_in_l);
 
   if (m_gps_time_vec.size() >= 4) {
     Eigen::Vector3d init_ref_ecef = average_vectors(m_gps_ecef_vec);
@@ -842,8 +843,9 @@ void EKF::AttemptGpsInitialization(
       (pos_stddev < m_gps_init_pos_thresh) && (ang_stddev != 0.0) &&
       (ang_stddev < std::tan(m_gps_init_ang_thresh))))
     {
-      Eigen::Vector3d delta_ref_enu = transformation.translation();
-      Eigen::Vector3d pos_e_in_g = enu_to_lla(-delta_ref_enu, init_ref_lla);
+      Eigen::Vector3d delta_ref_enu =
+        -transformation.linear().transpose() * transformation.translation();
+      Eigen::Vector3d pos_e_in_g = enu_to_lla(delta_ref_enu, init_ref_lla);
       double ang_l_to_e = affine_angle(transformation);
 
       m_debug_logger->Log(LogLevel::INFO, "GPS Updater Initialized");
