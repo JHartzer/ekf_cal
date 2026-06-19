@@ -16,9 +16,6 @@ Simulation:
 
 Test:
     - Test multiple fiducial detection
-    - Debug GPS simulation / jacobians / updater
-    - Debug Fiducial simulation / jacobians / updater
     - Add pre-commit hooks:
         - code formatting: black + uncrustify
         - linting: flake8, iwyu, clang-tidy
-    - Add tests to verify max update time
