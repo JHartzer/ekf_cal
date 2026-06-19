@@ -19,11 +19,28 @@
 #include <memory>
 #include <string>
 
+#include "ekf/constants.hpp"
 #include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
 #include "ekf/update/fiducial_updater.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "utility/custom_assertions.hpp"
+#include "utility/type_helper.hpp"
+
+namespace
+{
+Eigen::VectorXd ResidualFromMeasurement(
+  const Eigen::VectorXd & measurement,
+  const Eigen::VectorXd & prediction)
+{
+  Eigen::VectorXd residual = Eigen::VectorXd::Zero(g_fid_measurement_size);
+  residual.segment<3>(0) = measurement.segment<3>(0) - prediction.segment<3>(0);
+  residual.segment<3>(3) = QuatToRotVec(
+    RotVecToQuat(measurement.segment<3>(3)) *
+    RotVecToQuat(prediction.segment<3>(3)).conjugate());
+  return residual;
+}
+}  // namespace
 
 TEST(test_fiducial_updater, constructor) {
   unsigned int fid_id {0};
@@ -74,38 +91,43 @@ TEST(test_fiducial_updater, jacobian) {
   bool is_cam_extrinsic{true};
   CamState cam_state;
   cam_state.SetIsExtrinsic(is_cam_extrinsic);
+  cam_state.pos_c_in_b = Eigen::Vector3d{0.3, -0.2, 0.1};
+  cam_state.ang_c_to_b = RotVecToQuat(Eigen::Vector3d{0.2, -0.1, 0.3});
   Eigen::MatrixXd cam_cov = Eigen::MatrixXd::Identity(6, 6);
   ekf.RegisterCamera(cam_id, cam_state, cam_cov);
+
+  ekf.m_state.body_state.pos_b_in_l = Eigen::Vector3d{1.0, -2.0, 0.5};
+  ekf.m_state.body_state.ang_b_to_l = RotVecToQuat(Eigen::Vector3d{-0.4, 0.1, 0.25});
 
   unsigned int fid_id{1};
   bool is_fid_extrinsic{true};
   FidState fid_state;
   fid_state.id = fid_id;
   fid_state.pos_f_in_l = Eigen::Vector3d{2, 3, 5};
-  fid_state.ang_f_to_l = Eigen::Quaterniond{1, 0, 0, 0};
+  fid_state.ang_f_to_l = RotVecToQuat(Eigen::Vector3d{0.15, 0.3, -0.2});
   fid_state.SetIsExtrinsic(is_cam_extrinsic);
   Eigen::MatrixXd fid_cov = Eigen::MatrixXd::Identity(6, 6);
   ekf.RegisterFiducial(fid_state, fid_cov);
 
   auto fid_updater =
     FiducialUpdater(
-    fid_id, cam_id, is_cam_extrinsic, is_fid_extrinsic, "log_file_directory", 0.0, debug_logger);
+    fid_id, cam_id, is_fid_extrinsic, is_cam_extrinsic, "log_file_directory", 0.0, debug_logger);
 
   Eigen::VectorXd base_state = ekf.m_state.ToVector();
   Eigen::MatrixXd jac_analytical = fid_updater.GetMeasurementJacobian(ekf);
-  Eigen::VectorXd base_meas = fid_updater.PredictMeasurement(ekf);
+  Eigen::VectorXd prediction = fid_updater.PredictMeasurement(ekf);
   double delta = 1.0e-6;
   unsigned int jac_size = base_state.size();
   Eigen::MatrixXd jac_numerical = Eigen::MatrixXd::Zero(6, jac_size);
 
   for (unsigned int i = 0; i < jac_size; ++i) {
-    Eigen::VectorXd delta_vec = base_state;
-    delta_vec[i] = delta_vec[i] + delta;
-
-    ekf.m_state.SetState(delta_vec);
-    Eigen::VectorXd curr = fid_updater.PredictMeasurement(ekf);
-    Eigen::VectorXd diff = curr - base_meas;
-    jac_numerical.block<6, 1>(0, i) = (diff) / delta;
+    ekf.m_state.SetState(base_state);
+    Eigen::VectorXd delta_vec = Eigen::VectorXd::Zero(jac_size);
+    delta_vec[i] = delta;
+    ekf.m_state += delta_vec;
+    Eigen::VectorXd measurement = fid_updater.PredictMeasurement(ekf);
+    Eigen::VectorXd residual = ResidualFromMeasurement(measurement, prediction);
+    jac_numerical.col(i) = residual / delta;
   }
 
   EXPECT_TRUE(EXPECT_EIGEN_NEAR(jac_analytical, jac_numerical, 1e-3));

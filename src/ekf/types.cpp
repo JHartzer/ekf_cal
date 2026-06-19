@@ -520,7 +520,7 @@ void FidState::SetState(const Eigen::VectorXd & state)
 void FidState::refresh_size()
 {
   size = 0;
-  if (is_extrinsic) {size += g_imu_extrinsic_state_size;}
+  if (is_extrinsic) {size += g_fid_extrinsic_state_size;}
 }
 
 cv::Mat Intrinsics::ToCameraMatrix() const

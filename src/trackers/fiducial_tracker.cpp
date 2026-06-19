@@ -51,9 +51,10 @@ FiducialTracker::FiducialTracker(FiducialTracker::Parameters params)
   fid_state.pos_f_in_l = params.pos_f_in_l;
   fid_state.ang_f_to_l = params.ang_f_to_l;
   fid_state.id = params.id;
-  Eigen::MatrixXd covariance(g_fid_extrinsic_state_size, g_fid_extrinsic_state_size);
+  Eigen::MatrixXd covariance =
+    Eigen::MatrixXd::Zero(g_fid_extrinsic_state_size, g_fid_extrinsic_state_size);
   covariance.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity() * params.variance.pos;
-  covariance.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity() * params.variance.ang;
+  covariance.block<3, 3>(3, 3) = Eigen::Matrix3d::Identity() * params.variance.ang;
 
   m_ekf->RegisterFiducial(fid_state, covariance);
 }

@@ -177,6 +177,12 @@ void SimCamera::Callback(const SimCameraMessage & sim_camera_message)
 {
   double local_time = m_ekf->CalculateLocalTime(sim_camera_message.time);
   m_ekf->PredictModel(local_time);
+
+  for (auto fiducial_track_message : sim_camera_message.fiducial_track_messages) {
+    m_fiducials[fiducial_track_message->tracker_id]->Callback(
+      sim_camera_message.time, *fiducial_track_message);
+  }
+
   m_ekf->AugmentStateIfNeeded(m_id, sim_camera_message.frame_id);
 
   for (auto feature_track_message : sim_camera_message.feature_track_messages) {
@@ -184,10 +190,6 @@ void SimCamera::Callback(const SimCameraMessage & sim_camera_message)
       m_trackers[feature_track_message->tracker_id]->Callback(
         sim_camera_message.time, *feature_track_message);
     }
-  }
-  for (auto fiducial_track_message : sim_camera_message.fiducial_track_messages) {
-    m_fiducials[fiducial_track_message->tracker_id]->Callback(
-      sim_camera_message.time, *fiducial_track_message);
   }
 }
 

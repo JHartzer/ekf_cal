@@ -64,20 +64,20 @@ void Camera::Callback(const CameraMessage & camera_message)
       m_ekf->PredictModel(local_time);
 
       unsigned int frameID = GenerateFrameID();
-
-      m_ekf->AugmentStateIfNeeded(m_id, frameID);
       cv::cvtColor(camera_message.image, m_out_img, cv::COLOR_GRAY2RGB);
-
-      if (!m_trackers.empty()) {
-        for (auto const & track_iter : m_trackers) {
-          m_trackers[track_iter.first]->Track(
-            camera_message.time, frameID, camera_message.image, m_out_img);
-        }
-      }
 
       if (!m_fiducials.empty()) {
         for (auto const & fiducial_iter : m_fiducials) {
           m_fiducials[fiducial_iter.first]->Track(
+            camera_message.time, frameID, camera_message.image, m_out_img);
+        }
+      }
+
+      m_ekf->AugmentStateIfNeeded(m_id, frameID);
+
+      if (!m_trackers.empty()) {
+        for (auto const & track_iter : m_trackers) {
+          m_trackers[track_iter.first]->Track(
             camera_message.time, frameID, camera_message.image, m_out_img);
         }
       }
