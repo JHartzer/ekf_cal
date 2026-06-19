@@ -292,19 +292,53 @@ TEST(test_EKF, AttemptGpsInitialization) {
   Eigen::Vector3d ref_lla(37.7749, -122.4194, 0.0);
 
   ekf->m_state.body_state.pos_b_in_l = Eigen::Vector3d(0, 0, 0);
-  ekf->AttemptGpsInitialization(0.0, enu_to_lla(Eigen::Vector3d(0, 0, 0), ref_lla));
+  ekf->AttemptGpsInitialization(
+    0.0, enu_to_lla(Eigen::Vector3d(0, 0, 0), ref_lla), ekf->m_state.body_state.pos_b_in_l);
 
   ekf->m_state.body_state.pos_b_in_l = Eigen::Vector3d(10, 0, 0);
-  ekf->AttemptGpsInitialization(1.0, enu_to_lla(Eigen::Vector3d(10, 0, 0), ref_lla));
+  ekf->AttemptGpsInitialization(
+    1.0, enu_to_lla(Eigen::Vector3d(10, 0, 0), ref_lla), ekf->m_state.body_state.pos_b_in_l);
 
   ekf->m_state.body_state.pos_b_in_l = Eigen::Vector3d(20, 0, 0);
-  ekf->AttemptGpsInitialization(2.0, enu_to_lla(Eigen::Vector3d(20, 0, 0), ref_lla));
+  ekf->AttemptGpsInitialization(
+    2.0, enu_to_lla(Eigen::Vector3d(20, 0, 0), ref_lla), ekf->m_state.body_state.pos_b_in_l);
 
   ekf->m_state.body_state.pos_b_in_l = Eigen::Vector3d(30, 0, 0);
-  ekf->AttemptGpsInitialization(3.0, enu_to_lla(Eigen::Vector3d(30, 0, 0), ref_lla));
+  ekf->AttemptGpsInitialization(
+    3.0, enu_to_lla(Eigen::Vector3d(30, 0, 0), ref_lla), ekf->m_state.body_state.pos_b_in_l);
 
   EXPECT_TRUE(ekf->IsLlaInitialized());
   EXPECT_EQ(ekf->GetGpsTimeVector().size(), 4);
   EXPECT_EQ(ekf->GetGpsEcefVector().size(), 4);
   EXPECT_EQ(ekf->GetGpsXyzVector().size(), 4);
+}
+
+TEST(test_EKF, AttemptGpsInitializationSignedHeading) {
+  EKF::Parameters ekf_params;
+  ekf_params.debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  ekf_params.gps_init_type = GpsInitType::BASELINE_DIST;
+  ekf_params.gps_init_baseline_dist = 1.0;
+  auto ekf = std::make_shared<EKF>(ekf_params);
+
+  const Eigen::Vector3d ref_lla(37.7749, -122.4194, 15.0);
+  const double heading = -0.25;
+  const std::vector<Eigen::Vector3d> local_positions{
+    {0.0, 0.0, 0.0},
+    {1.0, 0.0, 0.0},
+    {2.0, 0.5, 0.0},
+    {3.0, 1.0, 0.0},
+  };
+
+  for (unsigned int i = 0; i < local_positions.size(); ++i) {
+    ekf->m_state.body_state.pos_b_in_l = local_positions[i];
+    const Eigen::Vector3d gps_enu = local_to_enu(local_positions[i], heading);
+    ekf->AttemptGpsInitialization(
+      static_cast<double>(i),
+      enu_to_lla(gps_enu, ref_lla),
+      ekf->m_state.body_state.pos_b_in_l);
+  }
+
+  EXPECT_TRUE(ekf->IsLlaInitialized());
+  EXPECT_NEAR(ekf->GetReferenceAngle(), heading, 1e-3);
+  EXPECT_TRUE(EXPECT_EIGEN_NEAR(ekf->GetReferenceLLA(), ref_lla, 1e-3));
 }

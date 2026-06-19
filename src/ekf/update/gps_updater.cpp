@@ -107,7 +107,7 @@ void GpsUpdater::UpdateEKF(
   double ang_l_to_e = ekf.GetReferenceAngle();
   if (!ekf.IsLlaInitialized()) {
     m_logger->Log(LogLevel::INFO, "GPS Updater Attempt Initialization");
-    ekf.AttemptGpsInitialization(local_time, gps_lla);
+    ekf.AttemptGpsInitialization(local_time, gps_lla, PredictMeasurement(ekf));
     if (ekf.IsLlaInitialized()) {
       // Perform single update with compressed measurements
       MultiUpdateEKF(ekf);

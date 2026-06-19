@@ -237,6 +237,14 @@ TEST(test_MathHelper, kabsch_2d) {
   EXPECT_NEAR(affine_angle(transform), M_PI / 3.0, 1e-3);
 }
 
+TEST(test_MathHelper, affine_angle_signed) {
+  Eigen::Affine3d transform = Eigen::Affine3d::Identity();
+  transform.linear() =
+    Eigen::AngleAxisd(-M_PI / 4.0, Eigen::Vector3d::UnitZ()).toRotationMatrix();
+
+  EXPECT_NEAR(affine_angle(transform), -M_PI / 4.0, 1e-6);
+}
+
 TEST(test_MathHelper, maximum_distance) {
   std::vector<Eigen::Vector3d> eigen_points;
   eigen_points.push_back(Eigen::Vector3d{0, 0, 0});

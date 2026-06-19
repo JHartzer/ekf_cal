@@ -298,10 +298,12 @@ public:
   /// @brief GPS LLA to ENU Initialization Routine
   /// @param time GPS measured time
   /// @param gps_lla GPS measured lat-lon-alt
+  /// @param pos_a_in_l Estimated antenna position in local frame
   ///
   void AttemptGpsInitialization(
     double time,
-    const Eigen::Vector3d & gps_lla);
+    const Eigen::Vector3d & gps_lla,
+    const Eigen::Vector3d & pos_a_in_l);
 
   ///
   /// @brief GPS time vector getter

@@ -123,10 +123,10 @@ void ImuUpdater::UpdateEKF(
     KalmanUpdate(ekf, jacobian, resid, meas_noise);
   }
 
-  ekf.PredictModel(local_time);
-
   auto t_end = std::chrono::high_resolution_clock::now();
   auto t_execution = std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_start);
+
+  ekf.PredictModel(local_time);
 
   // Write outputs
   std::stringstream msg;
