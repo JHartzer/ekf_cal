@@ -80,4 +80,15 @@ where
 - \f$h\f$           is the true altitude, and
 - \f$n_\phi\f$, \f$n_\lambda\f$, and \f$n_h\f$ are Gaussian, white noise processes
 
-<!-- ## TODO: Reference:  -->
+```bibtex
+@article{2025_Hartzer_SRMSCKF
+  title = {Square Root Multi-State Constraint Kalman Filter-Based Calibration and Localization of Multi-Sensor Systems},
+  author = {Hartzer, Jacob},
+  journal = {Texas A\&M OAKTrust},
+  publisher = {The Open Journal},
+  url = {https://hdl.handle.net/1969.1/1595610},
+  year = {2025},
+  month = {05},
+  pages = {103},
+}
+```
