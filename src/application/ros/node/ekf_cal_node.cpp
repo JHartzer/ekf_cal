@@ -270,8 +270,8 @@ IMU::Parameters EkfCalNode::GetImuParameters(const std::string & imu_name)
 
 void EkfCalNode::DeclareIntrinsicParameters(const std::string & intrinsics_prefix)
 {
-  declare_parameter(intrinsics_prefix + ".f_x", 0.01);
-  declare_parameter(intrinsics_prefix + ".f_y", 0.01);
+  declare_parameter(intrinsics_prefix + ".f_x", 2.5e-3);
+  declare_parameter(intrinsics_prefix + ".f_y", 2.5e-3);
   declare_parameter(intrinsics_prefix + ".k_1", 0.0);
   declare_parameter(intrinsics_prefix + ".k_2", 0.0);
   declare_parameter(intrinsics_prefix + ".p_1", 0.0);

@@ -12,6 +12,9 @@
         "editor.wordWrap": "wordWrapColumn",
         "editor.wordWrapColumn": 99
     },
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.autopep8",
+    },
     "[yaml]": {
         "diffEditor.ignoreTrimWhitespace": false,
         "editor.autoIndent": "keep",

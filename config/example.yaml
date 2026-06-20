@@ -137,15 +137,15 @@
                 ang_stability: 1.0e-9               # Orientation stability
                 data_log_rate: 10.0                 # Data logging rate
                 intrinsics:
-                    f_x: 0.01                       # X focal length [m]
-                    f_y: 0.01                       # Y focal length [m]
+                    f_x: 2.5e-3                     # X focal length [m]
+                    f_y: 2.5e-3                     # Y focal length [m]
                     k_1: 0.0                        # Radial coefficient 1
                     k_2: 0.0                        # Radial coefficient 2
                     p_1: 0.0                        # Tangential coefficient 1
                     p_2: 0.0                        # Tangential coefficient 1
-                    pixel_size: 5.0e-6              # Pixel size
-                    width: 1920.0                   # Image width
-                    height: 1080.0                  # Image height
+                    pixel_size: 5.0e-6              # Pixel size [m]
+                    width: 640.0                    # Image width [px]
+                    height: 480.0                   # Image height [px]
                 is_extrinsic: false                 # Flag to calibrate camera extrinsics
                 sim_params:
                     no_errors: false                # Flag to disable errors in simulation

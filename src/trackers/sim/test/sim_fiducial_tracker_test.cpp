@@ -112,8 +112,9 @@ TEST(test_fiducial_tracker, generate_message_matches_truth_geometry) {
     ang_c_to_b_true.inverse() * ang_b_to_l.inverse() * fiducial_params.ang_f_to_l;
 
   EXPECT_TRUE(EXPECT_EIGEN_NEAR(msg->board_detection.pos_f_in_c, expected_pos, 1e-12));
-  EXPECT_TRUE(EXPECT_EIGEN_NEAR(
-    QuatToRotVec(msg->board_detection.ang_f_to_c * expected_ang.conjugate()),
-    Eigen::Vector3d::Zero(),
-    1e-12));
+  EXPECT_TRUE(
+    EXPECT_EIGEN_NEAR(
+      QuatToRotVec(msg->board_detection.ang_f_to_c * expected_ang.conjugate()),
+      Eigen::Vector3d::Zero(),
+      1e-12));
 }

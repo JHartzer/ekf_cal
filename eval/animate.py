@@ -107,7 +107,6 @@ def generate_animation(config_sets, args):
         ani.save(os.path.join(plot_dir, f'{file_name}.gif'), writer='imagemagick')
 
 
-# TODO(jhartzer): Write tests
 if __name__ == '__main__':
     parser = InputParser()
     args = parser.parse_args()

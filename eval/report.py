@@ -42,13 +42,14 @@ from tab_fiducial import tab_fiducial
 from tab_gps import tab_gps
 from tab_imu import tab_imu
 from tab_msckf import tab_msckf
-from utilities import find_and_read_data_frames, generate_mc_lists
+from utilities import find_and_read_data_frames, generate_mc_lists, parse_yaml
 
 
 # TODO(jhartzer): Split for loop into thread pool
 def plot_sim_results(config_sets, args):
     """Top level function to plot simulation results from sets of config files."""
     for config_set in config_sets:
+        config_data = parse_yaml(config_set[0])
         data_dirs = [config.split('.yaml')[0] for config in config_set]
         if len(config_set) > 1:
             plot_dir = os.path.dirname(os.path.dirname(config_set[0]))
@@ -113,7 +114,12 @@ def plot_sim_results(config_sets, args):
                 'imu_gyr_bias_err': imu_gyr_bias_err_dfs_dict.get(key, []),
                 'imu_nees': imu_nees_dfs_dict.get(key, []),
             }
-            tabs.append(tab_imu(imu_dfs, body_truth_dfs, args, err_dfs=imu_err_dfs).get_tab())
+            tabs.append(tab_imu(
+                imu_dfs,
+                body_truth_dfs,
+                args,
+                err_dfs=imu_err_dfs,
+                rate=config_data['imu_rates'].get(key)).get_tab())
 
         # Load MSCKF errors & NEES
         cam_pos_err_dfs_dict = find_and_read_data_frames(data_dirs, 'cam_pos_err')
@@ -138,7 +144,8 @@ def plot_sim_results(config_sets, args):
             }
             tabs.append(tab_msckf(
                 mskcf_dfs, tri_dfs, feat_dfs, body_truth_dfs, args,
-                err_dfs=cam_err_dfs).get_tab())
+                err_dfs=cam_err_dfs,
+                rate=config_data['camera_rates'].get(key)).get_tab())
 
         # Load Fiducial errors & NEES
         fiducial_pos_err_dfs_dict = find_and_read_data_frames(data_dirs, 'fiducial_pos_err')
@@ -160,7 +167,8 @@ def plot_sim_results(config_sets, args):
             }
             tabs.append(tab_fiducial(
                 fiducial_dfs, board_dfs, body_truth_dfs, args,
-                err_dfs=fiducial_err_dfs).get_tab())
+                err_dfs=fiducial_err_dfs,
+                rate=config_data['camera_rates'].get(key)).get_tab())
 
         # Load GPS errors & NEES
         gps_pos_err_dfs_dict = find_and_read_data_frames(data_dirs, 'gps_pos_err')
@@ -174,7 +182,12 @@ def plot_sim_results(config_sets, args):
                 'gps_pos_err': gps_pos_err_dfs_dict.get(key, []),
                 'gps_nees': gps_nees_dfs_dict.get(key, []),
             }
-            tabs.append(tab_gps(gps_dfs, body_truth_dfs, args, err_dfs=gps_err_dfs).get_tab())
+            tabs.append(tab_gps(
+                gps_dfs,
+                body_truth_dfs,
+                args,
+                err_dfs=gps_err_dfs,
+                rate=config_data['gps_rates'].get(key)).get_tab())
 
         # Hide legends on click
         for tab in tabs:
@@ -239,7 +252,6 @@ def plot_sim_results(config_sets, args):
             )
 
 
-# TODO(jhartzer): Write tests
 # TODO(jhartzer): Add option for saving with no title (for papers)
 if __name__ == '__main__':
     parser = InputParser()

@@ -262,7 +262,7 @@ TEST(test_EKF, AugmentStateIfNeededAndPrune) {
 
   // 3rd augmentation at t=2.0 (triggers pruning condition line 530 and removes first state)
   ekf->PredictModel(2.0);
-  EXPECT_EQ(ekf->GetAugStateSize(), 12); // should remain 12 because 1 was added and 1 was pruned
+  EXPECT_EQ(ekf->GetAugStateSize(), 12);  // should remain 12 because 1 was added and 1 was pruned
 }
 
 TEST(test_EKF, GetAugStateBranch) {

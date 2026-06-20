@@ -52,6 +52,7 @@ find_package(aprilgrid REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(HDF5 REQUIRED COMPONENTS C CXX)
 find_package(Eigen3 REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 if(BUILD_WITH_ROS)
     set(ROS_PKGS
@@ -292,6 +293,22 @@ if(BUILD_TESTING)
             add_test(NAME ${nam} COMMAND ${nam})
         endforeach()
     endif()
+
+    add_test(
+        NAME utilities_test_py
+        COMMAND ${Python3_EXECUTABLE} -m pytest -q ${CMAKE_SOURCE_DIR}/eval/tests/utilities_test.py
+    )
+    set_tests_properties(utilities_test_py PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+
+    add_test(
+        NAME stats_test_py
+        COMMAND ${Python3_EXECUTABLE} -m pytest -q ${CMAKE_SOURCE_DIR}/eval/tests/stats_test.py
+    )
+    set_tests_properties(stats_test_py PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
 endif()
 
 if(BUILD_WITH_ROS)

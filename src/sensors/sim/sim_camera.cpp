@@ -15,9 +15,10 @@
 
 #include "sensors/sim/sim_camera.hpp"
 
-#include <algorithm>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+
+#include <algorithm>
 
 #include <cmath>
 #include <map>

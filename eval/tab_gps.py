@@ -26,7 +26,7 @@ from utilities import calculate_alpha, get_colors, plot_update_timing
 class tab_gps:
     """Class for plotting GPS data."""
 
-    def __init__(self, gps_dfs, body_truth_dfs, args, err_dfs=None):
+    def __init__(self, gps_dfs, body_truth_dfs, args, err_dfs=None, rate=None):
         """Initialize the tab_gps class for plotting GPS information."""
         self.gps_dfs = gps_dfs
         self.body_truth_dfs = body_truth_dfs
@@ -34,6 +34,7 @@ class tab_gps:
         self.alpha = calculate_alpha(len(self.gps_dfs))
         self.colors = get_colors(args)
         self.err_dfs = err_dfs if err_dfs is not None else {}
+        self.rate = rate
 
     def plot_gps_measurements(self):
         """Plot camera GPS measurements."""
@@ -141,7 +142,7 @@ class tab_gps:
         if self.is_extrinsic:
             layout_plots.append([self.plot_ant_pos_error(), self.plot_gps_cov()])
 
-        layout_plots.append([plot_update_timing(self.gps_dfs), Spacer()])
+        layout_plots.append([plot_update_timing(self.gps_dfs, self.rate), Spacer()])
 
         if self.is_extrinsic:
             layout_plots.append([self.plot_gps_nees(), Spacer()])

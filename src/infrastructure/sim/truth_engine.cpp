@@ -34,9 +34,7 @@
 
 TruthEngine::TruthEngine(double max_time, std::shared_ptr<DebugLogger> logger)
 : m_max_time(max_time), m_logger(logger)
-{
-  GenerateGridFeatures();
-}
+{}
 
 Eigen::Vector3d TruthEngine::GetImuPosition(unsigned int sensor_id)
 {
@@ -91,7 +89,6 @@ void TruthEngine::SetRoomSize(int room_size)
   m_room_size = static_cast<double>(room_size);
   m_feature_points.clear();
   m_feature_points_map.clear();
-  GenerateGridFeatures();
 }
 
 void TruthEngine::SetImuAngularPosition(
@@ -160,34 +157,6 @@ void TruthEngine::SetBoardOrientation(
 Eigen::Quaterniond TruthEngine::GetBoardOrientation(unsigned int board_id)
 {
   return m_board_ang[board_id];
-}
-
-/// @todo Eventually remove this function as it's unecessary
-void TruthEngine::GenerateGridFeatures()
-{
-  double room_half_width = m_room_size / 2.0;
-  double room_half_height = m_room_size / 4.0;
-  for (int i = 0; i < m_grid_size; ++i) {
-    for (int j = 0; j < m_grid_size; ++j) {
-      double grid_size_double = static_cast<double>(m_grid_size);
-      double grid_xy =
-        (static_cast<double>(i) / grid_size_double * m_room_size) - room_half_width;
-      double grid_z =
-        (static_cast<double>(j) / grid_size_double * (2.0 * room_half_height)) - room_half_height;
-      double grid_y =
-        (static_cast<double>(j) / grid_size_double * m_room_size) - room_half_width;
-      m_feature_points.emplace_back(room_half_width, grid_xy, grid_z);
-      m_feature_points.emplace_back(-room_half_width, grid_xy, grid_z);
-      m_feature_points.emplace_back(grid_xy, room_half_width, grid_z);
-      m_feature_points.emplace_back(grid_xy, -room_half_width, grid_z);
-      m_feature_points.emplace_back(grid_xy, grid_y, room_half_height);
-      m_feature_points.emplace_back(grid_xy, grid_y, -room_half_height);
-    }
-  }
-
-  for (unsigned int i = 0; i < m_feature_points.size(); ++i) {
-    m_feature_points_map[i] = m_feature_points[i];
-  }
 }
 
 std::vector<cv::Point3d> TruthEngine::GenerateVisibleFeatures(

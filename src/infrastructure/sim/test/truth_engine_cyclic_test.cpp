@@ -89,6 +89,7 @@ TEST(test_TruthEngine, InheritedFunctions) {
   EXPECT_TRUE(EXPECT_EIGEN_NEAR(board_ang, board_ang_out, 1e-6));
 
   std::vector<cv::Point3d> features = truth_engine_cyclic.GetFeatures();
+  EXPECT_TRUE(features.empty());
 }
 
 TEST(test_TruthEngineCyclic, Constructor) {
@@ -183,6 +184,7 @@ TEST(test_TruthEngineCyclic, WriteTruthData) {
   truth_engine_cyclic.SetGpsPosition(4, gps_pos);
 
   std::vector<cv::Point3d> features = truth_engine_cyclic.GetFeatures();
+  EXPECT_TRUE(features.empty());
 
   truth_engine_cyclic.WriteTruthData(10.0, "");
 }
@@ -253,14 +255,16 @@ TEST(test_TruthEngine, GenerateVisibleFeaturesAndGetFeature) {
   truth_engine_cyclic.SetCameraPosition(camera_id, Eigen::Vector3d(0.1, 0.2, 0.3));
   truth_engine_cyclic.SetCameraAngularPosition(camera_id, Eigen::Quaterniond::Identity());
 
+  EXPECT_TRUE(truth_engine_cyclic.GetFeatures().empty());
+
   std::vector<cv::Point3d> new_features = truth_engine_cyclic.GenerateVisibleFeatures(
     0.5,
     camera_id, 5);
-  EXPECT_EQ(new_features.size(), 1350 + 5);
-  EXPECT_EQ(truth_engine_cyclic.GetFeatures().size(), 1350 + 5);
+  EXPECT_EQ(new_features.size(), 5);
+  EXPECT_EQ(truth_engine_cyclic.GetFeatures().size(), 5);
 
-  cv::Point3d feat_last = truth_engine_cyclic.GetFeature(1350);
-  EXPECT_EQ(feat_last.x, new_features[1350].x);
-  EXPECT_EQ(feat_last.y, new_features[1350].y);
-  EXPECT_EQ(feat_last.z, new_features[1350].z);
+  cv::Point3d feat_last = truth_engine_cyclic.GetFeature(0);
+  EXPECT_EQ(feat_last.x, new_features[0].x);
+  EXPECT_EQ(feat_last.y, new_features[0].y);
+  EXPECT_EQ(feat_last.z, new_features[0].z);
 }

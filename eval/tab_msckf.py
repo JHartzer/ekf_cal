@@ -28,7 +28,8 @@ from utilities import calculate_alpha, get_colors, plot_update_timing
 class tab_msckf:
     """Class for plotting camera MSCKF data."""
 
-    def __init__(self, msckf_dfs, tri_dfs, feat_dfs, body_truth_dfs, args, err_dfs=None):
+    def __init__(self, msckf_dfs, tri_dfs, feat_dfs, body_truth_dfs, args, err_dfs=None,
+                 rate=None):
         """Initialize the tab_msckf class for plotting camera MSCKF information."""
         self.msckf_dfs = msckf_dfs
         self.tri_dfs = tri_dfs
@@ -38,6 +39,7 @@ class tab_msckf:
         self.alpha = calculate_alpha(len(self.msckf_dfs))
         self.colors = get_colors(args)
         self.err_dfs = err_dfs if err_dfs is not None else {}
+        self.rate = rate
 
     def plot_cam_pos(self):
         """Plot camera position offsets."""
@@ -287,7 +289,7 @@ class tab_msckf:
             layout_plots.append([self.plot_cam_pos_err(), self.plot_cam_ang_err()])
             layout_plots.append([self.plot_cam_pos_cov(), self.plot_cam_ang_cov()])
 
-        layout_plots.append([plot_update_timing(self.msckf_dfs), Spacer()])
+        layout_plots.append([plot_update_timing(self.msckf_dfs, self.rate), Spacer()])
 
         if self.is_extrinsic:
             layout_plots.append([self.plot_cam_nees(), Spacer()])

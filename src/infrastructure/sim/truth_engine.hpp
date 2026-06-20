@@ -251,11 +251,6 @@ public:
   void WriteTruthData(double data_log_rate, const std::string & log_directory);
 
   ///
-  /// @brief Feature generation function
-  ///
-  void GenerateGridFeatures();
-
-  ///
   /// @brief Generate new features that are visible
   /// @param time Current time
   /// @param camera_id Camera ID
@@ -300,7 +295,6 @@ private:
   Eigen::Vector3d m_lla_reference{0, 0, 0};
   double m_heading;
   double m_room_size{4};
-  int m_grid_size{15};
 };
 
 #endif  // INFRASTRUCTURE__SIM__TRUTH_ENGINE_HPP_

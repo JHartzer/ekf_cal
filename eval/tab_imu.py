@@ -25,7 +25,7 @@ from utilities import calculate_alpha, get_colors, plot_update_timing
 class tab_imu:
     """Class for plotting IMU data."""
 
-    def __init__(self, imu_dfs, body_truth_dfs, args, err_dfs=None):
+    def __init__(self, imu_dfs, body_truth_dfs, args, err_dfs=None, rate=None):
         """Initialize the tab_imu class for plotting IMU information."""
         self.imu_dfs = imu_dfs
         self.body_truth_dfs = body_truth_dfs
@@ -34,6 +34,7 @@ class tab_imu:
         self.alpha = calculate_alpha(len(self.imu_dfs))
         self.colors = get_colors(args)
         self.err_dfs = err_dfs if err_dfs is not None else {}
+        self.rate = rate
 
     def plot_acc_measurements(self):
         """Plot acceleration measurements."""
@@ -316,7 +317,7 @@ class tab_imu:
             layout_plots.append([self.plot_imu_int_pos_cov(), self.plot_imu_int_ang_cov()])
             layout_plots.append([self.plot_acc_bias_err(), self.plot_omg_bias_err()])
 
-        layout_plots.append([plot_update_timing(self.imu_dfs), self.plot_stationary()])
+        layout_plots.append([plot_update_timing(self.imu_dfs, self.rate), self.plot_stationary()])
 
         if self.is_extrinsic or self.is_intrinsic:
             layout_plots.append([self.plot_imu_nees(), Spacer()])
