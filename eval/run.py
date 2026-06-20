@@ -29,6 +29,7 @@ python3 eval/run_sim.py --help
 ```
 """
 
+import copy
 import math
 import multiprocessing
 import os
@@ -36,7 +37,6 @@ import random
 import subprocess
 import tempfile
 import traceback
-import copy
 
 from input_parser import InputParser
 import yaml

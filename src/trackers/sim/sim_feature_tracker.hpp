@@ -43,7 +43,7 @@ public:
   typedef struct Parameters
   {
     unsigned int feature_count{0};              ///< @brief Total feature count
-    double detection_rate{0.90};                ///< @brief Probability a visible feature is detected
+    double detection_rate{0.90};                ///< @brief Probability a feature is detected
     bool no_errors {false};                     ///< @brief Perfect measurements flag
     FeatureTracker::Parameters tracker_params;  ///< @brief Tracker parameters
   } Parameters;

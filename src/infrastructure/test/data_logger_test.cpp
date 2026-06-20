@@ -102,7 +102,7 @@ TEST(data_logger, coverage_extra) {
   {
     DataLogger data_logger("/temp/", "empty_cols");
     data_logger.EnableLogging();
-    data_logger.Log(std::vector<double>{}); // size is 0
+    data_logger.Log(std::vector<double>{});  // size is 0
   }
 
   // 3. Line 125: exception in InitializeHdf5
@@ -115,7 +115,7 @@ TEST(data_logger, coverage_extra) {
     DataLogger logger2("/temp/", "dup_dataset");
     logger2.DefineHeader("col1");
     logger2.EnableLogging();
-    logger2.Log(std::vector<double>{1.0}); // will fail and set m_logging_on = false
+    logger2.Log(std::vector<double>{1.0});  // will fail and set m_logging_on = false
   }
 
   // 4. Line 136: m_log_header.empty()
@@ -138,6 +138,6 @@ TEST(data_logger, coverage_extra) {
     if (file) {
       file->close();
     }
-    data_logger.Log(std::vector<double>{2.0}); // throws and sets m_logging_on = false
+    data_logger.Log(std::vector<double>{2.0});  // throws and sets m_logging_on = false
   }
 }
