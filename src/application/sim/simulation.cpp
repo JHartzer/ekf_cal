@@ -202,7 +202,6 @@ int main(int argc, char * argv[])
   auto ekf = std::make_shared<EKF>(ekf_params);
 
   // Simulation parameters
-  /// @todo: Add overriding no_errors option
   YAML::Node sim_params = ros_params["sim_params"];
   unsigned int rng_seed = sim_params["seed"].as<unsigned int>(1);
   unsigned int run_number = sim_params["run_number"].as<unsigned int>(0);
@@ -446,8 +445,8 @@ int main(int argc, char * argv[])
     cam_params.ang_stability = cam_node["ang_stability"].as<double>(1.0e-9);
     cam_params.tracker = cam_node["tracker"].as<std::string>("");
     cam_params.fiducial = cam_node["fiducial"].as<std::string>("");
-    cam_params.intrinsics.f_x = cam_node["intrinsics"]["f_x"].as<double>(0.01);
-    cam_params.intrinsics.f_y = cam_node["intrinsics"]["f_y"].as<double>(0.01);
+    cam_params.intrinsics.f_x = cam_node["intrinsics"]["f_x"].as<double>(2.5e-3);
+    cam_params.intrinsics.f_y = cam_node["intrinsics"]["f_y"].as<double>(2.5e-3);
     cam_params.intrinsics.k_1 = cam_node["intrinsics"]["k_1"].as<double>(0.0);
     cam_params.intrinsics.k_2 = cam_node["intrinsics"]["k_2"].as<double>(0.0);
     cam_params.intrinsics.p_1 = cam_node["intrinsics"]["p_1"].as<double>(0.0);
