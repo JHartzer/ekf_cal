@@ -1005,7 +1005,6 @@ def calc_sim_stats(config_sets, args):
         write_summary(stat_dir, stats)
 
 
-# TODO(jhartzer): Write tests
 # TODO(jhartzer): Compress functions into vector and quaternion errors
 if __name__ == '__main__':
     parser = InputParser()

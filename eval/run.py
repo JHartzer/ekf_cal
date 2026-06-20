@@ -227,7 +227,6 @@ def add_jobs(args):
     pool.join()
 
 
-# TODO(jhartzer): Write tests
 if __name__ == '__main__':
     parser = InputParser()
     args = parser.parse_args()

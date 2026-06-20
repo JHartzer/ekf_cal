@@ -35,7 +35,6 @@ from run import add_jobs
 from stats import calc_sim_stats
 from utilities import generate_mc_lists
 
-# TODO(jhartzer): Write tests
 if __name__ == '__main__':
     parser = InputParser()
     args = parser.parse_args()
