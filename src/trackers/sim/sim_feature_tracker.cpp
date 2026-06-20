@@ -77,18 +77,23 @@ std::vector<cv::KeyPoint> SimFeatureTracker::GetVisibleKeypoints(double time) co
 
   // Project points
   std::vector<cv::Point2d> projected_points;
-
   std::vector<cv::Point3d> feature_points = m_truth->GetFeatures();
-  cv::projectPoints(feature_points, r_vec, t_vec, camera_matrix, distortion, projected_points);
-  std::vector<cv::KeyPoint> projected_features =
-    FilterInvisiblePoints(feature_points, projected_points, rot_c_to_l, pos_c_in_l, intrinsics);
+  std::vector<cv::KeyPoint> projected_features;
+
+  if (!feature_points.empty()) {
+    cv::projectPoints(feature_points, r_vec, t_vec, camera_matrix, distortion, projected_points);
+    projected_features =
+      FilterInvisiblePoints(feature_points, projected_points, rot_c_to_l, pos_c_in_l, intrinsics);
+  }
 
   if (m_feature_count > projected_features.size()) {
     auto new_feature_count = m_feature_count - static_cast<unsigned int>(projected_features.size());
     feature_points = m_truth->GenerateVisibleFeatures(time, m_camera_id, new_feature_count);
-    cv::projectPoints(feature_points, r_vec, t_vec, camera_matrix, distortion, projected_points);
-    projected_features =
-      FilterInvisiblePoints(feature_points, projected_points, rot_c_to_l, pos_c_in_l, intrinsics);
+    if (!feature_points.empty()) {
+      cv::projectPoints(feature_points, r_vec, t_vec, camera_matrix, distortion, projected_points);
+      projected_features = FilterInvisiblePoints(
+        feature_points, projected_points, rot_c_to_l, pos_c_in_l, intrinsics);
+    }
   }
 
   return projected_features;

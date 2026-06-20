@@ -90,6 +90,8 @@ TEST(test_SimCamera, feature_track) {
   feature_params.camera_id = sim_camera.GetId();
   SimFeatureTracker::Parameters sim_feature_params;
   sim_feature_params.tracker_params = feature_params;
+  sim_feature_params.feature_count = 100;
+  sim_feature_params.no_errors = true;
   auto feature_tracker = std::make_shared<SimFeatureTracker>(sim_feature_params, truth_engine);
   sim_camera.AddTracker(feature_tracker);
 
@@ -159,6 +161,7 @@ TEST(test_SimCamera, feature_detection_rate) {
 
   SimFeatureTracker::Parameters perfect_params;
   perfect_params.tracker_params = feature_params;
+  perfect_params.feature_count = 100;
   perfect_params.detection_rate = 1.0;
   auto perfect_tracker = std::make_shared<SimFeatureTracker>(perfect_params, truth_engine);
 
@@ -168,6 +171,7 @@ TEST(test_SimCamera, feature_detection_rate) {
 
   SimFeatureTracker::Parameters dropped_params;
   dropped_params.tracker_params = feature_params;
+  dropped_params.feature_count = 100;
   dropped_params.detection_rate = 0.0;
   auto dropped_tracker = std::make_shared<SimFeatureTracker>(dropped_params, truth_engine);
 
