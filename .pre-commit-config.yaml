@@ -1,0 +1,18 @@
+default_install_hook_types: [pre-commit]
+fail_fast: false
+
+repos:
+  - repo: local
+    hooks:
+      - id: autopep8
+        name: autopep8
+        entry: python3 -m autopep8 --in-place
+        language: system
+        types: [python]
+
+      - id: uncrustify
+        name: uncrustify
+        entry: tools/run_uncrustify.sh
+        language: system
+        files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx)$
+

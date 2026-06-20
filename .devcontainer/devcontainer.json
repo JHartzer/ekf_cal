@@ -4,11 +4,14 @@
         "vscode": {
             "extensions": [
                 "fabiospampinato.vscode-todo-plus",
+                "llvm-vs-code-extensions.vscode-clangd",
                 "mhutchie.git-graph",
+                "ms-python.autopep8",
+                "ms-python.debugpy",
                 "ms-python.flake8",
                 "ms-python.python",
-                "ms-vscode.cpptools-extension-pack",
-                "ms-vscode.cpptools",
+                "ms-python.vscode-python-envs",
+                "ms-vscode.cmake-tools",
                 "streetsidesoftware.code-spell-checker",
                 "twxs.cmake",
                 "zachflower.uncrustify"
@@ -20,6 +23,7 @@
     },
     "workspaceMount": "src=${localWorkspaceFolder},dst=/ekf_cal_ws/src/ekf_cal,type=bind,consistency=cached",
     "workspaceFolder": "/ekf_cal_ws/src/ekf_cal",
+    "postCreateCommand": "python3 -m pip install -r requirements.txt && pre-commit install",
     // Args necessary for perf permissions
     "runArgs": [
         "--cap-add=SYS_ADMIN",

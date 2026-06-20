@@ -35,6 +35,7 @@ The following dependencies are for building the ROS node and simulation, respect
 The following soft dependencies useful for development and documentation
 - [Doxygen](https://www.doxygen.nl/index.html)
 - [Google Test](https://google.github.io/googletest/)
+- [pre-commit](https://pre-commit.com/)
 
 These can be installed by running [rosdep](https://wiki.ros.org/rosdep) in the base directory of the colcon workspace (e.g. `ekf_cal_ws`)
 ```bash
@@ -43,6 +44,7 @@ rosdep install --from-paths src -y --ignore-src
 or manually via apt
 ```bash
 sudo apt-get install \
+  autopep8 \
   cloc \
   cmake \
   doxygen \
@@ -51,6 +53,8 @@ sudo apt-get install \
   libgtest-dev \
   libopencv-dev libopencv-contrib-dev \
   libyaml-cpp-dev \
+  pre-commit \
+  uncrustify \
   -y
 ```
 
@@ -113,6 +117,17 @@ Once the package has been built, unit tests and static analysis can be run with 
 ```bash
 colcon test --packages-select ekf_cal --event-handlers console_direct+
 ```
+
+Install the local formatting and test hooks with:
+```bash
+python3 -m pip install -r requirements.txt
+pre-commit install
+```
+
+The configured pre-commit hooks will:
+- run `autopep8` on staged Python files
+- run `uncrustify` on staged C and C++ files using `uncrustify.cfg`
+- configure, build, and run all CTest unit tests in `.precommit-build/RelWithDebInfo` using the repo's `RelWithDebInfo` compiler/build settings
 
 A test code coverage report can be generated using the following commands
 ```bash
