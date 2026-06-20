@@ -25,7 +25,8 @@ from utilities import calculate_alpha, get_colors, plot_update_timing
 class tab_fiducial:
     """Class for plotting fiducial data."""
 
-    def __init__(self, fiducial_dfs, board_truth_dfs, body_truth_dfs, args, err_dfs=None):
+    def __init__(self, fiducial_dfs, board_truth_dfs, body_truth_dfs, args, err_dfs=None,
+                 rate=None):
         """Initialize the tab_fiducial class for plotting fiducial information."""
         self.fiducial_dfs = fiducial_dfs
         self.board_truth_dfs = board_truth_dfs
@@ -36,6 +37,7 @@ class tab_fiducial:
 
         self.alpha = calculate_alpha(len(self.fiducial_dfs))
         self.colors = get_colors(args)
+        self.rate = rate
 
     def plot_camera_pos(self):
         """Plot camera position offsets."""
@@ -207,7 +209,7 @@ class tab_fiducial:
             layout_plots.append([self.plot_cam_pos_err(), self.plot_cam_ang_err()])
             layout_plots.append([self.plot_cam_pos_cov(), self.plot_cam_ang_cov()])
 
-        layout_plots.append([plot_update_timing(self.fiducial_dfs), Spacer()])
+        layout_plots.append([plot_update_timing(self.fiducial_dfs, self.rate), Spacer()])
 
         if self.is_fid_extrinsic:
             layout_plots.append([self.plot_fid_nees(), Spacer()])

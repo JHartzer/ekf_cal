@@ -21,6 +21,7 @@ import math
 import os
 import re
 
+from bokeh.models import Range1d, Span
 from bokeh.plotting import figure
 import h5py
 import numpy as np
@@ -135,9 +136,21 @@ def plot_update_timing(data_frames, rate=None):
     hist, edges = np.histogram(durations)
     fig.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], legend_label='Duration [us]')
     if rate:
-        pass
-        # TODO(jhartzer): Add max duration line
-        # axs.axvline(x=1000.0 / rate, color='red', linestyle='--')
+        max_duration_us = 1e6 / rate
+        x_start = float(edges[0])
+        x_end = float(edges[-1])
+        y_end = float(hist.max()) if hist.size else 1.0
+        if y_end <= 0.0:
+            y_end = 1.0
+
+        fig.x_range = Range1d(x_start, x_end)
+        fig.y_range = Range1d(0.0, y_end)
+        fig.add_layout(Span(
+            location=max_duration_us,
+            dimension='height',
+            line_color='red',
+            line_dash='dashed',
+            line_width=2.0))
     return fig
 
 
@@ -162,21 +175,29 @@ def parse_yaml(config):
     config_data = {}
     config_data['imu_rates'] = {}
     config_data['camera_rates'] = {}
+    config_data['gps_rates'] = {}
     with open(config, 'r') as stream:
         try:
             yaml_dict = yaml.safe_load(stream)
-            imu_list = yaml_dict['/EkfCalNode']['ros__parameters']['imu_list']
-            cam_list = yaml_dict['/EkfCalNode']['ros__parameters']['camera_list']
+            params = yaml_dict['/EkfCalNode']['ros__parameters']
+            imu_list = params.get('imu_list', [])
+            cam_list = params.get('camera_list', [])
+            gps_list = params.get('gps_list', [])
             id_counter = 1
             if imu_list:
-                imu_dict = yaml_dict['/EkfCalNode']['ros__parameters']['imu']
+                imu_dict = params.get('imu', {})
                 for imu_name in imu_list:
                     config_data['imu_rates'][id_counter] = imu_dict[imu_name]['rate']
                     id_counter += 1
             if cam_list:
-                cam_dict = yaml_dict['/EkfCalNode']['ros__parameters']['camera']
+                cam_dict = params.get('camera', {})
                 for cam_name in cam_list:
                     config_data['camera_rates'][id_counter] = cam_dict[cam_name]['rate']
+                    id_counter += 1
+            if gps_list:
+                gps_dict = params.get('gps', {})
+                for gps_name in gps_list:
+                    config_data['gps_rates'][id_counter] = gps_dict[gps_name]['rate']
                     id_counter += 1
 
         except yaml.YAMLError as exc:
