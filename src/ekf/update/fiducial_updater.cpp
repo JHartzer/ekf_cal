@@ -49,7 +49,9 @@ FiducialUpdater::FiducialUpdater(
 : Updater(fiducial_id, logger),
   m_is_fid_extrinsic(is_fid_extrinsic),
   m_is_cam_extrinsic(is_cam_extrinsic),
-  m_fiducial_logger(log_file_directory, "fiducial_" + std::to_string(camera_id)),
+  m_fiducial_logger(
+    log_file_directory,
+    "fiducial_" + std::to_string(camera_id) + "_" + std::to_string(fiducial_id)),
   m_camera_id(camera_id)
 {
   std::stringstream header;

@@ -168,7 +168,7 @@ The following is an example of an camera input configuration.
                     0.1, 0.1, 0.1                   # Orientation
                     ]
                 tracker: "orb"                      # Tracker to use
-                fiducial: "charuco"                 # Fiducial to use
+                fiducials: ["charuco"]              # Fiducials to use
                 pos_stability: 1.0e-9               # Position stability
                 ang_stability: 1.0e-9               # Orientation stability
                 data_log_rate: 10.0                 # Data logging rate

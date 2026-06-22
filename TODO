@@ -15,5 +15,4 @@ Simulation:
     - Add IMU bias instability
 
 Test:
-    - Test multiple fiducial detection
     - NEES plotting need to be evaluated

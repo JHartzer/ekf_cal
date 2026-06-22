@@ -80,7 +80,8 @@ TEST_F(EkfCalNode_test, hello_world)
   node.set_parameter(rclcpp::Parameter("camera.cam_2.variance.pos", 0.1));
   node.set_parameter(rclcpp::Parameter("camera.cam_2.variance.ang", 0.1));
   node.set_parameter(rclcpp::Parameter("camera.cam_2.tracker", "tracker_3"));
-  node.set_parameter(rclcpp::Parameter("camera.cam_2.fiducial", "fiducial_5"));
+  node.set_parameter(
+    rclcpp::Parameter("camera.cam_2.fiducials", std::vector<std::string>{"fiducial_5"}));
 
   node.set_parameter(rclcpp::Parameter("tracker.tracker_3.feature_detector", 4));
   node.set_parameter(rclcpp::Parameter("tracker.tracker_3.descriptor_extractor", 0));

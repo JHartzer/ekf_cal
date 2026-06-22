@@ -17,7 +17,9 @@
 
 #include <Eigen/Core>
 
+#include <algorithm>
 #include <functional>
+#include <stdexcept>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -188,6 +190,8 @@ void EkfCalNode::LoadSensorParameters(
 
 void EkfCalNode::LoadSensors()
 {
+  ValidateFiducialIds();
+
   // Load IMU sensor parameters
   for (std::string & imu_name : m_imu_list) {
     LoadImu(imu_name);
@@ -206,6 +210,25 @@ void EkfCalNode::LoadSensors()
   // Create publishers
   m_body_state_pub = create_publisher<std_msgs::msg::Float64MultiArray>("~/BodyState", 10);
   m_imu_state_pub = create_publisher<std_msgs::msg::Float64MultiArray>("~/ImuState", 10);
+}
+
+void EkfCalNode::ValidateFiducialIds()
+{
+  std::map<unsigned int, std::string> fiducial_ids;
+  for (const auto & fiducial_name : m_fiducial_list) {
+    std::string fiducial_prefix = "fiducial." + fiducial_name;
+    unsigned int fiducial_id = static_cast<unsigned int>(
+      get_parameter(fiducial_prefix + ".id").as_int());
+
+    auto insert_result = fiducial_ids.emplace(fiducial_id, fiducial_name);
+    if (!insert_result.second) {
+      std::stringstream err_msg;
+      err_msg << "Duplicate fiducial id " << fiducial_id <<
+        " configured for \"" << fiducial_name <<
+        "\" and \"" << insert_result.first->second << "\".";
+      throw std::runtime_error(err_msg.str());
+    }
+  }
 }
 
 void EkfCalNode::DeclareImuParameters(const std::string & imu_name)
@@ -308,7 +331,7 @@ void EkfCalNode::DeclareCameraParameters(const std::string & camera_name)
   declare_parameter(cam_prefix + ".variance.pos", 0.1);
   declare_parameter(cam_prefix + ".variance.ang", 0.1);
   declare_parameter(cam_prefix + ".tracker", "");
-  declare_parameter(cam_prefix + ".fiducial", "");
+  declare_parameter(cam_prefix + ".fiducials", std::vector<std::string>{});
   declare_parameter(cam_prefix + ".pos_stability", 1e-9);
   declare_parameter(cam_prefix + ".ang_stability", 1e-9);
   declare_parameter(cam_prefix + ".is_extrinsic", false);
@@ -324,7 +347,8 @@ Camera::Parameters EkfCalNode::GetCameraParameters(const std::string & camera_na
   double pos_var = get_parameter(cam_prefix + ".variance.pos").as_double();
   double ang_var = get_parameter(cam_prefix + ".variance.ang").as_double();
   std::string tracker_name = get_parameter(cam_prefix + ".tracker").as_string();
-  std::string fiducial_name = get_parameter(cam_prefix + ".fiducial").as_string();
+  std::vector<std::string> fiducial_names =
+    get_parameter(cam_prefix + ".fiducials").as_string_array();
   double pos_stability = get_parameter(cam_prefix + ".pos_stability").as_double();
   double ang_stability = get_parameter(cam_prefix + ".ang_stability").as_double();
   bool is_extrinsic = get_parameter(cam_prefix + ".is_extrinsic").as_bool();
@@ -337,7 +361,7 @@ Camera::Parameters EkfCalNode::GetCameraParameters(const std::string & camera_na
   camera_params.variance.pos = pos_var;
   camera_params.variance.ang = ang_var;
   camera_params.tracker = tracker_name;
-  camera_params.fiducial = fiducial_name;
+  camera_params.fiducials = fiducial_names;
   camera_params.pos_stability = pos_stability;
   camera_params.ang_stability = ang_stability;
   camera_params.is_extrinsic = is_extrinsic;
@@ -527,8 +551,8 @@ void EkfCalNode::LoadCamera(const std::string & camera_name)
     camera_ptr->AddTracker(trk_ptr);
   }
 
-  if (!camera_params.fiducial.empty()) {
-    FiducialTracker::Parameters fid_params = GetFiducialParameters(camera_params.fiducial);
+  for (const auto & fiducial_name : camera_params.fiducials) {
+    FiducialTracker::Parameters fid_params = GetFiducialParameters(fiducial_name);
     fid_params.camera_id = camera_ptr->GetId();
     fid_params.data_log_rate = camera_params.data_log_rate;
 
@@ -541,7 +565,9 @@ void EkfCalNode::LoadCamera(const std::string & camera_name)
       fid_ptr = std::make_shared<CharucoBoardTracker>(fid_params);
     }
 
-    camera_ptr->AddFiducial(fid_ptr);
+    if (fid_ptr != nullptr) {
+      camera_ptr->AddFiducial(fid_ptr);
+    }
   }
 
   // Create new RosCamera and bind callback to ID

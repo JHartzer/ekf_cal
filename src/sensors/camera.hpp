@@ -62,7 +62,7 @@ public:
     double ang_stability {1e-9};                        ///< @brief Angular stability
     Variance variance;                                  ///< @brief Initial state variance
     std::string tracker;                                ///< @brief Tracker name
-    std::string fiducial;                               ///< @brief Fiducial name
+    std::vector<std::string> fiducials;                 ///< @brief Fiducial names
     Intrinsics intrinsics;                              ///< @brief Camera intrinsics
   } Parameters;
 

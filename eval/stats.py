@@ -32,9 +32,13 @@ python3 eval/stats.py --help
 import os
 
 import h5py
+
 from input_parser import InputParser
+
 import numpy as np
+
 from scipy.spatial.transform import Rotation
+
 from utilities import (calculate_rotation_errors, find_and_read_data_frames,
                        generate_mc_lists, interpolate_error,
                        interpolate_quat_error, lists_to_rot)
@@ -618,8 +622,8 @@ def _calc_errors_for_single_run(run_args):
                     (est_time, err_ax, err_ay, err_az))
 
             # Fiducial NEES
-            if (board_truth is not None and 'fid_pos_0' in fid_df
-                    and 'fid_ang_0' in fid_df and 'fid_cov_0' in fid_df):
+            if (board_truth is not None and 'fid_pos_0' in fid_df and
+                    'fid_ang_0' in fid_df and 'fid_cov_0' in fid_df):
                 t00 = np.array(board_truth['pos_x'])[0]
                 t01 = np.array(board_truth['pos_y'])[0]
                 t02 = np.array(board_truth['pos_z'])[0]
@@ -774,15 +778,15 @@ def save_errors_to_hdf5(data_dirs, body_state_dfs_dict, body_truth_dfs_dict,
 
         board_truth = (
             board_truth_dfs_dict[0][i]
-            if (board_truth_dfs_dict and 0 in board_truth_dfs_dict
-                and i < len(board_truth_dfs_dict[0]))
+            if (board_truth_dfs_dict and 0 in board_truth_dfs_dict and
+                i < len(board_truth_dfs_dict[0]))
             else None
         )
 
         aug_state = (
             aug_state_dfs_dict[0][i]
-            if (aug_state_dfs_dict and 0 in aug_state_dfs_dict
-                and i < len(aug_state_dfs_dict[0]))
+            if (aug_state_dfs_dict and 0 in aug_state_dfs_dict and
+                i < len(aug_state_dfs_dict[0]))
             else None
         )
 

@@ -230,5 +230,5 @@ TEST(test_updater, camera_update_duration_stays_below_1000hz_budget) {
 
   fiducial_updater.UpdateEKF(ekf, 0.1, board_detection);
 
-  ExpectDurationsBelow(ReadLoggedDurations(log_directory, "sensors/fiducial_0"), 1000.0);
+  ExpectDurationsBelow(ReadLoggedDurations(log_directory, "sensors/fiducial_0_0"), 1000.0);
 }

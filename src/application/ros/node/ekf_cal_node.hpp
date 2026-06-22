@@ -196,6 +196,11 @@ public:
   FiducialTracker::Parameters GetFiducialParameters(const std::string & fiducial_name);
 
   ///
+  /// @brief Validate configured fiducial IDs are unique
+  ///
+  void ValidateFiducialIds();
+
+  ///
   /// @brief Callback method for IMU sensor messages
   /// @param msg Sensor message pointer
   /// @param id Sensor ID number
