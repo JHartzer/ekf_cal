@@ -21,6 +21,7 @@
 #include <cmath>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -108,6 +109,24 @@ void LoadTrackerParams(
   params.logger = debug_logger;
 }
 
+void ValidateFiducialIds(
+  YAML::Node fiducial_node,
+  const std::vector<std::string> & fiducial_names)
+{
+  std::map<unsigned int, std::string> fiducial_ids;
+  for (const auto & fiducial_name : fiducial_names) {
+    unsigned int fiducial_id = fiducial_node[fiducial_name]["id"].as<unsigned int>(0);
+    auto insert_result = fiducial_ids.emplace(fiducial_id, fiducial_name);
+    if (!insert_result.second) {
+      std::stringstream err_msg;
+      err_msg << "Duplicate fiducial id " << fiducial_id <<
+        " configured for \"" << fiducial_name <<
+        "\" and \"" << insert_result.first->second << "\".";
+      throw std::runtime_error(err_msg.str());
+    }
+  }
+}
+
 Eigen::VectorXd LoadProcessNoise(YAML::Node process_noise_node)
 {
   double pos_noise = process_noise_node["pos"].as<double>(1.0e-2);
@@ -153,6 +172,7 @@ int main(int argc, char * argv[])
   auto trackers = LoadNodeList(root["/EkfCalNode"]["ros__parameters"]["tracker_list"]);
   auto fiducials = LoadNodeList(root["/EkfCalNode"]["ros__parameters"]["fiducial_list"]);
   auto gps_list = LoadNodeList(root["/EkfCalNode"]["ros__parameters"]["gps_list"]);
+  ValidateFiducialIds(root["/EkfCalNode"]["ros__parameters"]["fiducial"], fiducials);
 
   // Construct sensors and EKF
   std::map<unsigned int, std::shared_ptr<Sensor>> sensor_map;
@@ -274,7 +294,10 @@ int main(int argc, char * argv[])
   bool has_camera_fiducial = false;
   for (const auto & camera_name : cameras) {
     YAML::Node cam_node = root["/EkfCalNode"]["ros__parameters"]["camera"][camera_name];
-    if (cam_node && cam_node["fiducial"] && !cam_node["fiducial"].as<std::string>("").empty()) {
+    if (cam_node &&
+      cam_node["fiducials"] &&
+      !cam_node["fiducials"].as<std::vector<std::string>>(std::vector<std::string>{}).empty())
+    {
       has_camera_fiducial = true;
       break;
     }
@@ -444,7 +467,8 @@ int main(int argc, char * argv[])
     cam_params.pos_stability = cam_node["pos_stability"].as<double>(1.0e-9);
     cam_params.ang_stability = cam_node["ang_stability"].as<double>(1.0e-9);
     cam_params.tracker = cam_node["tracker"].as<std::string>("");
-    cam_params.fiducial = cam_node["fiducial"].as<std::string>("");
+    cam_params.fiducials =
+      cam_node["fiducials"].as<std::vector<std::string>>(std::vector<std::string>{});
     cam_params.intrinsics.f_x = cam_node["intrinsics"]["f_x"].as<double>(2.5e-3);
     cam_params.intrinsics.f_y = cam_node["intrinsics"]["f_y"].as<double>(2.5e-3);
     cam_params.intrinsics.k_1 = cam_node["intrinsics"]["k_1"].as<double>(0.0);
@@ -476,8 +500,8 @@ int main(int argc, char * argv[])
       auto trk = std::make_shared<SimFeatureTracker>(trk_params, truth_engine);
       cam->AddTracker(trk);
     }
-    if (!cam_params.fiducial.empty()) {
-      auto fid_params = fiducial_map[cam_params.fiducial];
+    for (const auto & fiducial_name : cam_params.fiducials) {
+      auto fid_params = fiducial_map[fiducial_name];
       fid_params.fiducial_params.camera_id = cam->GetId();
       fid_params.fiducial_params.intrinsics = cam_params.intrinsics;
       fid_params.fiducial_params.is_cam_extrinsic = cam_params.is_extrinsic;

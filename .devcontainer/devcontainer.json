@@ -19,11 +19,20 @@
         }
     },
     "build": {
-        "dockerfile": "../Dockerfile"
+        "dockerfile": "../Dockerfile",
+        "args": {
+            "USERNAME": "vscode",
+            "USER_UID": "1000",
+            "USER_GID": "1000"
+        }
     },
     "workspaceMount": "src=${localWorkspaceFolder},dst=/ekf_cal_ws/src/ekf_cal,type=bind,consistency=cached",
     "workspaceFolder": "/ekf_cal_ws/src/ekf_cal",
-    "postCreateCommand": "python3 -m pip install -r requirements.txt && pre-commit install",
+    "remoteUser": "vscode",
+    "containerUser": "vscode",
+    "updateRemoteUserUID": true,
+    "postCreateCommand": "pre-commit install",
+    "postStartCommand": "sudo mkdir -p /ekf_cal_ws/build /ekf_cal_ws/install /ekf_cal_ws/log && sudo chown $(id -u):$(id -g) /ekf_cal_ws /ekf_cal_ws/src /ekf_cal_ws/build /ekf_cal_ws/install /ekf_cal_ws/log",
     // Args necessary for perf permissions
     "runArgs": [
         "--cap-add=SYS_ADMIN",

@@ -81,7 +81,7 @@ The `ekf_cal` package supports the use of multiple cameras, which can simultaneo
 | ---------------- | ---------------------------------------------- |
 | `ang_c_to_b`     | Camera angular offset quaternion in body frame |
 | `ang_stability`  | Extrinsic angular stability                    |
-| `fiducial`       | Name of Fiducial to load                       |
+| `fiducials`      | Names of Fiducials to load                     |
 | `intrinsics`     | Camera intrinsics                              |
 | `pos_c_in_b`     | Camera position offset vector in body frame    |
 | `pos_stability`  | Extrinsic position stability                   |

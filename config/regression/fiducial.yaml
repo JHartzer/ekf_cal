@@ -11,7 +11,7 @@
             ang_acc: 1.0e-2
         sim_params:
             seed: 1
-            max_time: 300.0
+            max_time: 30.0
             number_of_runs: 10
             run_number: 0
             truth_type: "cyclic"
@@ -32,7 +32,8 @@
         tracker_list: []
 
         fiducial_list:
-            - "charuco"
+            - "charuco_1"
+            - "charuco_2"
 
         gps_list: []
 
@@ -60,7 +61,7 @@
                 variance:
                     pos: 0.1
                     ang: 0.1
-                fiducial: "charuco"
+                fiducials: ["charuco_1", "charuco_2"]
                 pos_stability: 1.0e-4
                 ang_stability: 1.0e-4
                 data_log_rate: 20.0
@@ -70,14 +71,32 @@
                     ang_error: [0.1, 0.1, 0.1]
 
         fiducial:
-            charuco:
+            charuco_1:
                 fiducial_type: 2
                 squares_x: 5
                 squares_y: 7
                 square_length: 0.04
                 marker_length: 0.02
-                pos_f_in_l: [0.0, 0.0, 0.0]
-                ang_f_to_l: [1.0, 0.0, 0.0, 0.0]
+                id: 0
+                pos_f_in_l: [1.0, 0.0, 0.0]
+                ang_f_to_l: [0.707, 0.0, 0.707, 0.0]
+                is_extrinsic: true
+                variance:
+                    pos: 0.1
+                    ang: 0.1
+                sim_params:
+                    t_vec_error: [1.0e-1, 1.0e-1, 1.0e-1]
+                    r_vec_error: [1.0e-2, 1.0e-2, 1.0e-2]
+
+            charuco_2:
+                fiducial_type: 2
+                squares_x: 5
+                squares_y: 7
+                square_length: 0.04
+                marker_length: 0.02
+                id: 1
+                pos_f_in_l: [-1.0, 0.0, 0.0]
+                ang_f_to_l: [0.707, 0.0, 0.707, 0.0]
                 is_extrinsic: true
                 variance:
                     pos: 0.1
