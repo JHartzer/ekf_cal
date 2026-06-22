@@ -25,6 +25,7 @@
 #include "ekf/update/imu_updater.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "utility/custom_assertions.hpp"
+#include "utility/type_helper.hpp"
 
 TEST(test_imu_updater, update) {
   EKF::Parameters ekf_params;
@@ -233,6 +234,9 @@ TEST(test_imu_updater, jacobian) {
   bool is_intrinsic{true};
   ImuState imu_state;
   imu_state.pos_i_in_b = Eigen::Vector3d{1, 2, 3};
+  imu_state.ang_i_to_b = RotVecToQuat(Eigen::Vector3d{0.2, -0.1, 0.15});
+  imu_state.acc_bias = Eigen::Vector3d{0.4, -0.2, 0.1};
+  imu_state.omg_bias = Eigen::Vector3d{-0.3, 0.5, -0.4};
   imu_state.SetIsExtrinsic(is_extrinsic);
   imu_state.SetIsIntrinsic(is_intrinsic);
 
@@ -243,23 +247,30 @@ TEST(test_imu_updater, jacobian) {
   ekf_params.debug_logger = debug_logger;
   EKF ekf(ekf_params);
   ekf.RegisterIMU(imu_id, imu_state, covariance);
+  ekf.m_state.body_state.acc_b_in_l = Eigen::Vector3d{1.5, -2.0, 9.0};
+  ekf.m_state.body_state.ang_b_to_l = RotVecToQuat(Eigen::Vector3d{-0.4, 0.25, 0.1});
+  ekf.m_state.body_state.ang_vel_b_in_l = Eigen::Vector3d{0.8, -0.6, 0.3};
+  ekf.m_state.body_state.ang_acc_b_in_l = Eigen::Vector3d{-0.2, 0.4, 0.5};
 
   auto imu_updater =
     ImuUpdater(imu_id, is_extrinsic, is_intrinsic, "log_file_directory", 0.0, debug_logger);
 
-  Eigen::VectorXd base_state = ekf.m_state.ToVector();
+  State base_state = ekf.m_state;
   Eigen::MatrixXd jac_analytical = imu_updater.GetMeasurementJacobian(ekf);
   Eigen::VectorXd base_meas = imu_updater.PredictMeasurement(ekf);
 
   double delta = 1.0e-6;
-  unsigned int jac_size = base_state.size();
+  unsigned int jac_size = base_state.ToVector().size();
   Eigen::MatrixXd jac_numerical = Eigen::MatrixXd::Zero(6, jac_size);
   for (unsigned int i = 0; i < jac_size; ++i) {
-    Eigen::VectorXd delta_vec = base_state;
+    State perturbed_state = base_state;
+    Eigen::VectorXd delta_vec = Eigen::VectorXd::Zero(jac_size);
     delta_vec[i] += delta;
-    ekf.m_state.SetState(delta_vec);
+    perturbed_state += delta_vec;
+    ekf.m_state = perturbed_state;
     jac_numerical.block<6, 1>(0, i) = (imu_updater.PredictMeasurement(ekf) - base_meas) / delta;
   }
+  ekf.m_state = base_state;
 
   EXPECT_TRUE(EXPECT_EIGEN_NEAR(jac_analytical, jac_numerical, 1e-3));
 
