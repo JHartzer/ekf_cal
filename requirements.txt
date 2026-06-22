@@ -11,4 +11,5 @@ rosdep>=0.26.0
 scipy>=1.15
 setuptools>=78.1
 h5py>=3.8
-pytest>=8.0
+lark>=1.2
+pytest>=8.1,<9
