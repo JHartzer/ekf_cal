@@ -31,13 +31,16 @@ TEST(test_sensor, Constructor) {
   Sensor sensor(sensor_params);
 }
 
+
 TEST(test_sensor, MessageCompare) {
   cv::Mat cam_img = cv::Mat::zeros(cv::Size(640, 480), CV_8UC1);
   auto camera_message = std::make_shared<CameraMessage>(cam_img);
-  camera_message->time = 0.0;
+  camera_message->time_measured = 10.0;
+  camera_message->time_received = 0.0;
 
   auto imu_message = std::make_shared<ImuMessage>();
-  imu_message->time = 0.1;
+  imu_message->time_measured = 0.0;
+  imu_message->time_received = 0.1;
 
   EXPECT_TRUE(MessageCompare(camera_message, imu_message));
   EXPECT_FALSE(MessageCompare(imu_message, camera_message));
@@ -49,6 +52,8 @@ TEST(test_sensor, Callback) {
   Sensor sensor(sensor_params);
 
   SensorMessage sensor_message;
+  sensor_message.time_measured = 1.0;
+  sensor_message.time_received = 1.0;
   sensor.Callback(sensor_message);
 }
 

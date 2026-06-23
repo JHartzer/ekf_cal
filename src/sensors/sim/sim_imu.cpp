@@ -77,7 +77,8 @@ std::vector<std::shared_ptr<SimImuMessage>> SimIMU::GenerateMessages() const
   std::vector<std::shared_ptr<SimImuMessage>> messages;
   for (auto measurement_time : measurement_times) {
     auto sim_imu_msg = std::make_shared<SimImuMessage>();
-    sim_imu_msg->time = measurement_time;
+    sim_imu_msg->time_measured = measurement_time;
+    sim_imu_msg->time_received = measurement_time;
     sim_imu_msg->sensor_id = m_id;
     sim_imu_msg->sensor_type = SensorType::IMU;
 

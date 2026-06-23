@@ -56,11 +56,11 @@ void Camera::Callback(const CameraMessage & camera_message)
 {
   m_logger->Log(
     LogLevel::DEBUG, "Camera " + std::to_string(camera_message.sensor_id) +
-    " callback called at time = " + std::to_string(camera_message.time));
+    " callback called at measured time = " + std::to_string(camera_message.time_measured));
 
   if (!camera_message.image.empty()) {
     if (!m_trackers.empty() || !m_fiducials.empty()) {
-      double local_time = m_ekf->CalculateLocalTime(camera_message.time);
+      double local_time = m_ekf->CalculateLocalTime(camera_message.time_measured);
       m_ekf->PredictModel(local_time);
 
       unsigned int frameID = GenerateFrameID();
@@ -69,7 +69,7 @@ void Camera::Callback(const CameraMessage & camera_message)
       if (!m_fiducials.empty()) {
         for (auto const & fiducial_iter : m_fiducials) {
           m_fiducials[fiducial_iter.first]->Track(
-            camera_message.time, frameID, camera_message.image, m_out_img);
+            camera_message.time_measured, frameID, camera_message.image, m_out_img);
         }
       }
 
@@ -78,7 +78,7 @@ void Camera::Callback(const CameraMessage & camera_message)
       if (!m_trackers.empty()) {
         for (auto const & track_iter : m_trackers) {
           m_trackers[track_iter.first]->Track(
-            camera_message.time, frameID, camera_message.image, m_out_img);
+            camera_message.time_measured, frameID, camera_message.image, m_out_img);
         }
       }
     } else {

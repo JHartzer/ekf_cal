@@ -44,13 +44,15 @@ std::string Sensor::GetName() const
 
 bool MessageCompare(std::shared_ptr<SensorMessage> l_msg, std::shared_ptr<SensorMessage> r_msg)
 {
-  return l_msg->time < r_msg->time;
+  return l_msg->time_received < r_msg->time_received;
 }
+
 
 void Sensor::Callback(const SensorMessage sensor_message) const
 {
   std::stringstream msg;
-  msg << "Base Sensor callback invoked at time " << sensor_message.time;
+  msg << "Base Sensor callback invoked at measured time " << sensor_message.time_measured;
+  msg << ", received time " << sensor_message.time_received;
   msg << " for sensor " << sensor_message.sensor_id;
   msg << " of type " << static_cast<unsigned int>(sensor_message.sensor_type);
   m_logger->Log(LogLevel::INFO, msg.str());

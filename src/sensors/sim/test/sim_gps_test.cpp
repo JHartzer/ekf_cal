@@ -71,8 +71,8 @@ TEST(test_SimIMU, Constructor) {
 
   auto truth_engine = std::static_pointer_cast<TruthEngine>(truth_engine_cyclic);
   SimGPS sim_gps(sim_gps_params, truth_engine);
-  truth_engine->SetGpsPosition(sim_gps.GetId(), Eigen::Vector3d{0, 0, 0});
-  truth_engine->SetLocalPosition(Eigen::Vector3d{0, 0, 0});
+  truth_engine->SetGpsPosition(sim_gps.GetId(), Eigen::Vector3d {0, 0, 0});
+  truth_engine->SetLocalPosition(Eigen::Vector3d {0, 0, 0});
   truth_engine->SetLocalHeading(0.0);
 
   SimRNG::SetSeed(1);
@@ -80,10 +80,10 @@ TEST(test_SimIMU, Constructor) {
 
   ASSERT_EQ(gps_msgs.size(), 5U);
 
-  EXPECT_NEAR(gps_msgs[1]->time - gps_msgs[0]->time, 0.2, 1e-3);
-  EXPECT_NEAR(gps_msgs[2]->time - gps_msgs[1]->time, 0.2, 1e-3);
-  EXPECT_NEAR(gps_msgs[3]->time - gps_msgs[2]->time, 0.2, 1e-3);
-  EXPECT_NEAR(gps_msgs[4]->time - gps_msgs[3]->time, 0.2, 1e-3);
+  EXPECT_NEAR(gps_msgs[1]->time_measured - gps_msgs[0]->time_measured, 0.2, 1e-3);
+  EXPECT_NEAR(gps_msgs[2]->time_measured - gps_msgs[1]->time_measured, 0.2, 1e-3);
+  EXPECT_NEAR(gps_msgs[3]->time_measured - gps_msgs[2]->time_measured, 0.2, 1e-3);
+  EXPECT_NEAR(gps_msgs[4]->time_measured - gps_msgs[3]->time_measured, 0.2, 1e-3);
 
   Eigen::Vector3d lla_ref = Eigen::Vector3d::Zero();
 

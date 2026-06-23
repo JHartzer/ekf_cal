@@ -44,7 +44,8 @@ TEST(test_gps, Callback) {
   gps_message.gps_lla = Eigen::Vector3d{0.0, 0.0, 0.0};
 
   for (unsigned int i = 0; i < 10; ++i) {
-    gps_message.time = static_cast<double>(i);
+    gps_message.time_measured = static_cast<double>(i);
+    gps_message.time_received = static_cast<double>(i);
     gps.Callback(gps_message);
   }
 }

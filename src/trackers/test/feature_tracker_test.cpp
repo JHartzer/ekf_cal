@@ -116,8 +116,10 @@ TEST(test_feature_tracker, track) {
   CameraMessage cam_msg_1(img_1);
   CameraMessage cam_msg_2(img_2);
 
-  cam_msg_1.time = 0.0;
-  cam_msg_2.time = 1.0;
+  cam_msg_1.time_measured = 0.0;
+  cam_msg_1.time_received = 0.0;
+  cam_msg_2.time_measured = 1.0;
+  cam_msg_2.time_received = 1.0;
 
   cam.Callback(cam_msg_1);
   cam.Callback(cam_msg_2);

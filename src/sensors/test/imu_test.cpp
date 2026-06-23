@@ -108,7 +108,8 @@ TEST(test_IMU, Callback) {
   IMU imu(imu_params);
 
   ImuMessage imu_message;
-  imu_message.time = 1.1;
+  imu_message.time_measured = 1.1;
+  imu_message.time_received = 1.1;
   imu_message.acceleration = Eigen::Vector3d(0.1, 0.2, 9.8);
   imu_message.acceleration_covariance = Eigen::Matrix3d::Identity() * 0.01;
   imu_message.angular_rate = Eigen::Vector3d(0.01, 0.02, 0.03);

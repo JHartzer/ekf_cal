@@ -119,7 +119,8 @@ std::shared_ptr<SimFiducialTrackerMessage> SimFiducialTracker::GenerateMessage(
   FeatureTracks feature_tracks;
 
   auto tracker_message = std::make_shared<SimFiducialTrackerMessage>();
-  tracker_message->time = message_time;
+  tracker_message->time_measured = message_time;
+  tracker_message->time_received = message_time;
   tracker_message->tracker_id = m_id;
   tracker_message->sensor_id = m_camera_id;
   tracker_message->sensor_type = SensorType::Tracker;

@@ -68,10 +68,11 @@ void IMU::Callback(const ImuMessage & imu_message)
 {
   m_logger->Log(
     LogLevel::DEBUG,
-    "IMU \"" + m_name + "\" callback at time " + std::to_string(imu_message.time));
+    "IMU \"" + m_name + "\" callback at measured time " +
+    std::to_string(imu_message.time_measured));
   m_imu_updater.UpdateEKF(
     *m_ekf,
-    imu_message.time,
+    imu_message.time_used,
     imu_message.acceleration,
     imu_message.acceleration_covariance,
     imu_message.angular_rate,

@@ -34,8 +34,12 @@ public:
   /// @brief Associated sensor type of measurement
   SensorType sensor_type;
 
-  /// @brief Measurement time
-  double time;
+  /// @brief Sensor/header clock time
+  double time_measured {0.0};
+
+  /// @brief Local receipt/dispatch time
+  double time_received {0.0};
+
 };
 
 #endif  // SENSORS__SENSOR_MESSAGE_HPP_

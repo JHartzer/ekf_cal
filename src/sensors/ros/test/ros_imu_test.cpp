@@ -35,6 +35,9 @@ TEST(test_RosIMU, Constructor) {
 
 TEST(test_RosGPS, ros_gps_message) {
   auto imu_msg = std::make_shared<sensor_msgs::msg::Imu>();
+  imu_msg->header.stamp.sec = 12;
+  imu_msg->header.stamp.nanosec = 345000000;
   RosImuMessage ros_imu_message(imu_msg);
-  EXPECT_TRUE(true);
+  EXPECT_DOUBLE_EQ(ros_imu_message.time_measured, 12.345);
+  EXPECT_DOUBLE_EQ(ros_imu_message.time_received, 12.345);
 }

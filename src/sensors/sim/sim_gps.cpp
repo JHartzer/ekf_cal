@@ -58,7 +58,8 @@ std::vector<std::shared_ptr<SimGpsMessage>> SimGPS::GenerateMessages() const
   std::vector<std::shared_ptr<SimGpsMessage>> messages;
   for (auto measurement_time : measurement_times) {
     auto sim_gps_msg = std::make_shared<SimGpsMessage>();
-    sim_gps_msg->time = measurement_time;
+    sim_gps_msg->time_measured = measurement_time;
+    sim_gps_msg->time_received = measurement_time;
     sim_gps_msg->sensor_id = m_id;
     sim_gps_msg->sensor_type = SensorType::GPS;
 
