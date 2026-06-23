@@ -52,15 +52,23 @@ Camera::Camera(Camera::Parameters cam_params)
   m_ekf->RegisterCamera(m_id, cam_state, cov);
 }
 
-void Camera::Callback(const CameraMessage & camera_message)
+bool Camera::Callback(const CameraMessage & camera_message)
+{
+  return BufferMessage(
+    camera_message,
+    m_message_buffer,
+    [this](const CameraMessage & buffered_message) {ExecuteCallback(buffered_message);}) > 0;
+}
+
+void Camera::ExecuteCallback(const CameraMessage & camera_message)
 {
   m_logger->Log(
     LogLevel::DEBUG, "Camera " + std::to_string(camera_message.sensor_id) +
-    " callback called at measured time = " + std::to_string(camera_message.time_measured));
+    " callback called at used time = " + std::to_string(camera_message.time_used));
 
   if (!camera_message.image.empty()) {
     if (!m_trackers.empty() || !m_fiducials.empty()) {
-      double local_time = m_ekf->CalculateLocalTime(camera_message.time_measured);
+      double local_time = m_ekf->CalculateLocalTime(camera_message.time_used);
       m_ekf->PredictModel(local_time);
 
       unsigned int frameID = GenerateFrameID();
@@ -69,7 +77,7 @@ void Camera::Callback(const CameraMessage & camera_message)
       if (!m_fiducials.empty()) {
         for (auto const & fiducial_iter : m_fiducials) {
           m_fiducials[fiducial_iter.first]->Track(
-            camera_message.time_measured, frameID, camera_message.image, m_out_img);
+            camera_message.time_used, frameID, camera_message.image, m_out_img);
         }
       }
 
@@ -78,7 +86,7 @@ void Camera::Callback(const CameraMessage & camera_message)
       if (!m_trackers.empty()) {
         for (auto const & track_iter : m_trackers) {
           m_trackers[track_iter.first]->Track(
-            camera_message.time_measured, frameID, camera_message.image, m_out_img);
+            camera_message.time_used, frameID, camera_message.image, m_out_img);
         }
       }
     } else {
@@ -88,6 +96,13 @@ void Camera::Callback(const CameraMessage & camera_message)
     m_logger->Log(LogLevel::INFO, "Camera received empty image");
   }
   m_logger->Log(LogLevel::DEBUG, "Camera " + std::to_string(m_id) + " callback complete");
+}
+
+void Camera::Flush()
+{
+  FlushBufferedMessages(
+    m_message_buffer,
+    [this](const CameraMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }
 
 /// @todo apply similar function to sensor/tracker IDs

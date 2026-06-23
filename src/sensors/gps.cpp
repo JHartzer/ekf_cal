@@ -47,13 +47,27 @@ GPS::GPS(GPS::Parameters params)
 
 void GPS::Callback(const GpsMessage & gps_message)
 {
+  BufferMessage(
+    gps_message,
+    m_message_buffer,
+    [this](const GpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
+}
+
+void GPS::ExecuteCallback(const GpsMessage & gps_message)
+{
   m_logger->Log(
     LogLevel::DEBUG,
-    "GPS \"" + m_name + "\" callback at measured time " +
-    std::to_string(gps_message.time_measured));
+    "GPS \"" + m_name + "\" callback at used time " + std::to_string(gps_message.time_used));
 
   m_gps_updater.UpdateEKF(
-    *m_ekf, gps_message.time_measured, gps_message.gps_lla, gps_message.pos_covariance);
+    *m_ekf, gps_message.time_used, gps_message.gps_lla, gps_message.pos_covariance);
 
   m_logger->Log(LogLevel::DEBUG, "GPS \"" + m_name + "\" callback complete");
+}
+
+void GPS::Flush()
+{
+  FlushBufferedMessages(
+    m_message_buffer,
+    [this](const GpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }

@@ -78,6 +78,8 @@ public:
   ///
   void Callback(const SimCameraMessage & sim_camera_message);
 
+  void Flush() override;
+
   ///
   /// @brief Generate simulated IMU messages
   /// @return Generated camera messages
@@ -139,6 +141,7 @@ private:
     const cv::Scalar & color,
     int thickness
   ) const;
+  void ExecuteCallback(const SimCameraMessage & sim_camera_message);
 
   Eigen::Vector3d m_pos_error;
   Eigen::Vector3d m_ang_error;
@@ -149,6 +152,7 @@ private:
 
   std::map<unsigned int, std::shared_ptr<SimFeatureTracker>> m_trackers;
   std::map<unsigned int, std::shared_ptr<SimFiducialTracker>> m_fiducials;
+  std::vector<SimCameraMessage> m_message_buffer;
 };
 
 

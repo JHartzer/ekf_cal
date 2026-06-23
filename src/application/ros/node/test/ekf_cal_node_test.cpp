@@ -45,11 +45,12 @@ TEST_F(EkfCalNode_test, hello_world)
   EkfCalNode node;
 
   node.set_parameter(rclcpp::Parameter("debug_log_level", 1));
-  node.set_parameter(rclcpp::Parameter("imu_list", std::vector<std::string>{"imu_1"}));
-  node.set_parameter(rclcpp::Parameter("camera_list", std::vector<std::string>{"cam_2"}));
-  node.set_parameter(rclcpp::Parameter("tracker_list", std::vector<std::string>{"tracker_3"}));
-  node.set_parameter(rclcpp::Parameter("gps_list", std::vector<std::string>{"gps_4"}));
-  node.set_parameter(rclcpp::Parameter("fiducial_list", std::vector<std::string>{"fiducial_5"}));
+  node.set_parameter(rclcpp::Parameter("measurement_time_reorder_window", 0.5));
+  node.set_parameter(rclcpp::Parameter("imu_list", std::vector<std::string> {"imu_1"}));
+  node.set_parameter(rclcpp::Parameter("camera_list", std::vector<std::string> {"cam_2"}));
+  node.set_parameter(rclcpp::Parameter("tracker_list", std::vector<std::string> {"tracker_3"}));
+  node.set_parameter(rclcpp::Parameter("gps_list", std::vector<std::string> {"gps_4"}));
+  node.set_parameter(rclcpp::Parameter("fiducial_list", std::vector<std::string> {"fiducial_5"}));
 
   node.Initialize();
   node.DeclareSensors();
@@ -58,30 +59,32 @@ TEST_F(EkfCalNode_test, hello_world)
   node.set_parameter(rclcpp::Parameter("imu.imu_1.is_intrinsic", false));
   node.set_parameter(rclcpp::Parameter("imu.imu_1.rate", 400.0));
   node.set_parameter(rclcpp::Parameter("imu.imu_1.topic", "/ImuTopic"));
+  node.set_parameter(rclcpp::Parameter("imu.imu_1.filter_sensor_time", true));
   node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.pos", 0.1));
   node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.ang", 0.1));
   node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.acc_bias", 1e-3));
   node.set_parameter(rclcpp::Parameter("imu.imu_1.variance.gyr_bias", 1e-3));
   node.set_parameter(
-    rclcpp::Parameter("imu.imu_1.pos_i_in_b", std::vector<double>{0.0, 0.0, 0.0}));
+    rclcpp::Parameter("imu.imu_1.pos_i_in_b", std::vector<double> {0.0, 0.0, 0.0}));
   node.set_parameter(
-    rclcpp::Parameter("imu.imu_1.ang_i_to_b", std::vector<double>{1.0, 0.0, 0.0, 0.0}));
+    rclcpp::Parameter("imu.imu_1.ang_i_to_b", std::vector<double> {1.0, 0.0, 0.0, 0.0}));
   node.set_parameter(
-    rclcpp::Parameter("imu.imu_1.acc_bias", std::vector<double>{0.0, 0.0, 0.0}));
+    rclcpp::Parameter("imu.imu_1.acc_bias", std::vector<double> {0.0, 0.0, 0.0}));
   node.set_parameter(
-    rclcpp::Parameter("imu.imu_1.omg_bias", std::vector<double>{0.0, 0.0, 0.0}));
+    rclcpp::Parameter("imu.imu_1.omg_bias", std::vector<double> {0.0, 0.0, 0.0}));
 
   node.set_parameter(rclcpp::Parameter("camera.cam_2.rate", 5.0));
   node.set_parameter(rclcpp::Parameter("camera.cam_2.topic", "/CameraTopic"));
+  node.set_parameter(rclcpp::Parameter("camera.cam_2.filter_sensor_time", false));
   node.set_parameter(
-    rclcpp::Parameter("camera.cam_2.pos_c_in_b", std::vector<double>{0.0, 0.0, 0.0}));
+    rclcpp::Parameter("camera.cam_2.pos_c_in_b", std::vector<double> {0.0, 0.0, 0.0}));
   node.set_parameter(
-    rclcpp::Parameter("camera.cam_2.ang_c_to_b", std::vector<double>{1.0, 0.0, 0.0, 0.0}));
+    rclcpp::Parameter("camera.cam_2.ang_c_to_b", std::vector<double> {1.0, 0.0, 0.0, 0.0}));
   node.set_parameter(rclcpp::Parameter("camera.cam_2.variance.pos", 0.1));
   node.set_parameter(rclcpp::Parameter("camera.cam_2.variance.ang", 0.1));
   node.set_parameter(rclcpp::Parameter("camera.cam_2.tracker", "tracker_3"));
   node.set_parameter(
-    rclcpp::Parameter("camera.cam_2.fiducials", std::vector<std::string>{"fiducial_5"}));
+    rclcpp::Parameter("camera.cam_2.fiducials", std::vector<std::string> {"fiducial_5"}));
 
   node.set_parameter(rclcpp::Parameter("tracker.tracker_3.feature_detector", 4));
   node.set_parameter(rclcpp::Parameter("tracker.tracker_3.descriptor_extractor", 0));
@@ -90,9 +93,10 @@ TEST_F(EkfCalNode_test, hello_world)
 
   node.set_parameter(rclcpp::Parameter("gps.gps_4.topic", "/gps1"));
   node.set_parameter(rclcpp::Parameter("gps.gps_4.rate", 10.0));
+  node.set_parameter(rclcpp::Parameter("gps.gps_4.filter_sensor_time", false));
   node.set_parameter(rclcpp::Parameter("gps.gps_4.variance.pos", 0.1));
   node.set_parameter(
-    rclcpp::Parameter("gps.gps_4.pos_a_in_b", std::vector<double>{0.0, 0.0, 0.0}));
+    rclcpp::Parameter("gps.gps_4.pos_a_in_b", std::vector<double> {0.0, 0.0, 0.0}));
 
   node.set_parameter(rclcpp::Parameter("fiducial.fiducial_5.fiducial_type", 1));
   node.set_parameter(rclcpp::Parameter("fiducial.fiducial_5.squares_x", 5));
@@ -103,9 +107,9 @@ TEST_F(EkfCalNode_test, hello_world)
   node.set_parameter(rclcpp::Parameter("fiducial.fiducial_5.max_track_length", 1));
   node.set_parameter(rclcpp::Parameter("fiducial.fiducial_5.is_extrinsic", false));
   node.set_parameter(
-    rclcpp::Parameter("fiducial.fiducial_5.pos_f_in_l", std::vector<double>{0.0, 0.0, 0.0}));
+    rclcpp::Parameter("fiducial.fiducial_5.pos_f_in_l", std::vector<double> {0.0, 0.0, 0.0}));
   node.set_parameter(
-    rclcpp::Parameter("fiducial.fiducial_5.ang_f_to_l", std::vector<double>{1.0, 0.0, 0.0, 0.0}));
+    rclcpp::Parameter("fiducial.fiducial_5.ang_f_to_l", std::vector<double> {1.0, 0.0, 0.0, 0.0}));
   node.set_parameter(rclcpp::Parameter("fiducial.fiducial_5.variance.pos", 0.1));
   node.set_parameter(rclcpp::Parameter("fiducial.fiducial_5.variance.pos", 0.1));
 

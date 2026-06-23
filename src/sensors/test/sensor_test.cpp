@@ -31,6 +31,11 @@ TEST(test_sensor, Constructor) {
   Sensor sensor(sensor_params);
 }
 
+TEST(test_sensor, ParametersDefaults) {
+  Sensor::Parameters sensor_params;
+  EXPECT_FALSE(sensor_params.filter_sensor_time);
+  EXPECT_DOUBLE_EQ(sensor_params.measurement_time_reorder_window, 1.0);
+}
 
 TEST(test_sensor, MessageCompare) {
   cv::Mat cam_img = cv::Mat::zeros(cv::Size(640, 480), CV_8UC1);

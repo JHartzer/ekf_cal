@@ -30,6 +30,8 @@ Sensor::Sensor(Parameters params)
 {
   m_name = params.name;
   m_logger = params.logger;
+  m_filter_sensor_time = params.filter_sensor_time;
+  m_measurement_time_reorder_window = std::max(0.0, params.measurement_time_reorder_window);
 }
 
 unsigned int Sensor::GetId() const
@@ -47,6 +49,26 @@ bool MessageCompare(std::shared_ptr<SensorMessage> l_msg, std::shared_ptr<Sensor
   return l_msg->time_received < r_msg->time_received;
 }
 
+void Sensor::UpdateTimeFilter(const SensorMessage & sensor_message)
+{
+  if (!m_filter_sensor_time) {
+    return;
+  }
+
+  const double offset_sample = sensor_message.time_received - sensor_message.time_measured;
+  if (!m_min_offset_initialized || offset_sample < m_min_offset) {
+    m_min_offset = offset_sample;
+    m_min_offset_initialized = true;
+  }
+}
+
+double Sensor::GetTimeUsed(const SensorMessage & sensor_message) const
+{
+  if (!m_filter_sensor_time || !m_min_offset_initialized) {
+    return sensor_message.time_measured;
+  }
+  return sensor_message.time_measured + m_min_offset;
+}
 
 void Sensor::Callback(const SensorMessage sensor_message) const
 {
@@ -58,3 +80,5 @@ void Sensor::Callback(const SensorMessage sensor_message) const
   m_logger->Log(LogLevel::INFO, msg.str());
   m_logger->Log(LogLevel::INFO, "Base Sensor callback invoked");
 }
+
+void Sensor::Flush() {}

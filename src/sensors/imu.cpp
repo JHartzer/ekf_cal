@@ -66,10 +66,17 @@ IMU::IMU(IMU::Parameters params)
 
 void IMU::Callback(const ImuMessage & imu_message)
 {
+  BufferMessage(
+    imu_message,
+    m_message_buffer,
+    [this](const ImuMessage & buffered_message) {ExecuteCallback(buffered_message);});
+}
+
+void IMU::ExecuteCallback(const ImuMessage & imu_message)
+{
   m_logger->Log(
     LogLevel::DEBUG,
-    "IMU \"" + m_name + "\" callback at measured time " +
-    std::to_string(imu_message.time_measured));
+    "IMU \"" + m_name + "\" callback at used time " + std::to_string(imu_message.time_used));
   m_imu_updater.UpdateEKF(
     *m_ekf,
     imu_message.time_used,
@@ -78,4 +85,11 @@ void IMU::Callback(const ImuMessage & imu_message)
     imu_message.angular_rate,
     imu_message.angular_rate_covariance);
   m_logger->Log(LogLevel::DEBUG, "IMU \"" + m_name + "\" callback complete");
+}
+
+void IMU::Flush()
+{
+  FlushBufferedMessages(
+    m_message_buffer,
+    [this](const ImuMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }

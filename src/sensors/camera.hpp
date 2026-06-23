@@ -88,16 +88,20 @@ public:
   /// @brief Callback method for camera
   /// @param camera_message camera message
   ///
-  void Callback(const CameraMessage & camera_message);
+  bool Callback(const CameraMessage & camera_message);
+
+  void Flush() override;
 
   cv::Mat m_out_img{0, 0, CV_8UC1};  ///< @brief Published output test image
 
 protected:
   static unsigned int GenerateFrameID();
+  void ExecuteCallback(const CameraMessage & camera_message);
 
   std::shared_ptr<EKF> m_ekf;  ///< @brief EKF to update
 
 private:
+  std::vector<CameraMessage> m_message_buffer;
   std::map<unsigned int, std::shared_ptr<FeatureTracker>> m_trackers;
   std::map<unsigned int, std::shared_ptr<FiducialTracker>> m_fiducials;
 

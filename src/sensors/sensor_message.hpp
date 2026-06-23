@@ -39,7 +39,8 @@ public:
 
   /// @brief Local receipt/dispatch time
   double time_received {0.0};
-
+  /// @brief Timestamp used to execute the measurement
+  double time_used {0.0};
 };
 
 #endif  // SENSORS__SENSOR_MESSAGE_HPP_
