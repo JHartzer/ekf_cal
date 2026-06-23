@@ -16,6 +16,8 @@
 #ifndef SENSORS__SENSOR_MESSAGE_HPP_
 #define SENSORS__SENSOR_MESSAGE_HPP_
 
+#include <limits>
+
 #include "ekf/types.hpp"
 
 ///
@@ -27,6 +29,8 @@ class SensorMessage
 public:
   /// @brief SensorMessage constructor
   SensorMessage() {}
+
+  virtual ~SensorMessage() = default;
 
   /// @brief Associated sensor ID of measurement
   unsigned int sensor_id;
@@ -41,6 +45,12 @@ public:
   double time_received {0.0};
   /// @brief Timestamp used to execute the measurement
   double time_used {0.0};
+
+  /// @brief True sensing time, if available
+  virtual double GetTimeTrue() const
+  {
+    return std::numeric_limits<double>::quiet_NaN();
+  }
 };
 
 #endif  // SENSORS__SENSOR_MESSAGE_HPP_

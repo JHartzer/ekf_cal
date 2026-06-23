@@ -39,6 +39,11 @@ public:
   /// @brief True sensing time
   double time_true {0.0};
 
+  double GetTimeTrue() const override
+  {
+    return time_true;
+  }
+
   /// @brief Message frame ID
   unsigned int frame_id;
 

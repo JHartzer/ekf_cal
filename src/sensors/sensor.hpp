@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "ekf/ekf.hpp"
+#include "infrastructure/data_logger.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "sensors/sensor_message.hpp"
 
@@ -81,6 +82,12 @@ public:
   virtual void Flush();
 
 protected:
+  void InitializeTimingLogger(
+    const std::string & log_prefix,
+    const std::string & log_directory,
+    double data_log_rate);
+  void LogTiming(const SensorMessage & sensor_message);
+
   template<typename MessageT, typename ExecuteFn>
   unsigned int BufferMessage(
     const MessageT & sensor_message,
@@ -116,6 +123,7 @@ protected:
   bool m_is_initialized{false};           ///< @brief Sensor initialization flag
   bool m_filter_sensor_time {false};      ///< @brief Sensor time filter enable
   double m_measurement_time_reorder_window {1.0};  ///< @brief Reordering window
+  DataLogger m_timing_logger;             ///< @brief Timing observability logger
 
 private:
   void UpdateTimeFilter(const SensorMessage & sensor_message);

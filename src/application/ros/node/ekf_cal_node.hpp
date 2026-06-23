@@ -228,6 +228,24 @@ public:
   virtual double GetCurrentRosTime() const;
 
   ///
+  /// @brief IMU message stamp hook for testing
+  /// @param ros_imu_message Stamped ROS IMU message
+  ///
+  virtual void OnImuMessageStamped(const RosImuMessage & ros_imu_message) const;
+
+  ///
+  /// @brief Camera message stamp hook for testing
+  /// @param ros_camera_message Stamped ROS camera message
+  ///
+  virtual void OnCameraMessageStamped(const RosCameraMessage & ros_camera_message) const;
+
+  ///
+  /// @brief GPS message stamp hook for testing
+  /// @param ros_gps_message Stamped ROS GPS message
+  ///
+  virtual void OnGpsMessageStamped(const RosGpsMessage & ros_gps_message) const;
+
+  ///
   /// @brief EKF getter method
   /// @return EKF shared pointer
   ///

@@ -31,6 +31,7 @@ IMU::IMU(IMU::Parameters params)
   m_imu_updater(m_id, params.is_extrinsic, params.is_intrinsic,
     params.log_directory, params.data_log_rate, params.logger)
 {
+  InitializeTimingLogger("imu", params.log_directory, params.data_log_rate);
   m_is_extrinsic = params.is_extrinsic;
   m_is_intrinsic = params.is_intrinsic;
   m_rate = params.rate;
@@ -74,6 +75,7 @@ void IMU::Callback(const ImuMessage & imu_message)
 
 void IMU::ExecuteCallback(const ImuMessage & imu_message)
 {
+  LogTiming(imu_message);
   m_logger->Log(
     LogLevel::DEBUG,
     "IMU \"" + m_name + "\" callback at used time " + std::to_string(imu_message.time_used));

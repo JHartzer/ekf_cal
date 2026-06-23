@@ -47,8 +47,29 @@ public:
 
   double GetCurrentRosTime() const override {return m_current_ros_time;}
 
+  void OnImuMessageStamped(const RosImuMessage & ros_imu_message) const override
+  {
+    m_last_imu_time_measured = ros_imu_message.time_measured;
+    m_last_imu_time_received = ros_imu_message.time_received;
+  }
+
+  void OnGpsMessageStamped(const RosGpsMessage & ros_gps_message) const override
+  {
+    m_last_gps_time_measured = ros_gps_message.time_measured;
+    m_last_gps_time_received = ros_gps_message.time_received;
+  }
+
+  double GetLastImuTimeMeasured() const {return m_last_imu_time_measured;}
+  double GetLastImuTimeReceived() const {return m_last_imu_time_received;}
+  double GetLastGpsTimeMeasured() const {return m_last_gps_time_measured;}
+  double GetLastGpsTimeReceived() const {return m_last_gps_time_received;}
+
 private:
   double m_current_ros_time {0.0};
+  mutable double m_last_imu_time_measured {0.0};
+  mutable double m_last_imu_time_received {0.0};
+  mutable double m_last_gps_time_measured {0.0};
+  mutable double m_last_gps_time_received {0.0};
 };
 
 TEST_F(EkfCalNode_test, hello_world)
@@ -209,13 +230,15 @@ TEST_F(EkfCalNode_test, imu_callback_uses_receipt_time)
 
   node.SetCurrentRosTime(20.0);
   node.ImuCallback(imu_msg, imu_id);
-  EXPECT_DOUBLE_EQ(node.GetEkf()->GetCurrentTime(), 0.0);
+  EXPECT_DOUBLE_EQ(node.GetLastImuTimeMeasured(), 10.0);
+  EXPECT_DOUBLE_EQ(node.GetLastImuTimeReceived(), 20.0);
 
   imu_msg->header.stamp.sec = 11;
   node.SetCurrentRosTime(21.0);
   node.ImuCallback(imu_msg, imu_id);
 
-  EXPECT_DOUBLE_EQ(node.GetEkf()->GetCurrentTime(), 20.0);
+  EXPECT_DOUBLE_EQ(node.GetLastImuTimeMeasured(), 11.0);
+  EXPECT_DOUBLE_EQ(node.GetLastImuTimeReceived(), 21.0);
 }
 
 TEST_F(EkfCalNode_test, gps_callback_uses_receipt_time)
@@ -250,11 +273,13 @@ TEST_F(EkfCalNode_test, gps_callback_uses_receipt_time)
 
   node.SetCurrentRosTime(50.0);
   node.GpsCallback(gps_msg, gps_id);
-  EXPECT_DOUBLE_EQ(node.GetEkf()->GetCurrentTime(), 0.0);
+  EXPECT_DOUBLE_EQ(node.GetLastGpsTimeMeasured(), 30.0);
+  EXPECT_DOUBLE_EQ(node.GetLastGpsTimeReceived(), 50.0);
 
   gps_msg->header.stamp.sec = 31;
   node.SetCurrentRosTime(51.0);
   node.GpsCallback(gps_msg, gps_id);
 
-  EXPECT_DOUBLE_EQ(node.GetEkf()->GetCurrentTime(), 50.0);
+  EXPECT_DOUBLE_EQ(node.GetLastGpsTimeMeasured(), 31.0);
+  EXPECT_DOUBLE_EQ(node.GetLastGpsTimeReceived(), 51.0);
 }

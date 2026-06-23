@@ -28,6 +28,11 @@ public:
   using GpsMessage::GpsMessage;
 
   double time_true {0.0};  ///< @brief True sensing time
+
+  double GetTimeTrue() const override
+  {
+    return time_true;
+  }
 };
 
 

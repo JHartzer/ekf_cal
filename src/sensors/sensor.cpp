@@ -15,10 +15,14 @@
 
 #include "sensors/sensor.hpp"
 
+#include <cmath>
 #include <memory>
+#include <limits>
 #include <sstream>
 #include <string>
+#include <vector>
 
+#include "infrastructure/data_logger.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "sensors/sensor_message.hpp"
 
@@ -49,6 +53,22 @@ bool MessageCompare(std::shared_ptr<SensorMessage> l_msg, std::shared_ptr<Sensor
   return l_msg->time_received < r_msg->time_received;
 }
 
+void Sensor::InitializeTimingLogger(
+  const std::string & log_prefix,
+  const std::string & log_directory,
+  double data_log_rate)
+{
+  m_timing_logger.SetOutputDirectory(log_directory);
+  m_timing_logger.SetName(log_prefix + "_" + std::to_string(m_id) + "_timing");
+  m_timing_logger.DefineHeader(
+    "time_used,time_measured,time_received,time_true,time_offset_sample,time_offset_min,"
+    "time_alignment_error");
+  if (data_log_rate != 0.0) {
+    m_timing_logger.EnableLogging();
+  }
+  m_timing_logger.SetLogRate(data_log_rate);
+}
+
 void Sensor::UpdateTimeFilter(const SensorMessage & sensor_message)
 {
   if (!m_filter_sensor_time) {
@@ -68,6 +88,28 @@ double Sensor::GetTimeUsed(const SensorMessage & sensor_message) const
     return sensor_message.time_measured;
   }
   return sensor_message.time_measured + m_min_offset;
+}
+
+void Sensor::LogTiming(const SensorMessage & sensor_message)
+{
+  const double true_time = sensor_message.GetTimeTrue();
+  const double offset_sample = sensor_message.time_received - sensor_message.time_measured;
+  const double offset_min = m_min_offset_initialized ? m_min_offset : offset_sample;
+  double alignment_error = std::numeric_limits<double>::quiet_NaN();
+  if (!std::isnan(true_time)) {
+    alignment_error = sensor_message.time_used - true_time;
+  }
+
+  m_timing_logger.RateLimitedLog(
+    std::vector<double> {
+    sensor_message.time_used,
+    sensor_message.time_measured,
+    sensor_message.time_received,
+    true_time,
+    offset_sample,
+    offset_min,
+    alignment_error},
+    sensor_message.time_used);
 }
 
 void Sensor::Callback(const SensorMessage sensor_message) const

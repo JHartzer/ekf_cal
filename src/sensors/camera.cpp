@@ -34,6 +34,7 @@
 Camera::Camera(Camera::Parameters cam_params)
 : Sensor(cam_params), m_ekf(cam_params.ekf)
 {
+  InitializeTimingLogger("camera", cam_params.log_directory, cam_params.data_log_rate);
   m_rate = cam_params.rate;
 
   CamState cam_state;
@@ -62,6 +63,7 @@ bool Camera::Callback(const CameraMessage & camera_message)
 
 void Camera::ExecuteCallback(const CameraMessage & camera_message)
 {
+  LogTiming(camera_message);
   m_logger->Log(
     LogLevel::DEBUG, "Camera " + std::to_string(camera_message.sensor_id) +
     " callback called at used time = " + std::to_string(camera_message.time_used));
