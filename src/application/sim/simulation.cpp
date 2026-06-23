@@ -92,7 +92,7 @@ void LoadSimSensorParams(
   YAML::Node node)
 {
   params.no_errors = node["no_errors"].as<bool>(false);
-  params.time_error = node["time_error"].as<double>(0.0);
+  params.time_jitter = node["time_jitter"].as<double>(0.0);
 }
 
 void LoadTrackerParams(

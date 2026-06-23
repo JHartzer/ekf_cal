@@ -23,10 +23,11 @@
 SimSensor::SimSensor(Parameters params)
 : m_no_errors(params.no_errors)
 {
+  assert(m_time_jitter >= params.time_jitter && "Delay jitter must be positive");
   if (m_no_errors) {
-    m_time_error = 0.0;
+    m_time_jitter = 0.0;
   } else {
-    m_time_error = params.time_error;
+    m_time_jitter = params.time_jitter;
   }
 }
 
@@ -48,7 +49,7 @@ double SimSensor::ApplyTimeError(double true_time) const
   if (m_no_errors) {
     time_err = true_time;
   } else {
-    time_err = SimRNG::NormRand(true_time, m_time_error);
+    time_err = true_time + SimRNG::ExpRand(1.0 / m_time_jitter);
   }
   return time_err;
 }

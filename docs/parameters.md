@@ -138,7 +138,7 @@ The following is an example of an IMU input configuration.
                 sim_params:
                     no_errors: false                     # Flag to disable errors in simulation
                     time_bias_error: 1.0e-3              # Measurement time bias
-                    time_error: 1.0e-6                   # Measurement time error
+                    time_jitter: 1.0e-6                  # Exponential delay mean (1 / lambda)
                     pos_error: [0.0, 0.0, 0.0]           # Error in position estimate
                     ang_error: [0.0, 0.0, 0.0]           # Error in orientation estimate
                     acc_error: [1.0e-3, 1.0e-3, 1.0e-3]  # Accelerometer error
@@ -186,7 +186,7 @@ The following is an example of an camera input configuration.
                 sim_params:
                     no_errors: false                # Flag to disable errors in simulation
                     time_bias_error: 1.0e-3         # Measurement time bias error
-                    time_error: 1.0e-6              # Measurement time error
+                    time_jitter: 1.0e-6             # Exponential delay mean (1 / lambda)
                     pos_error: [0.0, 0.0, 0.0]      # Position error
                     ang_error: [0.0, 0.0, 0.0]      # Orientation error
 ```
@@ -285,7 +285,7 @@ The following is an example of a GPS input configuration.
                 sim_params:
                     no_errors: false                 # Flag to disable errors in simulation
                     time_bias_error: 0.0             # Time bias error
-                    time_error: 1.0e-9               # Measurement time error
+                    time_jitter: 1.0e-9              # Exponential delay mean (1 / lambda)
                     lla_error:  [5.0, 5.0, 5.0]      # LLA measurement error
                     pos_a_in_b_err: [0.0, 0.0, 0.0]  # Antenna position error
 ```

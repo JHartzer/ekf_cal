@@ -90,23 +90,23 @@ TEST(test_SimIMU, Constructor) {
   Eigen::Vector3d enu_3 = lla_to_enu(gps_msgs[3]->gps_lla, lla_ref);
   Eigen::Vector3d enu_4 = lla_to_enu(gps_msgs[4]->gps_lla, lla_ref);
 
-  EXPECT_NEAR(enu_0[0], -2.069, 1e-3);
-  EXPECT_NEAR(enu_0[1], -4.190, 1e-3);
-  EXPECT_NEAR(enu_0[2], -0.588, 1e-3);
+  EXPECT_NEAR(enu_0[0], -0.740, 1e-3);
+  EXPECT_NEAR(enu_0[1], -0.311, 1e-3);
+  EXPECT_NEAR(enu_0[2], 0.623, 1e-3);
 
-  EXPECT_NEAR(enu_1[0], -4.642, 1e-3);
-  EXPECT_NEAR(enu_1[1], -1.370, 1e-3);
-  EXPECT_NEAR(enu_1[2], -5.420, 1e-3);
+  EXPECT_NEAR(enu_1[0], -3.624, 1e-3);
+  EXPECT_NEAR(enu_1[1], 7.130, 1e-3);
+  EXPECT_NEAR(enu_1[2], -2.070, 1e-3);
 
-  EXPECT_NEAR(enu_2[0], 0.973, 1e-3);
-  EXPECT_NEAR(enu_2[1], 5.834, 1e-3);
-  EXPECT_NEAR(enu_2[2], 3.286, 1e-3);
+  EXPECT_NEAR(enu_2[0], -4.190, 1e-3);
+  EXPECT_NEAR(enu_2[1], -0.588, 1e-3);
+  EXPECT_NEAR(enu_2[2], -4.642, 1e-3);
 
-  EXPECT_NEAR(enu_3[0], -6.216, 1e-3);
-  EXPECT_NEAR(enu_3[1], 4.574, 1e-3);
-  EXPECT_NEAR(enu_3[2], -1.977, 1e-3);
+  EXPECT_NEAR(enu_3[0], -1.371, 1e-3);
+  EXPECT_NEAR(enu_3[1], -5.421, 1e-3);
+  EXPECT_NEAR(enu_3[2], 0.973, 1e-3);
 
-  EXPECT_NEAR(enu_4[0], 3.058, 1e-3);
-  EXPECT_NEAR(enu_4[1], 0.735, 1e-3);
-  EXPECT_NEAR(enu_4[2], 0.027, 1e-3);
+  EXPECT_NEAR(enu_4[0], 5.835, 1e-3);
+  EXPECT_NEAR(enu_4[1], 3.286, 1e-3);
+  EXPECT_NEAR(enu_4[2], -6.216, 1e-3);
 }

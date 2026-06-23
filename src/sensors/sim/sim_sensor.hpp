@@ -34,7 +34,7 @@ public:
   typedef struct Parameters
   {
     bool no_errors {false};        ///< @brief Perfect measurements flag
-    double time_error {0.0};       ///< @brief Time offset error
+    double time_jitter {0.0};      ///< @brief Exponential delay mean (1 / lambda)
   } Parameters;
 
   ///
@@ -50,15 +50,15 @@ public:
   std::vector<double> GenerateMeasurementTimes(double m_rate) const;
 
   ///
-  /// @brief Apply errors, if necessary, to sensor measurement time
+  /// @brief Apply transmission delay, if necessary, to sensor measurement time
   /// @param true_time True measurement time
-  /// @return Time with error
+  /// @return Time with positive-only delay
   ///
   double ApplyTimeError(double true_time) const;
 
 protected:
   bool m_no_errors {false};              ///< @brief Flag to remove measurement errors
-  double m_time_error {0.0};            ///< @brief Time offset error
+  double m_time_jitter {0.0};           ///< @brief Exponential delay mean (1 / lambda)
   std::shared_ptr<TruthEngine> m_truth;  ///< @brief Truth engine pointer
 };
 
