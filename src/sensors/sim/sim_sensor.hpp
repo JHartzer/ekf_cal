@@ -28,6 +28,13 @@
 class SimSensor
 {
 public:
+  struct TimingSample
+  {
+    double time_true {0.0};      ///< @brief True sensing time
+    double time_measured {0.0};  ///< @brief Sensor clock timestamp
+    double time_received {0.0};  ///< @brief Local receive timestamp
+  };
+
   ///
   /// @brief Sim IMU initialization parameters structure
   ///
@@ -35,6 +42,7 @@ public:
   {
     bool no_errors {false};        ///< @brief Perfect measurements flag
     double time_jitter {0.0};      ///< @brief Exponential delay mean (1 / lambda)
+    double clock_bias {0.0};       ///< @brief Constant sensor clock bias
   } Parameters;
 
   ///
@@ -47,18 +55,26 @@ public:
   /// @param m_rate Sensor rate
   /// @return List of sensor measurement times
   ///
-  std::vector<double> GenerateMeasurementTimes(double m_rate) const;
+  std::vector<TimingSample> GenerateMeasurementTimes(double m_rate) const;
 
   ///
-  /// @brief Apply transmission delay, if necessary, to sensor measurement time
+  /// @brief Apply sensor clock bias to true time
+  /// @param true_time True measurement time
+  /// @return Sensor clock timestamp
+  ///
+  double ApplyTimeBias(double true_time) const;
+
+  ///
+  /// @brief Apply transmission delay, if necessary, to true time
   /// @param true_time True measurement time
   /// @return Time with positive-only delay
   ///
-  double ApplyTimeError(double true_time) const;
+  double ApplyTimeDelay(double true_time) const;
 
 protected:
   bool m_no_errors {false};              ///< @brief Flag to remove measurement errors
-  double m_time_jitter {0.0};           ///< @brief Exponential delay mean (1 / lambda)
+  double m_time_jitter {0.0};            ///< @brief Exponential delay mean (1 / lambda)
+  double m_clock_bias {0.0};             ///< @brief Constant sensor clock bias
   std::shared_ptr<TruthEngine> m_truth;  ///< @brief Truth engine pointer
 };
 

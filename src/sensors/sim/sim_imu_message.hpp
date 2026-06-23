@@ -26,6 +26,8 @@ public:
   /// @brief Define SimImuMessage constructor with ImuMessage's
   ///
   using ImuMessage::ImuMessage;
+
+  double time_true {0.0};  ///< @brief True sensing time
 };
 
 

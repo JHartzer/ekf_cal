@@ -23,33 +23,42 @@
 SimSensor::SimSensor(Parameters params)
 : m_no_errors(params.no_errors)
 {
-  assert(m_time_jitter >= params.time_jitter && "Delay jitter must be positive");
+  assert(params.time_jitter >= 0.0 && "Delay jitter must be positive");
   if (m_no_errors) {
     m_time_jitter = 0.0;
+    m_clock_bias = 0.0;
   } else {
     m_time_jitter = params.time_jitter;
+    m_clock_bias = params.clock_bias;
   }
 }
 
-std::vector<double> SimSensor::GenerateMeasurementTimes(double m_rate) const
+std::vector<SimSensor::TimingSample> SimSensor::GenerateMeasurementTimes(double m_rate) const
 {
   auto num_measurements = static_cast<unsigned int>(std::floor(m_truth->m_max_time * m_rate));
   double time_init = m_no_errors ? 0 : SimRNG::UniRand(0.0, 1.0 / m_rate);
 
-  std::vector<double> message_times;
+  std::vector<TimingSample> message_times;
   for (unsigned int i = 0; i < num_measurements; ++i) {
-    message_times.push_back(ApplyTimeError(static_cast<double>(i) / m_rate + time_init));
+    const double true_time = static_cast<double>(i) / m_rate + time_init;
+    message_times.push_back(
+      TimingSample {
+      true_time,
+      ApplyTimeBias(true_time),
+      ApplyTimeDelay(true_time)});
   }
   return message_times;
 }
 
-double SimSensor::ApplyTimeError(double true_time) const
+double SimSensor::ApplyTimeBias(double true_time) const
 {
-  double time_err;
-  if (m_no_errors) {
-    time_err = true_time;
-  } else {
-    time_err = true_time + SimRNG::ExpRand(1.0 / m_time_jitter);
+  return true_time + m_clock_bias;
+}
+
+double SimSensor::ApplyTimeDelay(double true_time) const
+{
+  if (m_no_errors || m_time_jitter == 0.0) {
+    return true_time;
   }
-  return time_err;
+  return true_time + SimRNG::ExpRand(1.0 / m_time_jitter);
 }

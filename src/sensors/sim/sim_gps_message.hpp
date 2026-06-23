@@ -26,6 +26,8 @@ public:
   /// @brief Define SimGpsMessage constructor with GpsMessage's
   ///
   using GpsMessage::GpsMessage;
+
+  double time_true {0.0};  ///< @brief True sensing time
 };
 
 

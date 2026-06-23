@@ -36,6 +36,9 @@ public:
   ///
   using CameraMessage::CameraMessage;
 
+  /// @brief True sensing time
+  double time_true {0.0};
+
   /// @brief Message frame ID
   unsigned int frame_id;
 

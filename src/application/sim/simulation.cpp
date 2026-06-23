@@ -96,6 +96,8 @@ void LoadSimSensorParams(
 {
   params.no_errors = node["no_errors"].as<bool>(false);
   params.time_jitter = node["time_jitter"].as<double>(0.0);
+  params.clock_bias = node["clock_bias"].as<double>(
+    node["time_bias_error"].as<double>(0.0));
 }
 
 void LoadTrackerParams(

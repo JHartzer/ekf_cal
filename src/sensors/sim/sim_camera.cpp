@@ -95,7 +95,7 @@ SimCamera::SimCamera(
 std::vector<std::shared_ptr<SimCameraMessage>> SimCamera::GenerateMessages()
 {
   std::vector<std::shared_ptr<SimCameraMessage>> messages;
-  std::vector<double> measurement_times = GenerateMeasurementTimes(m_rate);
+  std::vector<TimingSample> measurement_times = GenerateMeasurementTimes(m_rate);
   std::map<unsigned int, cv::Mat> frame_buffer;
   unsigned int max_track_length = 0;
   for (const auto & tracker_iter : m_trackers) {
@@ -105,22 +105,25 @@ std::vector<std::shared_ptr<SimCameraMessage>> SimCamera::GenerateMessages()
   m_logger->Log(
     LogLevel::INFO, "Generating " + std::to_string(measurement_times.size()) + " Camera frames");
 
-  for (double measurement_time : measurement_times) {
+  for (const auto & measurement_time : measurement_times) {
     unsigned int frame_id = GenerateFrameID();
     cv::Mat blank_img;
     if (m_generate_video) {
-      frame_buffer[frame_id] = RenderFrame(measurement_time);
+      frame_buffer[frame_id] = RenderFrame(measurement_time.time_true);
     }
     auto cam_msg = std::make_shared<SimCameraMessage>(blank_img);
     cam_msg->sensor_id = m_id;
     cam_msg->sensor_type = SensorType::Camera;
-    cam_msg->time_measured = measurement_time;
-    cam_msg->time_received = measurement_time;
+    cam_msg->time_true = measurement_time.time_true;
+    cam_msg->time_measured = measurement_time.time_measured;
+    cam_msg->time_received = measurement_time.time_received;
     cam_msg->frame_id = frame_id;
 
     // Tracker Messages
     for (auto const & trk_iter : m_trackers) {
-      auto trk_msg = m_trackers[trk_iter.first]->GenerateMessage(measurement_time, frame_id);
+      auto trk_msg = m_trackers[trk_iter.first]->GenerateMessage(
+        measurement_time.time_true,
+        frame_id);
       cam_msg->feature_track_messages.push_back(trk_msg);
       if (m_generate_video) {
         unsigned int tracker_max_track_length = m_trackers[trk_iter.first]->GetMaxTrackLength();
@@ -136,7 +139,9 @@ std::vector<std::shared_ptr<SimCameraMessage>> SimCamera::GenerateMessages()
 
     // Fiducial Messages
     for (auto const & fid_iter : m_fiducials) {
-      auto fid_msg = m_fiducials[fid_iter.first]->GenerateMessage(measurement_time, frame_id);
+      auto fid_msg = m_fiducials[fid_iter.first]->GenerateMessage(
+        measurement_time.time_true,
+        frame_id);
       cam_msg->fiducial_track_messages.push_back(fid_msg);
     }
 
