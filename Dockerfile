@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install system packages
 RUN apt-get update && apt-get -y install \
     build-essential \
-    clang \
+    clang clangd \
     cloc \
     cmake \
     doxygen \
@@ -35,16 +35,16 @@ RUN apt-get update && apt-get -y install \
 RUN existing_group="$(getent group "${USER_GID}" | cut -d: -f1 || true)" && \
     existing_user="$(getent passwd "${USER_UID}" | cut -d: -f1 || true)" && \
     if [ -z "${existing_group}" ]; then \
-        groupadd --gid "${USER_GID}" "${USERNAME}"; \
+    groupadd --gid "${USER_GID}" "${USERNAME}"; \
     elif [ "${existing_group}" != "${USERNAME}" ] && ! getent group "${USERNAME}" >/dev/null; then \
-        groupmod --new-name "${USERNAME}" "${existing_group}"; \
+    groupmod --new-name "${USERNAME}" "${existing_group}"; \
     fi && \
     if id -u "${USERNAME}" >/dev/null 2>&1; then \
-        usermod --uid "${USER_UID}" --gid "${USER_GID}" "${USERNAME}"; \
+    usermod --uid "${USER_UID}" --gid "${USER_GID}" "${USERNAME}"; \
     elif [ -n "${existing_user}" ]; then \
-        usermod --login "${USERNAME}" --home "/home/${USERNAME}" --move-home --gid "${USER_GID}" "${existing_user}"; \
+    usermod --login "${USERNAME}" --home "/home/${USERNAME}" --move-home --gid "${USER_GID}" "${existing_user}"; \
     else \
-        useradd --uid "${USER_UID}" --gid "${USER_GID}" -m "${USERNAME}"; \
+    useradd --uid "${USER_UID}" --gid "${USER_GID}" -m "${USERNAME}"; \
     fi && \
     mkdir -p /home/${USERNAME} && \
     chown -R "${USER_UID}:${USER_GID}" /home/${USERNAME} && \
