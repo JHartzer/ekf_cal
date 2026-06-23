@@ -43,9 +43,9 @@ TEST(test_SimRNG, RNG) {
   Eigen::Quaterniond rand_quat = SimRNG::QuatNormRand(quat_mean, quat_std_dev);
 
   EXPECT_TRUE(
-    EXPECT_EIGEN_NEAR(rand_vec, Eigen::Vector3d{0.1418361, 0.2913381, 1.5366241}, 1e-6));
+    EXPECT_EIGEN_NEAR(rand_vec, Eigen::Vector3d {0.1418361, 0.2913381, 1.5366241}, 1e-6));
 
   EXPECT_TRUE(
     EXPECT_EIGEN_NEAR(
-      rand_quat, Eigen::Quaterniond{0.9956954, 0.0105244, -0.0906098, -0.0164267}, 1e-6));
+      rand_quat, Eigen::Quaterniond {0.9956954, 0.0105244, -0.0906098, -0.0164267}, 1e-6));
 }

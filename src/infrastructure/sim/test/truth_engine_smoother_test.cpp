@@ -52,8 +52,8 @@ TEST(test_TruthEngineSmoother, Oscillating) {
     0.0, 0.0, 0.0,
     0.0, 0.0, 0.0};
 
-  auto pos_errs = std::vector<double>{0.0, 0.0, 0.0};
-  auto ang_errs = std::vector<double>{0.0, 0.0, 0.0};
+  auto pos_errs = std::vector<double> {0.0, 0.0, 0.0};
+  auto ang_errs = std::vector<double> {0.0, 0.0, 0.0};
 
   auto logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
 
@@ -88,8 +88,8 @@ TEST(test_TruthEngineSmoother, Getters) {
     0.0, 0.0, 0.0,
     0.0, 0.0, 0.0};
 
-  auto pos_errs = std::vector<double>{0.0, 0.0, 0.0};
-  auto ang_errs = std::vector<double>{0.0, 0.0, 0.0};
+  auto pos_errs = std::vector<double> {0.0, 0.0, 0.0};
+  auto ang_errs = std::vector<double> {0.0, 0.0, 0.0};
 
   auto logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
 

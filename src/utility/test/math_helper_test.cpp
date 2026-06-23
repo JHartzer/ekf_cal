@@ -198,22 +198,22 @@ TEST(test_MathHelper, QuaternionJacobian) {
 
 TEST(test_MathHelper, kabsch_2d) {
   std::vector<Eigen::Vector3d> points_src;
-  points_src.push_back(Eigen::Vector3d{0, 0, 0});
-  points_src.push_back(Eigen::Vector3d{1, 1, 1});
-  points_src.push_back(Eigen::Vector3d{0, 1, 0});
-  points_src.push_back(Eigen::Vector3d{1, 0, 1});
-  points_src.push_back(Eigen::Vector3d{1, 0, 0});
-  points_src.push_back(Eigen::Vector3d{0, 1, 0});
-  points_src.push_back(Eigen::Vector3d{0, 0, 1});
+  points_src.push_back(Eigen::Vector3d {0, 0, 0});
+  points_src.push_back(Eigen::Vector3d {1, 1, 1});
+  points_src.push_back(Eigen::Vector3d {0, 1, 0});
+  points_src.push_back(Eigen::Vector3d {1, 0, 1});
+  points_src.push_back(Eigen::Vector3d {1, 0, 0});
+  points_src.push_back(Eigen::Vector3d {0, 1, 0});
+  points_src.push_back(Eigen::Vector3d {0, 0, 1});
 
   std::vector<Eigen::Vector3d> points_tgt;
-  points_tgt.push_back(Eigen::Vector3d{1.0000, 2.0000, 3.0000});
-  points_tgt.push_back(Eigen::Vector3d{0.6340, 3.3660, 4.0000});
-  points_tgt.push_back(Eigen::Vector3d{0.1340, 2.5000, 3.0000});
-  points_tgt.push_back(Eigen::Vector3d{1.5000, 2.8660, 4.0000});
-  points_tgt.push_back(Eigen::Vector3d{1.5000, 2.8660, 3.0000});
-  points_tgt.push_back(Eigen::Vector3d{0.1340, 2.5000, 3.0000});
-  points_tgt.push_back(Eigen::Vector3d{1.0000, 2.0000, 4.0000});
+  points_tgt.push_back(Eigen::Vector3d {1.0000, 2.0000, 3.0000});
+  points_tgt.push_back(Eigen::Vector3d {0.6340, 3.3660, 4.0000});
+  points_tgt.push_back(Eigen::Vector3d {0.1340, 2.5000, 3.0000});
+  points_tgt.push_back(Eigen::Vector3d {1.5000, 2.8660, 4.0000});
+  points_tgt.push_back(Eigen::Vector3d {1.5000, 2.8660, 3.0000});
+  points_tgt.push_back(Eigen::Vector3d {0.1340, 2.5000, 3.0000});
+  points_tgt.push_back(Eigen::Vector3d {1.0000, 2.0000, 4.0000});
 
   Eigen::Affine3d transform;
   double pos_stddev;
@@ -247,19 +247,19 @@ TEST(test_MathHelper, affine_angle_signed) {
 
 TEST(test_MathHelper, maximum_distance) {
   std::vector<Eigen::Vector3d> eigen_points;
-  eigen_points.push_back(Eigen::Vector3d{0, 0, 0});
-  eigen_points.push_back(Eigen::Vector3d{1, 1, 0});
-  eigen_points.push_back(Eigen::Vector3d{1, 0, 0});
-  eigen_points.push_back(Eigen::Vector3d{1, -1, 0});
-  eigen_points.push_back(Eigen::Vector3d{4, 0, 0});
+  eigen_points.push_back(Eigen::Vector3d {0, 0, 0});
+  eigen_points.push_back(Eigen::Vector3d {1, 1, 0});
+  eigen_points.push_back(Eigen::Vector3d {1, 0, 0});
+  eigen_points.push_back(Eigen::Vector3d {1, -1, 0});
+  eigen_points.push_back(Eigen::Vector3d {4, 0, 0});
   double max_dist = maximum_distance(eigen_points);
 
   EXPECT_NEAR(max_dist, 4.0, 1e-5);
 
   // Test with fractional coordinates to ensure no integer truncation occurs
   std::vector<Eigen::Vector3d> frac_points;
-  frac_points.push_back(Eigen::Vector3d{0.5, 0.0, 0.0});
-  frac_points.push_back(Eigen::Vector3d{3.7, 0.0, 0.0});
+  frac_points.push_back(Eigen::Vector3d {0.5, 0.0, 0.0});
+  frac_points.push_back(Eigen::Vector3d {3.7, 0.0, 0.0});
   double frac_max_dist = maximum_distance(frac_points);
   EXPECT_NEAR(frac_max_dist, 3.2, 1e-5);
 }

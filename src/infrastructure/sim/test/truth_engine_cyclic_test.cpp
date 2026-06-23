@@ -127,17 +127,17 @@ TEST(test_TruthEngineCyclic, Constructor) {
   Eigen::Vector3d ang_acc = truth_engine_cyclic.GetBodyAngularAcceleration(1.0);
 
   EXPECT_TRUE(EXPECT_EIGEN_NEAR(pos, pos_offset, 1e-6));
-  EXPECT_TRUE(EXPECT_EIGEN_NEAR(vel, Eigen::Vector3d{0, 0, 0}, 1e-6));
-  EXPECT_TRUE(EXPECT_EIGEN_NEAR(acc, Eigen::Vector3d{19.739208, 78.956835, 177.652879}, 1e-6));
+  EXPECT_TRUE(EXPECT_EIGEN_NEAR(vel, Eigen::Vector3d {0, 0, 0}, 1e-6));
+  EXPECT_TRUE(EXPECT_EIGEN_NEAR(acc, Eigen::Vector3d {19.739208, 78.956835, 177.652879}, 1e-6));
 
   EXPECT_TRUE(EXPECT_EIGEN_NEAR(ang_rpy, ang_offset, 1e-6));
-  EXPECT_TRUE(EXPECT_EIGEN_NEAR(ang_vel, Eigen::Vector3d{0, 0, 0}, 1e-6));
-  EXPECT_TRUE(EXPECT_EIGEN_NEAR(ang_acc, Eigen::Vector3d{17.465062, 56.054351, 64.370144}, 1e-6));
+  EXPECT_TRUE(EXPECT_EIGEN_NEAR(ang_vel, Eigen::Vector3d {0, 0, 0}, 1e-6));
+  EXPECT_TRUE(EXPECT_EIGEN_NEAR(ang_acc, Eigen::Vector3d {17.465062, 56.054351, 64.370144}, 1e-6));
 
   EXPECT_TRUE(
     EXPECT_EIGEN_NEAR(
       ang_pos,
-      Eigen::Quaterniond{0.983347, 0.034270, 0.106020, 0.143572}, 1e-6));
+      Eigen::Quaterniond {0.983347, 0.034270, 0.106020, 0.143572}, 1e-6));
 }
 
 TEST(test_TruthEngineCyclic, WriteTruthData) {

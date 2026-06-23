@@ -234,7 +234,7 @@ TEST(test_imu_updater, jacobian) {
   bool is_intrinsic{true};
   ImuState imu_state;
   imu_state.pos_i_in_b = Eigen::Vector3d{1, 2, 3};
-  imu_state.ang_i_to_b = RotVecToQuat(Eigen::Vector3d{0.2, -0.1, 0.15});
+  imu_state.ang_i_to_b = RotVecToQuat(Eigen::Vector3d {0.2, -0.1, 0.15});
   imu_state.acc_bias = Eigen::Vector3d{0.4, -0.2, 0.1};
   imu_state.omg_bias = Eigen::Vector3d{-0.3, 0.5, -0.4};
   imu_state.SetIsExtrinsic(is_extrinsic);
@@ -248,7 +248,7 @@ TEST(test_imu_updater, jacobian) {
   EKF ekf(ekf_params);
   ekf.RegisterIMU(imu_id, imu_state, covariance);
   ekf.m_state.body_state.acc_b_in_l = Eigen::Vector3d{1.5, -2.0, 9.0};
-  ekf.m_state.body_state.ang_b_to_l = RotVecToQuat(Eigen::Vector3d{-0.4, 0.25, 0.1});
+  ekf.m_state.body_state.ang_b_to_l = RotVecToQuat(Eigen::Vector3d {-0.4, 0.25, 0.1});
   ekf.m_state.body_state.ang_vel_b_in_l = Eigen::Vector3d{0.8, -0.6, 0.3};
   ekf.m_state.body_state.ang_acc_b_in_l = Eigen::Vector3d{-0.2, 0.4, 0.5};
 
