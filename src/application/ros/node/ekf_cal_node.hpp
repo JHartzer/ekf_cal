@@ -222,6 +222,36 @@ public:
   void GpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr msg, unsigned int id);
 
   ///
+  /// @brief Current ROS receipt time getter
+  /// @return Current ROS time in seconds
+  ///
+  virtual double GetCurrentRosTime() const;
+
+  ///
+  /// @brief EKF getter method
+  /// @return EKF shared pointer
+  ///
+  std::shared_ptr<EKF> GetEkf() const;
+
+  ///
+  /// @brief Registered IMU ID getter method
+  /// @return Registered IMU IDs
+  ///
+  std::vector<unsigned int> GetImuIds() const;
+
+  ///
+  /// @brief Registered camera ID getter method
+  /// @return Registered camera IDs
+  ///
+  std::vector<unsigned int> GetCameraIds() const;
+
+  ///
+  /// @brief Registered GPS ID getter method
+  /// @return Registered GPS IDs
+  ///
+  std::vector<unsigned int> GetGpsIds() const;
+
+  ///
   /// @brief Register IMU sensor
   /// @param imu_ptr IMU sensor shared pointer
   /// @param topic Topic to subscribe

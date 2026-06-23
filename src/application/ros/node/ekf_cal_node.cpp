@@ -628,6 +628,7 @@ void EkfCalNode::ImuCallback(const sensor_msgs::msg::Imu::SharedPtr msg, unsigne
   if (ros_imu_iter != m_map_imu.end()) {
     auto ros_imu_message = std::make_shared<RosImuMessage>(msg);
     ros_imu_message->sensor_id = imu_id;
+    ros_imu_message->time_received = GetCurrentRosTime();
     ros_imu_iter->second->Callback(*ros_imu_message);
   } else {
     m_debug_logger->Log(LogLevel::WARN, "IMU ID Not Found: " + std::to_string(imu_id));
@@ -640,6 +641,7 @@ void EkfCalNode::CameraCallback(const sensor_msgs::msg::Image::SharedPtr msg, un
   if (ros_cam_iter != m_map_camera.end()) {
     auto ros_camera_message = std::make_shared<RosCameraMessage>(msg);
     ros_camera_message->sensor_id = cam_id;
+    ros_camera_message->time_received = GetCurrentRosTime();
     if (ros_cam_iter->second->Callback(*ros_camera_message)) {
       m_map_image_publishers[cam_id]->publish(*ros_cam_iter->second->GetRosImage().get());
     }
@@ -654,10 +656,52 @@ void EkfCalNode::GpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr msg, u
   if (ros_gps_iter != m_map_gps.end()) {
     auto ros_gps_message = std::make_shared<RosGpsMessage>(msg);
     ros_gps_message->sensor_id = gps_id;
+    ros_gps_message->time_received = GetCurrentRosTime();
     ros_gps_iter->second->Callback(*ros_gps_message);
   } else {
     m_debug_logger->Log(LogLevel::WARN, "GPS ID Not Found: " + std::to_string(gps_id));
   }
+}
+
+double EkfCalNode::GetCurrentRosTime() const
+{
+  rclcpp::Clock ros_clock(RCL_ROS_TIME);
+  return ros_clock.now().seconds();
+}
+
+std::shared_ptr<EKF> EkfCalNode::GetEkf() const
+{
+  return m_ekf;
+}
+
+std::vector<unsigned int> EkfCalNode::GetImuIds() const
+{
+  std::vector<unsigned int> imu_ids;
+  imu_ids.reserve(m_map_imu.size());
+  for (const auto & imu_iter : m_map_imu) {
+    imu_ids.push_back(imu_iter.first);
+  }
+  return imu_ids;
+}
+
+std::vector<unsigned int> EkfCalNode::GetCameraIds() const
+{
+  std::vector<unsigned int> camera_ids;
+  camera_ids.reserve(m_map_camera.size());
+  for (const auto & camera_iter : m_map_camera) {
+    camera_ids.push_back(camera_iter.first);
+  }
+  return camera_ids;
+}
+
+std::vector<unsigned int> EkfCalNode::GetGpsIds() const
+{
+  std::vector<unsigned int> gps_ids;
+  gps_ids.reserve(m_map_gps.size());
+  for (const auto & gps_iter : m_map_gps) {
+    gps_ids.push_back(gps_iter.first);
+  }
+  return gps_ids;
 }
 
 void EkfCalNode::PublishState()
