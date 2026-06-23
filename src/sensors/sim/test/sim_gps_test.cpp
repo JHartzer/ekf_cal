@@ -24,6 +24,7 @@
 #include "sensors/sim/sim_gps.hpp"
 #include "sensors/gps.hpp"
 #include "infrastructure/sim/truth_engine_cyclic.hpp"
+#include "utility/custom_assertions.hpp"
 #include "utility/gps_helper.hpp"
 #include "utility/sim/sim_rng.hpp"
 
@@ -77,6 +78,8 @@ TEST(test_SimIMU, Constructor) {
   SimRNG::SetSeed(1);
   auto gps_msgs = sim_gps.GenerateMessages();
 
+  ASSERT_EQ(gps_msgs.size(), 5U);
+
   EXPECT_NEAR(gps_msgs[1]->time - gps_msgs[0]->time, 0.2, 1e-3);
   EXPECT_NEAR(gps_msgs[2]->time - gps_msgs[1]->time, 0.2, 1e-3);
   EXPECT_NEAR(gps_msgs[3]->time - gps_msgs[2]->time, 0.2, 1e-3);
@@ -90,23 +93,21 @@ TEST(test_SimIMU, Constructor) {
   Eigen::Vector3d enu_3 = lla_to_enu(gps_msgs[3]->gps_lla, lla_ref);
   Eigen::Vector3d enu_4 = lla_to_enu(gps_msgs[4]->gps_lla, lla_ref);
 
-  EXPECT_NEAR(enu_0[0], -0.740, 1e-3);
-  EXPECT_NEAR(enu_0[1], -0.311, 1e-3);
-  EXPECT_NEAR(enu_0[2], 0.623, 1e-3);
+  Eigen::Matrix<double, 3, 5> actual_enu;
+  actual_enu.col(0) = enu_0;
+  actual_enu.col(1) = enu_1;
+  actual_enu.col(2) = enu_2;
+  actual_enu.col(3) = enu_3;
+  actual_enu.col(4) = enu_4;
 
-  EXPECT_NEAR(enu_1[0], -3.624, 1e-3);
-  EXPECT_NEAR(enu_1[1], 7.130, 1e-3);
-  EXPECT_NEAR(enu_1[2], -2.070, 1e-3);
+  Eigen::Matrix<double, 3, 5> expected_enu;
+  expected_enu <<
+    -3.975731218547462, -3.241438707384807, -8.723102808343120, -3.637050441044434,
+    -11.948954408806850,
+    9.689731022356913, -7.620322901563574, 4.919450254471199, 5.113124802518838,
+    1.965546277388789,
+    0.587595834396780, 4.568832923658192, -9.400261871516705, -2.405500561930239,
+    -1.413087132386863;
 
-  EXPECT_NEAR(enu_2[0], -4.190, 1e-3);
-  EXPECT_NEAR(enu_2[1], -0.588, 1e-3);
-  EXPECT_NEAR(enu_2[2], -4.642, 1e-3);
-
-  EXPECT_NEAR(enu_3[0], -1.371, 1e-3);
-  EXPECT_NEAR(enu_3[1], -5.421, 1e-3);
-  EXPECT_NEAR(enu_3[2], 0.973, 1e-3);
-
-  EXPECT_NEAR(enu_4[0], 5.835, 1e-3);
-  EXPECT_NEAR(enu_4[1], 3.286, 1e-3);
-  EXPECT_NEAR(enu_4[2], -6.216, 1e-3);
+  EXPECT_TRUE(EXPECT_EIGEN_NEAR(actual_enu, expected_enu, 1e-6));
 }
