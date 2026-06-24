@@ -102,6 +102,7 @@ def plot_sim_results(config_sets, args):
         imu_acc_bias_err_dfs_dict = find_and_read_data_frames(data_dirs, 'imu_acc_bias_err')
         imu_gyr_bias_err_dfs_dict = find_and_read_data_frames(data_dirs, 'imu_gyr_bias_err')
         imu_nees_dfs_dict = find_and_read_data_frames(data_dirs, 'imu_nees')
+        imu_timing_dfs_dict = find_and_read_data_frames(data_dirs, 'imu_timing')
 
         imu_dfs_dict = find_and_read_data_frames(data_dirs, 'imu')
         for key in sorted(imu_dfs_dict.keys()):
@@ -119,7 +120,8 @@ def plot_sim_results(config_sets, args):
                 body_truth_dfs,
                 args,
                 err_dfs=imu_err_dfs,
-                rate=config_data['imu_rates'].get(key)).get_tab())
+                rate=config_data['imu_rates'].get(key),
+                timing_dfs=imu_timing_dfs_dict.get(key, [])).get_tab())
 
         # Load MSCKF errors & NEES
         cam_pos_err_dfs_dict = find_and_read_data_frames(data_dirs, 'cam_pos_err')
@@ -130,6 +132,7 @@ def plot_sim_results(config_sets, args):
         tri_dfs_dict = find_and_read_data_frames(data_dirs, 'triangulation')
         feat_dfs_dict = find_and_read_data_frames(data_dirs, 'feature_points')
         tri_err_dfs_dict = find_and_read_data_frames(data_dirs, 'triangulation_err')
+        camera_timing_dfs_dict = find_and_read_data_frames(data_dirs, 'camera_timing')
 
         for key in sorted(mskcf_dfs_dict.keys()):
             mskcf_dfs = mskcf_dfs_dict[key]
@@ -145,7 +148,8 @@ def plot_sim_results(config_sets, args):
             tabs.append(tab_msckf(
                 mskcf_dfs, tri_dfs, feat_dfs, body_truth_dfs, args,
                 err_dfs=cam_err_dfs,
-                rate=config_data['camera_rates'].get(key)).get_tab())
+                rate=config_data['camera_rates'].get(key),
+                timing_dfs=camera_timing_dfs_dict.get(key, [])).get_tab())
 
         # Load Fiducial errors & NEES
         fiducial_pos_err_dfs_dict = find_and_read_data_frames(data_dirs, 'fiducial_pos_err')
@@ -173,6 +177,7 @@ def plot_sim_results(config_sets, args):
         # Load GPS errors & NEES
         gps_pos_err_dfs_dict = find_and_read_data_frames(data_dirs, 'gps_pos_err')
         gps_nees_dfs_dict = find_and_read_data_frames(data_dirs, 'gps_nees')
+        gps_timing_dfs_dict = find_and_read_data_frames(data_dirs, 'gps_timing')
 
         gps_dfs_dict = find_and_read_data_frames(data_dirs, 'gps')
         for key in sorted(gps_dfs_dict.keys()):
@@ -187,7 +192,8 @@ def plot_sim_results(config_sets, args):
                 body_truth_dfs,
                 args,
                 err_dfs=gps_err_dfs,
-                rate=config_data['gps_rates'].get(key)).get_tab())
+                rate=config_data['gps_rates'].get(key),
+                timing_dfs=gps_timing_dfs_dict.get(key, [])).get_tab())
 
         # Hide legends on click
         for tab in tabs:

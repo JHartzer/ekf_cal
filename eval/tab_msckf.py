@@ -22,14 +22,20 @@ from bokeh.models import Band, Range1d, Spacer, TabPanel
 from bokeh.plotting import ColumnDataSource, figure
 import numpy as np
 from scipy.stats.distributions import chi2
-from utilities import calculate_alpha, get_colors, plot_update_timing
+from utilities import (
+    calculate_alpha,
+    get_colors,
+    plot_timing_alignment_error,
+    plot_timing_offsets,
+    plot_update_timing,
+)
 
 
 class tab_msckf:
     """Class for plotting camera MSCKF data."""
 
     def __init__(self, msckf_dfs, tri_dfs, feat_dfs, body_truth_dfs, args, err_dfs=None,
-                 rate=None):
+                 rate=None, timing_dfs=None):
         """Initialize the tab_msckf class for plotting camera MSCKF information."""
         self.msckf_dfs = msckf_dfs
         self.tri_dfs = tri_dfs
@@ -40,6 +46,7 @@ class tab_msckf:
         self.colors = get_colors(args)
         self.err_dfs = err_dfs if err_dfs is not None else {}
         self.rate = rate
+        self.timing_dfs = timing_dfs if timing_dfs is not None else []
 
     def plot_cam_pos(self):
         """Plot camera position offsets."""
@@ -290,6 +297,11 @@ class tab_msckf:
             layout_plots.append([self.plot_cam_pos_cov(), self.plot_cam_ang_cov()])
 
         layout_plots.append([plot_update_timing(self.msckf_dfs, self.rate), Spacer()])
+
+        if self.timing_dfs:
+            layout_plots.append([
+                plot_timing_offsets(self.timing_dfs),
+                plot_timing_alignment_error(self.timing_dfs)])
 
         if self.is_extrinsic:
             layout_plots.append([self.plot_cam_nees(), Spacer()])

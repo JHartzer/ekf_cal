@@ -20,13 +20,19 @@ from bokeh.models import Range1d, Spacer, TabPanel
 from bokeh.plotting import figure
 import numpy as np
 from scipy.stats.distributions import chi2
-from utilities import calculate_alpha, get_colors, plot_update_timing
+from utilities import (
+    calculate_alpha,
+    get_colors,
+    plot_timing_alignment_error,
+    plot_timing_offsets,
+    plot_update_timing,
+)
 
 
 class tab_gps:
     """Class for plotting GPS data."""
 
-    def __init__(self, gps_dfs, body_truth_dfs, args, err_dfs=None, rate=None):
+    def __init__(self, gps_dfs, body_truth_dfs, args, err_dfs=None, rate=None, timing_dfs=None):
         """Initialize the tab_gps class for plotting GPS information."""
         self.gps_dfs = gps_dfs
         self.body_truth_dfs = body_truth_dfs
@@ -35,6 +41,7 @@ class tab_gps:
         self.colors = get_colors(args)
         self.err_dfs = err_dfs if err_dfs is not None else {}
         self.rate = rate
+        self.timing_dfs = timing_dfs if timing_dfs is not None else []
 
     def plot_gps_measurements(self):
         """Plot camera GPS measurements."""
@@ -143,6 +150,11 @@ class tab_gps:
             layout_plots.append([self.plot_ant_pos_error(), self.plot_gps_cov()])
 
         layout_plots.append([plot_update_timing(self.gps_dfs, self.rate), Spacer()])
+
+        if self.timing_dfs:
+            layout_plots.append([
+                plot_timing_offsets(self.timing_dfs),
+                plot_timing_alignment_error(self.timing_dfs)])
 
         if self.is_extrinsic:
             layout_plots.append([self.plot_gps_nees(), Spacer()])

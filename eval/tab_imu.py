@@ -19,13 +19,19 @@ from bokeh.layouts import layout
 from bokeh.models import Range1d, Spacer, TabPanel
 from bokeh.plotting import figure
 from scipy.stats.distributions import chi2
-from utilities import calculate_alpha, get_colors, plot_update_timing
+from utilities import (
+    calculate_alpha,
+    get_colors,
+    plot_timing_alignment_error,
+    plot_timing_offsets,
+    plot_update_timing,
+)
 
 
 class tab_imu:
     """Class for plotting IMU data."""
 
-    def __init__(self, imu_dfs, body_truth_dfs, args, err_dfs=None, rate=None):
+    def __init__(self, imu_dfs, body_truth_dfs, args, err_dfs=None, rate=None, timing_dfs=None):
         """Initialize the tab_imu class for plotting IMU information."""
         self.imu_dfs = imu_dfs
         self.body_truth_dfs = body_truth_dfs
@@ -35,6 +41,7 @@ class tab_imu:
         self.colors = get_colors(args)
         self.err_dfs = err_dfs if err_dfs is not None else {}
         self.rate = rate
+        self.timing_dfs = timing_dfs if timing_dfs is not None else []
 
     def plot_acc_measurements(self):
         """Plot acceleration measurements."""
@@ -318,6 +325,11 @@ class tab_imu:
             layout_plots.append([self.plot_acc_bias_err(), self.plot_omg_bias_err()])
 
         layout_plots.append([plot_update_timing(self.imu_dfs, self.rate), self.plot_stationary()])
+
+        if self.timing_dfs:
+            layout_plots.append([
+                plot_timing_offsets(self.timing_dfs),
+                plot_timing_alignment_error(self.timing_dfs)])
 
         if self.is_extrinsic or self.is_intrinsic:
             layout_plots.append([self.plot_imu_nees(), Spacer()])

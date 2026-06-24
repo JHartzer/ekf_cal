@@ -109,11 +109,18 @@ def test_get_matching_datasets_filters_truth_and_run_sensor_datasets(tmp_path):
         run_0 = h5_file.create_group('run_0')
         _write_dataset(run_0, 'imu_1', [[0.0, 1.0]], ['time', 'imu_pos_0'])
         _write_dataset(run_0, 'imu_2', [[0.0, 2.0]], ['time', 'imu_pos_0'])
+        _write_dataset(
+            run_0,
+            'imu_1_timing',
+            [[0.0, 0.0, 0.1]],
+            ['time_used', 'time_offset_sample', 'time_offset_min'])
         _write_dataset(run_0, 'body_state', [[0.0, 3.0]], ['time', 'body_pos_0'])
 
     assert utilities.get_matching_datasets(str(h5_path), None, 'body_truth') == ['truth/body']
     assert utilities.get_matching_datasets(str(h5_path), 'run_0', 'imu') == [
         'run_0/imu_1', 'run_0/imu_2']
+    assert utilities.get_matching_datasets(str(h5_path), 'run_0', 'imu_timing') == [
+        'run_0/imu_1_timing']
     assert utilities.get_matching_datasets(str(h5_path), 'run_0', 'body_state') == [
         'run_0/body_state']
 
@@ -139,9 +146,21 @@ def test_find_and_read_data_frames_reads_merged_hdf5_and_replicates_truth(tmp_pa
         run_1 = h5_file.create_group('run_1')
         _write_dataset(run_0, 'imu_1', [[0.0, 1.0], [1.0, np.nan]], ['time', 'imu_pos_0'])
         _write_dataset(run_1, 'imu_1', [[0.0, 2.0], [1.0, 3.0]], ['time', 'imu_pos_0'])
+        _write_dataset(
+            run_0,
+            'imu_1_timing',
+            [[0.0, 0.1, 0.1], [1.0, 0.2, 0.1]],
+            ['time_used', 'time_offset_sample', 'time_offset_min'])
+        _write_dataset(
+            run_1,
+            'imu_1_timing',
+            [[0.0, 0.3, 0.2], [1.0, 0.4, 0.2]],
+            ['time_used', 'time_offset_sample', 'time_offset_min'])
 
     truth_sets = utilities.find_and_read_data_frames([str(run0_dir), str(run1_dir)], 'body_truth')
     imu_sets = utilities.find_and_read_data_frames([str(run0_dir), str(run1_dir)], 'imu')
+    imu_timing_sets = utilities.find_and_read_data_frames(
+        [str(run0_dir), str(run1_dir)], 'imu_timing')
 
     assert len(truth_sets[0]) == 2
     assert truth_sets[0][0].attrs['id'] == 0
@@ -153,6 +172,41 @@ def test_find_and_read_data_frames_reads_merged_hdf5_and_replicates_truth(tmp_pa
     # NaN rows should be dropped on readback.
     np.testing.assert_allclose(imu_sets[1][0]['time'], [0.0])
     np.testing.assert_allclose(imu_sets[1][1]['imu_pos_0'], [2.0, 3.0])
+
+    assert len(imu_timing_sets[1]) == 2
+    assert imu_timing_sets[1][0].attrs['prefix'] == 'IMU'
+    assert imu_timing_sets[1][0].attrs['id'] == 1
+    np.testing.assert_allclose(imu_timing_sets[1][0]['time_offset_min'], [0.1, 0.1])
+
+
+def test_find_and_read_data_frames_preserves_timing_rows_with_optional_nan_columns(tmp_path):
+    base_dir = tmp_path / 'config'
+    runs_dir = base_dir / 'runs'
+    run0_dir = runs_dir / 'example_0'
+    run0_dir.mkdir(parents=True)
+
+    merged_h5 = base_dir / 'example.h5'
+    with h5py.File(merged_h5, 'w') as h5_file:
+        run_0 = h5_file.create_group('run_0')
+        _write_dataset(
+            run_0,
+            'camera_3_timing',
+            [[0.0, 0.0, 0.1, np.nan, 0.1, 0.1, np.nan]],
+            [
+                'time_used',
+                'time_measured',
+                'time_received',
+                'time_true',
+                'time_offset_sample',
+                'time_offset_min',
+                'time_alignment_error',
+            ])
+
+    timing_sets = utilities.find_and_read_data_frames([str(run0_dir)], 'camera_timing')
+
+    assert list(timing_sets.keys()) == [3]
+    assert len(timing_sets[3][0]) == 1
+    np.testing.assert_allclose(timing_sets[3][0]['time_offset_min'], [0.1])
 
 
 def test_find_and_read_data_frames_falls_back_to_csv(tmp_path):

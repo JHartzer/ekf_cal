@@ -190,6 +190,7 @@ void SimCamera::Callback(const SimCameraMessage & sim_camera_message)
 
 void SimCamera::ExecuteCallback(const SimCameraMessage & sim_camera_message)
 {
+  LogTiming(sim_camera_message);
   double local_time = m_ekf->CalculateLocalTime(sim_camera_message.time_used);
   m_ekf->PredictModel(local_time);
 
