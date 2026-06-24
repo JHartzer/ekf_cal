@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 #ifndef SENSORS__SIM__SIM_IMU_MESSAGE_HPP_
 #define SENSORS__SIM__SIM_IMU_MESSAGE_HPP_
 
