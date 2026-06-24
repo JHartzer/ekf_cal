@@ -20,7 +20,9 @@
 #include <Eigen/Geometry>
 #include <Eigen/LU>
 #include <gtest/gtest.h>
-#include <math.h>
+
+#include <cmath>
+#include <cstdlib>
 
 static testing::AssertionResult EXPECT_EIGEN_NEAR(
   const Eigen::MatrixXd & mat1, const Eigen::MatrixXd & mat2, double precision)

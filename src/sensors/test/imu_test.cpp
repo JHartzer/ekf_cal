@@ -17,7 +17,9 @@
 
 #include <memory>
 
+#include "ekf/constants.hpp"
 #include "ekf/ekf.hpp"
+#include "ekf/types.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "sensors/imu_message.hpp"
 #include "sensors/imu.hpp"
@@ -105,6 +107,7 @@ TEST(test_IMU, Callback) {
   imu_params.logger = ekf_params.debug_logger;
   imu_params.is_intrinsic = true;
   imu_params.is_extrinsic = true;
+  imu_params.filter_sensor_time = false;
   IMU imu(imu_params);
 
   ImuMessage imu_message;

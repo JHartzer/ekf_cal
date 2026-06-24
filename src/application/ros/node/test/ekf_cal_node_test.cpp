@@ -14,10 +14,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <gtest/gtest.h>
-
 #include <stddef.h>
 
+#include <memory>
 #include <string>
+#include <vector>
 
 #include <cv_bridge/cv_bridge.hpp>
 #include <geometry_msgs/msg/vector3.hpp>
@@ -28,6 +29,10 @@
 #include <std_msgs/msg/header.hpp>
 
 #include "application/ros/node/ekf_cal_node.hpp"
+#include "sensor_msgs/msg/image.hpp"
+#include "sensor_msgs/msg/nav_sat_fix.hpp"
+#include "sensors/ros/ros_gps_message.hpp"
+#include "sensors/ros/ros_imu_message.hpp"
 
 ///
 /// @class EkfCalNode_test

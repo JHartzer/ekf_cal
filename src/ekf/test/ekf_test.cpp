@@ -17,6 +17,7 @@
 #include <Eigen/Geometry>
 #include <gtest/gtest.h>
 #include <memory>
+#include <vector>
 
 #include "ekf/constants.hpp"
 #include "ekf/ekf.hpp"

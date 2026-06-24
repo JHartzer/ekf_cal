@@ -18,6 +18,7 @@
 
 #include "ekf/ekf.hpp"
 #include "infrastructure/debug_logger.hpp"
+#include "sensor_msgs/msg/imu.hpp"
 #include "sensors/imu.hpp"
 #include "sensors/ros/ros_imu.hpp"
 #include "sensors/ros/ros_imu_message.hpp"

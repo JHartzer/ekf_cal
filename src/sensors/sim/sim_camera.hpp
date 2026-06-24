@@ -30,7 +30,6 @@
 #include "sensors/sim/sim_camera_message.hpp"
 #include "sensors/sim/sim_sensor.hpp"
 #include "trackers/sim/sim_feature_tracker.hpp"
-#include "trackers/sim/sim_feature_tracker_message.hpp"
 #include "trackers/sim/sim_fiducial_tracker.hpp"
 
 

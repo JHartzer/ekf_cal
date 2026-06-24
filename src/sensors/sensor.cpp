@@ -15,6 +15,7 @@
 
 #include "sensors/sensor.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <limits>

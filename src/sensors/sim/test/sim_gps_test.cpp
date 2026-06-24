@@ -14,12 +14,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <Eigen/Core>
+#include <gtest/gtest.h>
 #include <H5Cpp.h>
 
-#include <gtest/gtest.h>
+#include <cmath>
 #include <cstdlib>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "ekf/ekf.hpp"
 #include "infrastructure/debug_logger.hpp"

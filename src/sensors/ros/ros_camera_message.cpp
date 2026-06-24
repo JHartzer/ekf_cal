@@ -13,8 +13,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "sensors/ros/ros_camera_message.hpp"
 #include "ekf/types.hpp"
+#include "sensors/camera_message.hpp"
+#include "sensors/ros/ros_camera_message.hpp"
 #include "utility/ros_helper.hpp"
 
 #include <cv_bridge/cv_bridge.hpp>

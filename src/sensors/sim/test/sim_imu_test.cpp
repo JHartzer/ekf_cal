@@ -13,8 +13,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include <H5Cpp.h>
 #include <gtest/gtest.h>
+#include <H5Cpp.h>
+
+#include <cmath>
 #include <cstdlib>
 #include <memory>
 #include <string>

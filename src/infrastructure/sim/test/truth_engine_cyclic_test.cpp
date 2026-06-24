@@ -20,6 +20,7 @@
 #include <memory>
 #include <vector>
 
+#include "ekf/types.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "infrastructure/sim/truth_engine_cyclic.hpp"
 #include "utility/custom_assertions.hpp"

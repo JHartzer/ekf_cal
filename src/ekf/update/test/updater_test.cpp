@@ -15,6 +15,7 @@
 
 #include <Eigen/Core>
 #include <gtest/gtest.h>
+#include <stdlib.h>
 
 #include <cstdlib>
 #include <memory>

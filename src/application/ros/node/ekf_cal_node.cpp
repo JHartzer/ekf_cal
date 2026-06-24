@@ -17,11 +17,12 @@
 
 #include <Eigen/Core>
 
-#include <algorithm>
+#include <chrono>
 #include <functional>
-#include <stdexcept>
+#include <map>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -34,6 +35,7 @@
 #include "ekf/constants.hpp"
 #include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "infrastructure/ekf_cal_version.hpp"
 #include "sensors/camera.hpp"
 #include "sensors/gps.hpp"
