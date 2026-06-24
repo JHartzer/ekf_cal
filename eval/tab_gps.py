@@ -24,7 +24,6 @@ from utilities import (
     calculate_alpha,
     get_colors,
     plot_timing_alignment_error,
-    plot_timing_offsets,
     plot_update_timing,
 )
 
@@ -152,9 +151,7 @@ class tab_gps:
         layout_plots.append([plot_update_timing(self.gps_dfs, self.rate), Spacer()])
 
         if self.timing_dfs:
-            layout_plots.append([
-                plot_timing_offsets(self.timing_dfs),
-                plot_timing_alignment_error(self.timing_dfs)])
+            layout_plots.append([plot_timing_alignment_error(self.timing_dfs), Spacer()])
 
         if self.is_extrinsic:
             layout_plots.append([self.plot_gps_nees(), Spacer()])

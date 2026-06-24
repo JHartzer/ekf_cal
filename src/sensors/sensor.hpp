@@ -44,7 +44,7 @@ public:
     double rate{1.0};                     ///< @brief Update rate
     double data_log_rate {0.0};           ///< @brief Data logging rate
     std::string log_directory {""};       ///< @brief Data logging directory
-    bool filter_sensor_time {false};      ///< @brief Enable min-delay timestamp filtering
+    bool filter_sensor_time {true};       ///< @brief Enable min-delay timestamp filtering
     double measurement_time_reorder_window {1.0};  ///< @brief Reorder window in seconds
     std::shared_ptr<DebugLogger> logger;  ///< @brief Debug logger
     std::shared_ptr<EKF> ekf;             ///< @brief EKF to update

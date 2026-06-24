@@ -60,8 +60,17 @@ public:
   ///
   std::vector<std::shared_ptr<SimGpsMessage>> GenerateMessages() const;
 
+  ///
+  /// @brief Callback method for simulated GPS measurements
+  /// @param gps_message Simulated GPS measurement message
+  ///
+  void Callback(const SimGpsMessage & gps_message);
+
+  void Flush() override;
+
 private:
   Eigen::Vector3d m_lla_error{1e-9, 1e-9, 1e-9};
+  std::vector<SimGpsMessage> m_message_buffer;
 };
 
 

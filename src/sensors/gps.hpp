@@ -67,7 +67,7 @@ public:
 
   void Flush() override;
 
-private:
+protected:
   void ExecuteCallback(const GpsMessage & gps_message);
 
   std::shared_ptr<EKF> m_ekf;

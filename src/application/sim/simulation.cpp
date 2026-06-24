@@ -82,7 +82,7 @@ void LoadSensorParams(
   params.topic = node["topic"].as<std::string>("");
   params.rate = node["rate"].as<double>(1.0);
   params.data_log_rate = node["data_log_rate"].as<double>(0.0);
-  params.filter_sensor_time = node["filter_sensor_time"].as<bool>(false);
+  params.filter_sensor_time = node["filter_sensor_time"].as<bool>(true);
   params.measurement_time_reorder_window = measurement_time_reorder_window;
   params.name = name;
   params.log_directory = log_directory;
@@ -96,8 +96,7 @@ void LoadSimSensorParams(
 {
   params.no_errors = node["no_errors"].as<bool>(false);
   params.time_jitter = node["time_jitter"].as<double>(0.0);
-  params.clock_bias = node["clock_bias"].as<double>(
-    node["time_bias_error"].as<double>(0.0));
+  params.time_bias_error = node["time_bias_error"].as<double>(0.0);
 }
 
 void LoadTrackerParams(

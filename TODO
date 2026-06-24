@@ -4,10 +4,6 @@ Package Features:
     - Play rosbag through as fast as possible given yaml
         - Use time-coordinator node
     - Reduce state with single IMU
-    - Add measurement time filters
-        - Sliding window filter
-        - Kalman update
-        - Complementary filter
 
 Simulation:
     - Add data drops to input file

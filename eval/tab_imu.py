@@ -23,7 +23,6 @@ from utilities import (
     calculate_alpha,
     get_colors,
     plot_timing_alignment_error,
-    plot_timing_offsets,
     plot_update_timing,
 )
 
@@ -327,9 +326,7 @@ class tab_imu:
         layout_plots.append([plot_update_timing(self.imu_dfs, self.rate), self.plot_stationary()])
 
         if self.timing_dfs:
-            layout_plots.append([
-                plot_timing_offsets(self.timing_dfs),
-                plot_timing_alignment_error(self.timing_dfs)])
+            layout_plots.append([plot_timing_alignment_error(self.timing_dfs), Spacer()])
 
         if self.is_extrinsic or self.is_intrinsic:
             layout_plots.append([self.plot_imu_nees(), Spacer()])

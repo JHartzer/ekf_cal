@@ -14,12 +14,16 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <Eigen/Core>
+#include <H5Cpp.h>
 
 #include <gtest/gtest.h>
+#include <cstdlib>
 #include <memory>
+#include <string>
 
 #include "ekf/ekf.hpp"
 #include "infrastructure/debug_logger.hpp"
+#include "infrastructure/hdf5_log_manager.hpp"
 #include "infrastructure/sim/truth_engine.hpp"
 #include "sensors/sim/sim_gps.hpp"
 #include "sensors/gps.hpp"
@@ -27,6 +31,43 @@
 #include "utility/custom_assertions.hpp"
 #include "utility/gps_helper.hpp"
 #include "utility/sim/sim_rng.hpp"
+
+namespace
+{
+std::string GetHdf5Filename(const std::string & directory)
+{
+  std::string dir = directory;
+  while (!dir.empty() && dir.back() == '/') {
+    dir.pop_back();
+  }
+  const std::size_t pos = dir.find_last_of('/');
+  const std::string base = (pos == std::string::npos) ? dir : dir.substr(pos + 1);
+  return base + ".h5";
+}
+
+std::vector<double> ReadHdf5Column(
+  const std::string & directory,
+  const std::string & dataset_path,
+  std::size_t column_index)
+{
+  std::string h5_filename = GetHdf5Filename(directory);
+  std::shared_ptr<H5::H5File> file = Hdf5LogManager::GetFile(directory, h5_filename);
+  H5::DataSet dataset = file->openDataSet(dataset_path);
+  H5::DataSpace file_space = dataset.getSpace();
+
+  hsize_t dims[2] = {0, 0};
+  file_space.getSimpleExtentDims(dims);
+  std::vector<double> values(dims[0] * dims[1], 0.0);
+  dataset.read(values.data(), H5::PredType::NATIVE_DOUBLE);
+
+  std::vector<double> column;
+  column.reserve(dims[0]);
+  for (hsize_t row = 0; row < dims[0]; ++row) {
+    column.push_back(values[row * dims[1] + column_index]);
+  }
+  return column;
+}
+}  // namespace
 
 TEST(test_SimIMU, Constructor) {
   EKF::Parameters ekf_params;
@@ -133,7 +174,73 @@ TEST(test_SimGPS, TimingSemantics) {
   sim_gps_params.ang_l_to_e_err = 0.0;
   sim_gps_params.gps_params = gps_params;
   sim_gps_params.time_jitter = 0.01;
-  sim_gps_params.clock_bias = -0.125;
+  sim_gps_params.time_bias_error = 0.125;
+
+  Eigen::Vector3d pos_frequency{1, 2, 3};
+  Eigen::Vector3d ang_frequency{1, 2, 3};
+  Eigen::Vector3d pos_offset{0, 0, 0};
+  Eigen::Vector3d ang_offset{0, 0, 0};
+  double pos_amplitude{1.0};
+  double ang_amplitude{0.1};
+  double stationary_time{1.0};
+  double max_time{1.0};
+
+  auto truth_engine_cyclic = std::make_shared<TruthEngineCyclic>(
+    pos_frequency,
+    ang_frequency,
+    pos_offset,
+    ang_offset,
+    pos_amplitude,
+    ang_amplitude,
+    stationary_time,
+    max_time,
+    ekf_params.debug_logger
+  );
+
+  SimRNG::SetSeed(1);
+  const double expected_time_bias = SimRNG::NormRand(0.0, sim_gps_params.time_bias_error);
+  SimRNG::SetSeed(1);
+  auto truth_engine = std::static_pointer_cast<TruthEngine>(truth_engine_cyclic);
+  SimGPS sim_gps(sim_gps_params, truth_engine);
+  truth_engine->SetGpsPosition(sim_gps.GetId(), Eigen::Vector3d {0, 0, 0});
+  truth_engine->SetLocalPosition(Eigen::Vector3d {0, 0, 0});
+  truth_engine->SetLocalHeading(0.0);
+
+  auto gps_msgs = sim_gps.GenerateMessages();
+
+  ASSERT_FALSE(gps_msgs.empty());
+  for (const auto & gps_msg : gps_msgs) {
+    EXPECT_DOUBLE_EQ(gps_msg->time_measured - gps_msg->time_true, expected_time_bias);
+    EXPECT_GE(gps_msg->time_received, gps_msg->time_true);
+  }
+}
+
+TEST(test_SimGPS, CallbackPreservesTrueTimeForTimingLogs) {
+  EKF::Parameters ekf_params;
+  ekf_params.debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  auto ekf = std::make_shared<EKF>(ekf_params);
+
+  GPS::Parameters gps_params;
+  gps_params.name = "GPS_1";
+  gps_params.topic = "GPS_1";
+  gps_params.rate = 5.0;
+  gps_params.pos_a_in_b = Eigen::Vector3d{0, 0, 0};
+  gps_params.variance.pos = 5.0;
+  gps_params.data_log_rate = 5.0;
+  gps_params.log_directory = "/tmp/sim_gps_timing_test";
+  gps_params.filter_sensor_time = true;
+  gps_params.measurement_time_reorder_window = 0.0;
+  gps_params.ekf = ekf;
+  gps_params.logger = ekf_params.debug_logger;
+
+  SimGPS::Parameters sim_gps_params;
+  sim_gps_params.lla_error = Eigen::Vector3d::Zero();
+  sim_gps_params.pos_a_in_b_err = Eigen::Vector3d::Zero();
+  sim_gps_params.pos_e_in_g_err = Eigen::Vector3d::Zero();
+  sim_gps_params.ang_l_to_e_err = 0.0;
+  sim_gps_params.gps_params = gps_params;
+  sim_gps_params.time_jitter = 0.01;
+  sim_gps_params.time_bias_error = 0.125;
 
   Eigen::Vector3d pos_frequency{1, 2, 3};
   Eigen::Vector3d ang_frequency{1, 2, 3};
@@ -157,17 +264,26 @@ TEST(test_SimGPS, TimingSemantics) {
   );
 
   auto truth_engine = std::static_pointer_cast<TruthEngine>(truth_engine_cyclic);
+  std::system(("rm -rf \"" + gps_params.log_directory + "\"").c_str());
+
+  SimRNG::SetSeed(1);
   SimGPS sim_gps(sim_gps_params, truth_engine);
   truth_engine->SetGpsPosition(sim_gps.GetId(), Eigen::Vector3d {0, 0, 0});
   truth_engine->SetLocalPosition(Eigen::Vector3d {0, 0, 0});
   truth_engine->SetLocalHeading(0.0);
 
-  SimRNG::SetSeed(1);
   auto gps_msgs = sim_gps.GenerateMessages();
 
   ASSERT_FALSE(gps_msgs.empty());
   for (const auto & gps_msg : gps_msgs) {
-    EXPECT_DOUBLE_EQ(gps_msg->time_measured - gps_msg->time_true, -0.125);
-    EXPECT_GE(gps_msg->time_received, gps_msg->time_true);
+    sim_gps.Callback(*gps_msg);
   }
+  sim_gps.Flush();
+
+  const std::string dataset_path = "sensors/gps_" + std::to_string(sim_gps.GetId()) + "_timing";
+  std::vector<double> alignment_errors =
+    ReadHdf5Column(gps_params.log_directory, dataset_path, 6);
+
+  ASSERT_FALSE(alignment_errors.empty());
+  EXPECT_FALSE(std::isnan(alignment_errors.back()));
 }

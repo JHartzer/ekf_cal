@@ -117,3 +117,18 @@ std::vector<std::shared_ptr<SimImuMessage>> SimIMU::GenerateMessages() const
   }
   return messages;
 }
+
+void SimIMU::Callback(const SimImuMessage & imu_message)
+{
+  BufferMessage(
+    imu_message,
+    m_message_buffer,
+    [this](const SimImuMessage & buffered_message) {ExecuteCallback(buffered_message);});
+}
+
+void SimIMU::Flush()
+{
+  FlushBufferedMessages(
+    m_message_buffer,
+    [this](const SimImuMessage & buffered_message) {ExecuteCallback(buffered_message);});
+}

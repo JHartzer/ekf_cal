@@ -62,6 +62,14 @@ public:
   ///
   std::vector<std::shared_ptr<SimImuMessage>> GenerateMessages() const;
 
+  ///
+  /// @brief Callback method for simulated IMU measurements
+  /// @param imu_message Simulated IMU measurement message
+  ///
+  void Callback(const SimImuMessage & imu_message);
+
+  void Flush() override;
+
 private:
   Eigen::Vector3d m_acc_error;
   Eigen::Vector3d m_omg_error;
@@ -69,6 +77,7 @@ private:
   Eigen::Vector3d m_ang_error;
   Eigen::Vector3d m_acc_bias_error;
   Eigen::Vector3d m_omg_bias_error;
+  std::vector<SimImuMessage> m_message_buffer;
 };
 
 

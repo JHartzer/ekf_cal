@@ -170,6 +170,18 @@ def _plot_timing_series(figure_obj, data_frame, column_name, color, legend_label
             legend_label=legend_label)
 
 
+def _get_sorted_timing_series(data_frame, column_name):
+    """Return finite timing series sorted by time_used."""
+    mask = _finite_mask(data_frame, column_name) & _finite_mask(data_frame, 'time_used')
+    if not mask.any():
+        return np.array([]), np.array([])
+
+    time_used = np.asarray(data_frame['time_used'], dtype=float)[mask]
+    values = np.asarray(data_frame[column_name], dtype=float)[mask]
+    sort_idx = np.argsort(time_used)
+    return time_used[sort_idx], values[sort_idx]
+
+
 def plot_timing_offsets(data_frames):
     """Plot raw offset samples and running minimum offset estimates."""
     df_prefix = data_frames[0].attrs['prefix']
@@ -178,23 +190,27 @@ def plot_timing_offsets(data_frames):
         width=800,
         height=300,
         x_axis_label='Time Used [s]',
-        y_axis_label='Offset [s]',
+        y_axis_label='Offset [ms]',
         title=f'{df_prefix} {df_id} Time Offset')
     for data_frame in data_frames:
-        _plot_timing_series(
-            fig,
-            data_frame,
-            'time_offset_sample',
-            'orange',
-            'Offset Sample',
-            0.25)
-        _plot_timing_series(
-            fig,
-            data_frame,
-            'time_offset_min',
-            'cyan',
-            'Offset Min',
-            0.9)
+        time_used, offset_sample = _get_sorted_timing_series(data_frame, 'time_offset_sample')
+        if time_used.size:
+            fig.line(
+                time_used,
+                offset_sample * 1e3,
+                alpha=0.25,
+                color='orange',
+                legend_label='Offset Sample')
+
+        min_time_used, offset_min = _get_sorted_timing_series(data_frame, 'time_offset_min')
+        if min_time_used.size:
+            offset_min_ms = np.minimum.accumulate(offset_min) * 1e3
+            fig.line(
+                min_time_used,
+                offset_min_ms,
+                alpha=0.9,
+                color='cyan',
+                legend_label='Offset Min')
     return fig
 
 
@@ -206,21 +222,21 @@ def plot_timing_alignment_error(data_frames):
         width=800,
         height=300,
         x_axis_label='Time Used [s]',
-        y_axis_label='Alignment Error [s]',
+        y_axis_label='Alignment Error [ms]',
         title=f'{df_prefix} {df_id} Time Alignment Error')
     has_alignment_error = False
     for data_frame in data_frames:
-        mask = _finite_mask(data_frame, 'time_alignment_error')
-        if mask.any():
+        time_used, alignment_error = _get_sorted_timing_series(data_frame, 'time_alignment_error')
+        if time_used.size:
             has_alignment_error = True
             fig.line(
-                np.asarray(data_frame['time_used'])[mask],
-                np.asarray(data_frame['time_alignment_error'])[mask],
+                time_used,
+                alignment_error * 1e3,
                 alpha=calculate_alpha(len(data_frames)),
                 color='magenta',
                 legend_label='Alignment Error')
     if not has_alignment_error:
-        fig.line([], [], color='magenta', legend_label='Alignment Error (sim only)')
+        fig.line([], [], color='magenta', legend_label='Alignment Error')
     return fig
 
 

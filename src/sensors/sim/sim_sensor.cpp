@@ -26,10 +26,12 @@ SimSensor::SimSensor(Parameters params)
   assert(params.time_jitter >= 0.0 && "Delay jitter must be positive");
   if (m_no_errors) {
     m_time_jitter = 0.0;
-    m_clock_bias = 0.0;
+    m_time_bias = 0.0;
   } else {
     m_time_jitter = params.time_jitter;
-    m_clock_bias = params.clock_bias;
+    m_time_bias = (params.time_bias_error == 0.0) ?
+      0.0 :
+      SimRNG::NormRand(0.0, params.time_bias_error);
   }
 }
 
@@ -52,7 +54,7 @@ std::vector<SimSensor::TimingSample> SimSensor::GenerateMeasurementTimes(double 
 
 double SimSensor::ApplyTimeBias(double true_time) const
 {
-  return true_time + m_clock_bias;
+  return true_time + m_time_bias;
 }
 
 double SimSensor::ApplyTimeDelay(double true_time) const

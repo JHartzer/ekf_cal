@@ -40,6 +40,7 @@ The basic structure of the YAML files is a set of ROS parameters, lists that def
         gps_init_pos_thresh: 1.0              # Local frame position error threshold
         gps_init_ang_thresh: 0.1              # Local frame heading error threshold
         use_root_covariance: true             # Flag to utilize the square root form of covariance
+        measurement_time_reorder_window: 1.0  # Sliding window [s] for reordering filtered measurements
 
         sim_params:
             seed: 0.0                         # Seed to provide to random number generator
@@ -135,9 +136,10 @@ The following is an example of an IMU input configuration.
                 acc_bias_stability: 1.0e-3               # Accelerometer bias stability
                 omg_bias_stability: 1.0e-3               # Gyroscope bias stability
                 data_log_rate: 10.0                      # Data logging rate
+                filter_sensor_time: true                 # Enable min-delay time filtering and reordering
                 sim_params:
                     no_errors: false                     # Flag to disable errors in simulation
-                    clock_bias: 1.0e-3                   # Constant sensor clock bias
+                    time_bias_error: 1.0e-3              # Std dev of zero-mean sensor time bias
                     time_jitter: 1.0e-6                  # Exponential delay mean (1 / lambda)
                     pos_error: [0.0, 0.0, 0.0]           # Error in position estimate
                     ang_error: [0.0, 0.0, 0.0]           # Error in orientation estimate
@@ -172,6 +174,7 @@ The following is an example of an camera input configuration.
                 pos_stability: 1.0e-9               # Position stability
                 ang_stability: 1.0e-9               # Orientation stability
                 data_log_rate: 10.0                 # Data logging rate
+                filter_sensor_time: true            # Enable min-delay time filtering and reordering
                 intrinsics:
                     f_x: 0.01                       # X focal length [m]
                     f_y: 0.01                       # Y focal length [m]
@@ -185,7 +188,7 @@ The following is an example of an camera input configuration.
                 is_extrinsic: false                 # Flag to calibrate camera extrinsics
                 sim_params:
                     no_errors: false                # Flag to disable errors in simulation
-                    clock_bias: 1.0e-3              # Constant sensor clock bias
+                    time_bias_error: 1.0e-3         # Std dev of zero-mean sensor time bias
                     time_jitter: 1.0e-6             # Exponential delay mean (1 / lambda)
                     pos_error: [0.0, 0.0, 0.0]      # Position error
                     ang_error: [0.0, 0.0, 0.0]      # Orientation error
@@ -282,9 +285,10 @@ The following is an example of a GPS input configuration.
                 variance: [5.0, 5.0, 5.0]            # Antenna position variance
                 data_log_rate: 5.0                   # Data log rate
                 is_extrinsic: false                  # Flag to calibrate GPS extrinsics
+                filter_sensor_time: true             # Enable min-delay time filtering and reordering
                 sim_params:
                     no_errors: false                 # Flag to disable errors in simulation
-                    clock_bias: 0.0                  # Constant sensor clock bias
+                    time_bias_error: 0.0             # Std dev of zero-mean sensor time bias
                     time_jitter: 1.0e-9              # Exponential delay mean (1 / lambda)
                     lla_error:  [5.0, 5.0, 5.0]      # LLA measurement error
                     pos_a_in_b_err: [0.0, 0.0, 0.0]  # Antenna position error

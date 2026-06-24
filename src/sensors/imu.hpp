@@ -79,7 +79,7 @@ public:
 
   void Flush() override;
 
-private:
+protected:
   void ExecuteCallback(const ImuMessage & imu_message);
 
   bool m_is_extrinsic;

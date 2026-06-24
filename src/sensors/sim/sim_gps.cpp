@@ -86,3 +86,18 @@ std::vector<std::shared_ptr<SimGpsMessage>> SimGPS::GenerateMessages() const
   }
   return messages;
 }
+
+void SimGPS::Callback(const SimGpsMessage & gps_message)
+{
+  BufferMessage(
+    gps_message,
+    m_message_buffer,
+    [this](const SimGpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
+}
+
+void SimGPS::Flush()
+{
+  FlushBufferedMessages(
+    m_message_buffer,
+    [this](const SimGpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
+}

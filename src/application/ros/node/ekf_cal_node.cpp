@@ -172,7 +172,7 @@ void EkfCalNode::DeclareSensorParameters(const std::string & sensor_name)
   declare_parameter(sensor_name + ".topic", "");
   declare_parameter(sensor_name + ".rate", 1.0);
   declare_parameter(sensor_name + ".data_log_rate", 0.0);
-  declare_parameter(sensor_name + ".filter_sensor_time", false);
+  declare_parameter(sensor_name + ".filter_sensor_time", true);
 }
 
 void EkfCalNode::LoadSensorParameters(

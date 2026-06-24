@@ -42,7 +42,7 @@ public:
   {
     bool no_errors {false};        ///< @brief Perfect measurements flag
     double time_jitter {0.0};      ///< @brief Exponential delay mean (1 / lambda)
-    double clock_bias {0.0};       ///< @brief Constant sensor clock bias
+    double time_bias_error {0.0};  ///< @brief Std dev of zero-mean sensor time bias
   } Parameters;
 
   ///
@@ -58,7 +58,7 @@ public:
   std::vector<TimingSample> GenerateMeasurementTimes(double m_rate) const;
 
   ///
-  /// @brief Apply sensor clock bias to true time
+  /// @brief Apply sensor time bias to true time
   /// @param true_time True measurement time
   /// @return Sensor clock timestamp
   ///
@@ -74,7 +74,7 @@ public:
 protected:
   bool m_no_errors {false};              ///< @brief Flag to remove measurement errors
   double m_time_jitter {0.0};            ///< @brief Exponential delay mean (1 / lambda)
-  double m_clock_bias {0.0};             ///< @brief Constant sensor clock bias
+  double m_time_bias {0.0};              ///< @brief Sampled constant sensor time bias
   std::shared_ptr<TruthEngine> m_truth;  ///< @brief Truth engine pointer
 };
 
