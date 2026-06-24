@@ -122,13 +122,6 @@
             }
         },
         {
-            "label": "source-workspace",
-            "detail": "Sources the current workspace with bash",
-            "type": "shell",
-            "command": "source ${workspaceFolder}/../../install/setup.bash",
-            "problemMatcher": "$gcc"
-        },
-        {
             "label": "build-joss-paper",
             "detail": "Builds JOSS paper using docker image",
             "type": "shell",
@@ -136,15 +129,6 @@
             "group": {
                 "kind": "build",
                 "isDefault": false
-            }
-        },
-        {
-            "label": "generate-flamegraph",
-            "detail": "Creates flamegraph for software execution",
-            "type": "shell",
-            "command": "./run_perf.sh",
-            "options": {
-                "cwd": "${workspaceFolder}/docs/flamegraph/"
             }
         }
     ],
