@@ -24,7 +24,8 @@
 
 RosImuMessage::RosImuMessage(const sensor_msgs::msg::Imu::SharedPtr msg)
 {
-  time = RosHeaderToTime(msg->header);
+  time_measured = RosHeaderToTime(msg->header);
+  time_received = time_measured;
   acceleration = RosToEigen(msg->linear_acceleration);
   angular_rate = RosToEigen(msg->angular_velocity);
   acceleration_covariance = RosToEigen(msg->linear_acceleration_covariance);

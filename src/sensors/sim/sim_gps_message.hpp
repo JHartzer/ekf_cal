@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 #ifndef SENSORS__SIM__SIM_GPS_MESSAGE_HPP_
 #define SENSORS__SIM__SIM_GPS_MESSAGE_HPP_
 
@@ -26,6 +25,13 @@ public:
   /// @brief Define SimGpsMessage constructor with GpsMessage's
   ///
   using GpsMessage::GpsMessage;
+
+  double time_true {0.0};  ///< @brief True sensing time
+
+  double GetTimeTrue() const override
+  {
+    return time_true;
+  }
 };
 
 

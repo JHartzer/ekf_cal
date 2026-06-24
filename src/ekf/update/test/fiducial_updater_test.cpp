@@ -92,19 +92,19 @@ TEST(test_fiducial_updater, jacobian) {
   CamState cam_state;
   cam_state.SetIsExtrinsic(is_cam_extrinsic);
   cam_state.pos_c_in_b = Eigen::Vector3d{0.3, -0.2, 0.1};
-  cam_state.ang_c_to_b = RotVecToQuat(Eigen::Vector3d{0.2, -0.1, 0.3});
+  cam_state.ang_c_to_b = RotVecToQuat(Eigen::Vector3d {0.2, -0.1, 0.3});
   Eigen::MatrixXd cam_cov = Eigen::MatrixXd::Identity(6, 6);
   ekf.RegisterCamera(cam_id, cam_state, cam_cov);
 
   ekf.m_state.body_state.pos_b_in_l = Eigen::Vector3d{1.0, -2.0, 0.5};
-  ekf.m_state.body_state.ang_b_to_l = RotVecToQuat(Eigen::Vector3d{-0.4, 0.1, 0.25});
+  ekf.m_state.body_state.ang_b_to_l = RotVecToQuat(Eigen::Vector3d {-0.4, 0.1, 0.25});
 
   unsigned int fid_id{1};
   bool is_fid_extrinsic{true};
   FidState fid_state;
   fid_state.id = fid_id;
   fid_state.pos_f_in_l = Eigen::Vector3d{2, 3, 5};
-  fid_state.ang_f_to_l = RotVecToQuat(Eigen::Vector3d{0.15, 0.3, -0.2});
+  fid_state.ang_f_to_l = RotVecToQuat(Eigen::Vector3d {0.15, 0.3, -0.2});
   fid_state.SetIsExtrinsic(is_cam_extrinsic);
   Eigen::MatrixXd fid_cov = Eigen::MatrixXd::Identity(6, 6);
   ekf.RegisterFiducial(fid_state, fid_cov);

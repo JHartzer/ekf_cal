@@ -36,6 +36,7 @@ GPS::GPS(GPS::Parameters params)
     params.data_log_rate,
     params.logger)
 {
+  InitializeTimingLogger("gps", params.log_directory, params.data_log_rate);
   m_rate = params.rate;
   GpsState gps_state;
   gps_state.pos_a_in_b = params.pos_a_in_b;
@@ -47,12 +48,20 @@ GPS::GPS(GPS::Parameters params)
 
 void GPS::Callback(const GpsMessage & gps_message)
 {
+  BufferMessage(
+    gps_message,
+    [this](const GpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
+}
+
+void GPS::ExecuteCallback(const GpsMessage & gps_message)
+{
+  LogTiming(gps_message);
   m_logger->Log(
     LogLevel::DEBUG,
-    "GPS \"" + m_name + "\" callback at time " + std::to_string(gps_message.time));
+    "GPS \"" + m_name + "\" callback at used time " + std::to_string(gps_message.time_used));
 
   m_gps_updater.UpdateEKF(
-    *m_ekf, gps_message.time, gps_message.gps_lla, gps_message.pos_covariance);
+    *m_ekf, gps_message.time_used, gps_message.gps_lla, gps_message.pos_covariance);
 
   m_logger->Log(LogLevel::DEBUG, "GPS \"" + m_name + "\" callback complete");
 }

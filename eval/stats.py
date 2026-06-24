@@ -53,6 +53,19 @@ def RMSE_from_vectors(x_list, y_list, z_list):
     return rmse
 
 
+def diagonal_nees(error_components, variance_components):
+    """Calculate a diagonal-covariance NEES approximation."""
+    nees = np.zeros(error_components.shape[0])
+    for j in range(error_components.shape[1]):
+        nees += np.divide(
+            error_components[:, j] * error_components[:, j],
+            variance_components[j],
+            out=np.zeros_like(nees),
+            where=variance_components[j] > 0.0,
+        )
+    return nees
+
+
 def body_err_pos(body_state_dfs, body_truth_dfs):
     """Calculate the body state position error."""
     RMSE_list = []
@@ -396,9 +409,7 @@ def _calc_errors_for_single_run(run_args):
         err_ang_acc = run_errors['body_ang_acc_err'][:, 1:]
 
         err_all = np.column_stack((err_pos, err_vel, err_acc, err_ang, err_ang_vel, err_ang_acc))
-        body_nees = np.zeros(len(est_time))
-        for j in range(18):
-            body_nees += (err_all[:, j] ** 2) / (cov_cols[j] ** 2)
+        body_nees = diagonal_nees(err_all, cov_cols)
         run_errors['body_nees'] = np.column_stack((est_time, body_nees))
 
         # Body Euler Angles (XYZ)
@@ -488,15 +499,13 @@ def _calc_errors_for_single_run(run_args):
                 err_pos = run_errors[f'imu_pos_err_{sensor_id}'][:, 1:]
                 err_ang = run_errors[f'imu_ang_err_{sensor_id}'][:, 1:]
                 err_all = np.column_stack((err_pos, err_ang))
-                for j in range(6):
-                    nees += (err_all[:, j] ** 2) / (cov_ext[j] ** 2)
+                nees += diagonal_nees(err_all, cov_ext)
             if 'imu_int_cov_0' in imu_df:
                 cov_int = [imu_df[f'imu_int_cov_{j}'].to_numpy() for j in range(6)]
                 err_ab = run_errors[f'imu_acc_bias_err_{sensor_id}'][:, 1:]
                 err_gb = run_errors[f'imu_gyr_bias_err_{sensor_id}'][:, 1:]
                 err_all = np.column_stack((err_ab, err_gb))
-                for j in range(6):
-                    nees += (err_all[:, j] ** 2) / (cov_int[j] ** 2)
+                nees += diagonal_nees(err_all, cov_int)
             run_errors[f'imu_nees_{sensor_id}'] = np.column_stack((est_time, nees))
 
     # 3. MSCKF Errors & NEES
@@ -547,9 +556,7 @@ def _calc_errors_for_single_run(run_args):
                 err_pos = run_errors[f'cam_pos_err_{sensor_id}'][:, 1:]
                 err_ang = run_errors[f'cam_ang_err_{sensor_id}'][:, 1:]
                 err_all = np.column_stack((err_pos, err_ang))
-                nees = np.zeros(len(est_time))
-                for j in range(6):
-                    nees += (err_all[:, j] ** 2) / (cov_cam[j] ** 2)
+                nees = diagonal_nees(err_all, cov_cam)
                 run_errors[f'cam_nees_{sensor_id}'] = np.column_stack((est_time, nees))
 
     # 4. GPS Errors & NEES
@@ -574,9 +581,7 @@ def _calc_errors_for_single_run(run_args):
                 if 'gps_cov_0' in gps_df:
                     cov_gps = [gps_df[f'gps_cov_{j}'].to_numpy() for j in range(3)]
                     err_pos = run_errors[f'gps_pos_err_{sensor_id}'][:, 1:]
-                    nees = np.zeros(len(est_time))
-                    for j in range(3):
-                        nees += (err_pos[:, j] ** 2) / (cov_gps[j] ** 2)
+                    nees = diagonal_nees(err_pos, cov_gps)
                     run_errors[f'gps_nees_{sensor_id}'] = np.column_stack((est_time, nees))
 
     # 5. Fiducial Errors & NEES
@@ -668,13 +673,9 @@ def _calc_errors_for_single_run(run_args):
                 c04 = fid_df['fid_cov_4'].to_numpy()
                 c05 = fid_df['fid_cov_5'].to_numpy()
 
-                nees = \
-                    e00 * e00 / c00 / c00 + \
-                    e01 * e01 / c01 / c01 + \
-                    e02 * e02 / c02 / c02 + \
-                    e03 * e03 / c03 / c03 + \
-                    e04 * e04 / c04 / c04 + \
-                    e05 * e05 / c05 / c05
+                err_all = np.column_stack((e00, e01, e02, e03, e04, e05))
+                cov_all = [c00, c01, c02, c03, c04, c05]
+                nees = diagonal_nees(err_all, cov_all)
 
                 run_errors[f'fiducial_nees_{sensor_id}'] = np.column_stack((est_time, nees))
 

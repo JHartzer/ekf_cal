@@ -37,8 +37,11 @@ TEST(test_RosGPS, Constructor) {
 
 TEST(test_RosGPS, ros_gps_message) {
   auto nav_sat_fix_msg = std::make_shared<sensor_msgs::msg::NavSatFix>();
+  nav_sat_fix_msg->header.stamp.sec = 3;
+  nav_sat_fix_msg->header.stamp.nanosec = 210000000;
   RosGpsMessage ros_gps_message(nav_sat_fix_msg);
-  EXPECT_TRUE(true);
+  EXPECT_DOUBLE_EQ(ros_gps_message.time_measured, 3.21);
+  EXPECT_DOUBLE_EQ(ros_gps_message.time_received, 3.21);
 }
 
 TEST(test_ros_camera, ros_gps_callback) {

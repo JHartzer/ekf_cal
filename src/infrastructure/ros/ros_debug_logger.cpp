@@ -16,6 +16,7 @@
 #include <stddef.h>
 
 #include <string>
+#include <type_traits>
 
 #include <rclcpp/rclcpp.hpp>
 
@@ -50,23 +51,23 @@ void DebugLogger::Log(LogLevel level, const std::string & message)
   if (m_log_level >= level) {
     switch (level) {
       case LogLevel::DEBUG:
-        RCLCPP_DEBUG(rclcpp::get_logger("Logger"), message_c_str);
+        RCLCPP_DEBUG(rclcpp::get_logger("Logger"), "%s", message_c_str);
         break;
 
       case LogLevel::INFO:
-        RCLCPP_INFO(rclcpp::get_logger("Logger"), message_c_str);
+        RCLCPP_INFO(rclcpp::get_logger("Logger"), "%s", message_c_str);
         break;
 
       case LogLevel::WARN:
-        RCLCPP_WARN(rclcpp::get_logger("Logger"), message_c_str);
+        RCLCPP_WARN(rclcpp::get_logger("Logger"), "%s", message_c_str);
         break;
 
       case LogLevel::ERROR:
-        RCLCPP_ERROR(rclcpp::get_logger("Logger"), message_c_str);
+        RCLCPP_ERROR(rclcpp::get_logger("Logger"), "%s", message_c_str);
         break;
 
       case LogLevel::FATAL:
-        RCLCPP_FATAL(rclcpp::get_logger("Logger"), message_c_str);
+        RCLCPP_FATAL(rclcpp::get_logger("Logger"), "%s", message_c_str);
         break;
     }
   }

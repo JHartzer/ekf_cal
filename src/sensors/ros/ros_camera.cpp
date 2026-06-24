@@ -22,6 +22,7 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <std_msgs/msg/header.hpp>
 
+#include "infrastructure/debug_logger.hpp"
 #include "sensors/camera.hpp"
 #include "sensors/ros/ros_camera_message.hpp"
 #include "trackers/feature_tracker.hpp"
@@ -30,13 +31,17 @@
 RosCamera::RosCamera(Camera::Parameters camera_parameters)
 : Camera(camera_parameters) {}
 
-void RosCamera::Callback(const RosCameraMessage & ros_camera_message)
+bool RosCamera::Callback(const RosCameraMessage & ros_camera_message)
 {
-  Camera::Callback(ros_camera_message);
+  bool executed = Camera::Callback(ros_camera_message);
 
-  m_logger->Log(LogLevel::DEBUG, "Image publish ROS");
+  if (executed) {
+    m_logger->Log(LogLevel::DEBUG, "Image publish ROS");
 
-  m_out_ros_img = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", m_out_img).toImageMsg();
+    m_out_ros_img = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", m_out_img).toImageMsg();
+  }
+
+  return executed;
 }
 
 sensor_msgs::msg::Image::SharedPtr RosCamera::GetRosImage()

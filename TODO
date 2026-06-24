@@ -4,15 +4,8 @@ Package Features:
     - Play rosbag through as fast as possible given yaml
         - Use time-coordinator node
     - Reduce state with single IMU
-    - Add measurement time filters
-        - Sliding window filter
-        - Kalman update
-        - Complementary filter
 
 Simulation:
     - Add data drops to input file
     - Add extrinsic step disturbance
     - Add IMU bias instability
-
-Test:
-    - NEES plotting need to be evaluated

@@ -30,7 +30,10 @@
       "name": "RelWithDebInfo-ROS",
       "displayName": "RelWithDebInfo-ROS",
       "description": "Default build preset",
-      "binaryDir": "${sourceDir}/../../build",
+      "binaryDir": "${sourceDir}/../../build/ekf_cal/",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/../../install/ekf_cal"
+      },
       "inherits": "base"
     }
   ],

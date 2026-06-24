@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 #ifndef SENSORS__SIM__SIM_CAMERA_HPP_
 #define SENSORS__SIM__SIM_CAMERA_HPP_
 
@@ -30,7 +29,6 @@
 #include "sensors/sim/sim_camera_message.hpp"
 #include "sensors/sim/sim_sensor.hpp"
 #include "trackers/sim/sim_feature_tracker.hpp"
-#include "trackers/sim/sim_feature_tracker_message.hpp"
 #include "trackers/sim/sim_fiducial_tracker.hpp"
 
 
@@ -139,6 +137,7 @@ private:
     const cv::Scalar & color,
     int thickness
   ) const;
+  void ExecuteCallback(const SimCameraMessage & sim_camera_message);
 
   Eigen::Vector3d m_pos_error;
   Eigen::Vector3d m_ang_error;

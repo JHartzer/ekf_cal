@@ -17,7 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <string>
+#include <vector>
 #include "infrastructure/hdf5_log_manager.hpp"
 
 
@@ -95,14 +97,14 @@ TEST(data_logger, coverage_extra) {
     DataLogger data_logger("/temp/", "custom_name");
     data_logger.DefineHeader("col1");
     data_logger.EnableLogging();
-    data_logger.Log(std::vector<double>{1.0});
+    data_logger.Log(std::vector<double> {1.0});
   }
 
   // 2. Line 93: m_num_cols == 0
   {
     DataLogger data_logger("/temp/", "empty_cols");
     data_logger.EnableLogging();
-    data_logger.Log(std::vector<double>{});  // size is 0
+    data_logger.Log(std::vector<double> {});  // size is 0
   }
 
   // 3. Line 125: exception in InitializeHdf5
@@ -110,19 +112,19 @@ TEST(data_logger, coverage_extra) {
     DataLogger logger1("/temp/", "dup_dataset");
     logger1.DefineHeader("col1");
     logger1.EnableLogging();
-    logger1.Log(std::vector<double>{1.0});
+    logger1.Log(std::vector<double> {1.0});
 
     DataLogger logger2("/temp/", "dup_dataset");
     logger2.DefineHeader("col1");
     logger2.EnableLogging();
-    logger2.Log(std::vector<double>{1.0});  // will fail and set m_logging_on = false
+    logger2.Log(std::vector<double> {1.0});  // will fail and set m_logging_on = false
   }
 
   // 4. Line 136: m_log_header.empty()
   {
     DataLogger data_logger("/temp/", "no_header");
     data_logger.EnableLogging();
-    data_logger.Log(std::vector<double>{1.0, 2.0});
+    data_logger.Log(std::vector<double> {1.0, 2.0});
   }
 
   // 5. Line 162: exception in Log (dataset extend/write)
@@ -131,13 +133,13 @@ TEST(data_logger, coverage_extra) {
     DataLogger data_logger(dir, "closelog");
     data_logger.DefineHeader("col1");
     data_logger.EnableLogging();
-    data_logger.Log(std::vector<double>{1.0});
+    data_logger.Log(std::vector<double> {1.0});
 
     // Invalidate/close file
     std::shared_ptr<H5::H5File> file = Hdf5LogManager::GetFile(dir, "temp_close.h5");
     if (file) {
       file->close();
     }
-    data_logger.Log(std::vector<double>{2.0});  // throws and sets m_logging_on = false
+    data_logger.Log(std::vector<double> {2.0});  // throws and sets m_logging_on = false
   }
 }

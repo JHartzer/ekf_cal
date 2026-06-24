@@ -154,12 +154,106 @@ def plot_update_timing(data_frames, rate=None):
     return fig
 
 
+def _finite_mask(data_frame, column_name):
+    values = np.asarray(data_frame[column_name], dtype=float)
+    return np.isfinite(values)
+
+
+def _plot_timing_series(figure_obj, data_frame, column_name, color, legend_label, alpha):
+    mask = _finite_mask(data_frame, column_name)
+    if mask.any():
+        figure_obj.line(
+            np.asarray(data_frame['time_used'])[mask],
+            np.asarray(data_frame[column_name])[mask],
+            alpha=alpha,
+            color=color,
+            legend_label=legend_label)
+
+
+def _get_sorted_timing_series(data_frame, column_name):
+    """Return finite timing series sorted by time_used."""
+    mask = _finite_mask(data_frame, column_name) & _finite_mask(data_frame, 'time_used')
+    if not mask.any():
+        return np.array([]), np.array([])
+
+    time_used = np.asarray(data_frame['time_used'], dtype=float)[mask]
+    values = np.asarray(data_frame[column_name], dtype=float)[mask]
+    sort_idx = np.argsort(time_used)
+    return time_used[sort_idx], values[sort_idx]
+
+
+def plot_timing_offsets(data_frames):
+    """Plot raw offset samples and running minimum offset estimates."""
+    df_prefix = data_frames[0].attrs['prefix']
+    df_id = str(data_frames[0].attrs['id'])
+    fig = figure(
+        width=800,
+        height=300,
+        x_axis_label='Time Used [s]',
+        y_axis_label='Offset [ms]',
+        title=f'{df_prefix} {df_id} Time Offset')
+    for data_frame in data_frames:
+        time_used, offset_sample = _get_sorted_timing_series(data_frame, 'time_offset_sample')
+        if time_used.size:
+            fig.line(
+                time_used,
+                offset_sample * 1e3,
+                alpha=0.25,
+                color='orange',
+                legend_label='Offset Sample')
+
+        min_time_used, offset_min = _get_sorted_timing_series(data_frame, 'time_offset_min')
+        if min_time_used.size:
+            offset_min_ms = np.minimum.accumulate(offset_min) * 1e3
+            fig.line(
+                min_time_used,
+                offset_min_ms,
+                alpha=0.9,
+                color='cyan',
+                legend_label='Offset Min')
+    return fig
+
+
+def plot_timing_alignment_error(data_frames):
+    """Plot filtered alignment error relative to true time when available."""
+    df_prefix = data_frames[0].attrs['prefix']
+    df_id = str(data_frames[0].attrs['id'])
+    fig = figure(
+        width=800,
+        height=300,
+        x_axis_label='Time Used [s]',
+        y_axis_label='Alignment Error [ms]',
+        title=f'{df_prefix} {df_id} Time Alignment Error')
+    has_alignment_error = False
+    for data_frame in data_frames:
+        time_used, alignment_error = _get_sorted_timing_series(data_frame, 'time_alignment_error')
+        if time_used.size:
+            has_alignment_error = True
+            fig.line(
+                time_used,
+                alignment_error * 1e3,
+                alpha=calculate_alpha(len(data_frames)),
+                color='magenta',
+                legend_label='Alignment Error')
+    if not has_alignment_error:
+        fig.line([], [], color='magenta', legend_label='Alignment Error')
+    return fig
+
+
 def format_prefix(prefix):
     """Generate formatted prefix from string."""
     if (prefix == 'imu'):
         return 'IMU'
+    elif (prefix == 'imu_timing'):
+        return 'IMU'
     elif (prefix == 'camera'):
         return 'Camera'
+    elif (prefix == 'camera_timing'):
+        return 'Camera'
+    elif (prefix == 'gps'):
+        return 'GPS'
+    elif (prefix == 'gps_timing'):
+        return 'GPS'
     elif (prefix == 'body_state'):
         return 'Body'
     elif (prefix == 'fiducial'):
@@ -209,6 +303,25 @@ def parse_yaml(config):
 _h5_dataset_cache = {}
 
 
+def _clean_data_frame(data_frame, prefix):
+    """Drop invalid rows while preserving timing rows with optional NaN columns."""
+    if prefix.endswith('_timing'):
+        required_columns = [
+            'time_used',
+            'time_measured',
+            'time_received',
+            'time_offset_sample',
+            'time_offset_min',
+        ]
+        subset = [column for column in required_columns if column in data_frame.columns]
+        if subset:
+            data_frame.dropna(subset=subset, inplace=True)
+        else:
+            data_frame.dropna(inplace=True)
+    else:
+        data_frame.dropna(inplace=True)
+
+
 def get_matching_datasets(h5_path, run_group_name, prefix):
     mtime = os.path.getmtime(h5_path)
     cache_key = (h5_path, mtime)
@@ -243,6 +356,10 @@ def get_matching_datasets(h5_path, run_group_name, prefix):
             matched = (rel_path == 'truth/board')
         elif prefix == 'feature_points':
             matched = (rel_path == 'truth/feature_points')
+        elif prefix.endswith('_timing'):
+            sensor_prefix = prefix.replace('_timing', '')
+            base = os.path.basename(rel_path)
+            matched = re.match(rf'^{sensor_prefix}_[0-9]+_timing$', base) is not None
         else:
             base = os.path.basename(rel_path)
             matched = (
@@ -296,7 +413,7 @@ def find_and_read_data_frames(directories, prefix):
                     cols = cols_attr.split(',') if cols_attr else None
 
                     df = pd.DataFrame(data, columns=cols)
-                    df.dropna(inplace=True)
+                    _clean_data_frame(df, prefix)
                     df.attrs['prefix'] = format_prefix(prefix)
                     df.attrs['id'] = 0
 
@@ -324,13 +441,16 @@ def find_and_read_data_frames(directories, prefix):
                         cols = cols_attr.split(',') if cols_attr else None
 
                         df = pd.DataFrame(data, columns=cols)
-                        df.dropna(inplace=True)
+                        _clean_data_frame(df, prefix)
                         df.attrs['prefix'] = format_prefix(prefix)
 
                         # Extract sensor ID (not run ID!)
                         base = os.path.basename(ds_path)
+                        timing_match = re.match(r'^[a-z_]+_([0-9]+)_timing$', base)
                         sensor_id_matches = re.findall(r'_[0-9]+$', base)
-                        if sensor_id_matches:
+                        if timing_match:
+                            sensor_id = int(timing_match.group(1))
+                        elif sensor_id_matches:
                             sensor_id = int(sensor_id_matches[0].replace('_', ''))
                         else:
                             sensor_id = 0
@@ -364,12 +484,15 @@ def find_and_read_data_frames(directories, prefix):
                         cols = cols_attr.split(',') if cols_attr else None
 
                         df = pd.DataFrame(data, columns=cols)
-                        df.dropna(inplace=True)
+                        _clean_data_frame(df, prefix)
                         df.attrs['prefix'] = format_prefix(prefix)
 
                         base = os.path.basename(ds_path)
+                        timing_match = re.match(r'^[a-z_]+_([0-9]+)_timing$', base)
                         matches = re.findall(r'_[0-9]+$', base)
-                        if matches:
+                        if timing_match:
+                            file_id = int(timing_match.group(1))
+                        elif matches:
                             file_id = int(matches[0].replace('_', ''))
                         else:
                             file_id = 0
@@ -380,7 +503,8 @@ def find_and_read_data_frames(directories, prefix):
                 file_paths_id.extend(glob.glob(os.path.join(directory, prefix + '_[0-9].csv')))
                 for file_path in file_paths_id:
                     file_name = os.path.basename(file_path)
-                    df = pd.read_csv(file_path).dropna()
+                    df = pd.read_csv(file_path)
+                    _clean_data_frame(df, prefix)
                     df.attrs['prefix'] = format_prefix(prefix)
                     matches = re.findall(r'_[0-9]*\.csv', file_name)
                     if matches:

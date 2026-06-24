@@ -41,6 +41,15 @@ double SimRNG::UniRand(double min, double max)
   return uniform_distribution(m_generator);
 }
 
+double SimRNG::ExpRand(double lambda)
+{
+  if (lambda <= 0.0) {
+    return 0.0;
+  }
+  std::exponential_distribution<double> exponential_distribution(lambda);
+  return exponential_distribution(m_generator);
+}
+
 Eigen::Vector3d SimRNG::VecNormRand(
   const Eigen::Vector3d & mean,
   const Eigen::Vector3d & std_dev)

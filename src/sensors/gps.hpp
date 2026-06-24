@@ -64,7 +64,9 @@ public:
   ///
   void Callback(const GpsMessage & gps_message);
 
-private:
+protected:
+  void ExecuteCallback(const GpsMessage & gps_message);
+
   std::shared_ptr<EKF> m_ekf;
   GpsUpdater m_gps_updater;
 };

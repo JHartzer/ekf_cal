@@ -13,7 +13,7 @@
         "editor.wordWrapColumn": 99
     },
     "[python]": {
-        "editor.defaultFormatter": "ms-python.autopep8",
+        "editor.defaultFormatter": "ms-python.autopep8"
     },
     "[yaml]": {
         "diffEditor.ignoreTrimWhitespace": false,
@@ -27,6 +27,7 @@
         },
         "editor.tabSize": 4
     },
+    "clangd.path": "/usr/bin/clangd",
     "cmake.configureOnOpen": true,
     "cmake.debugConfig": {
         "args": [

@@ -80,7 +80,7 @@ TEST(test_fiducial_tracker, generate_message_matches_truth_geometry) {
 
   const unsigned int camera_id = 7;
   const Eigen::Vector3d pos_c_in_b_true{0.1, -0.2, 0.3};
-  const Eigen::Quaterniond ang_c_to_b_true = EigVecToQuat(Eigen::Vector3d{0.2, -0.1, 0.3});
+  const Eigen::Quaterniond ang_c_to_b_true = EigVecToQuat(Eigen::Vector3d {0.2, -0.1, 0.3});
   truth_engine->SetCameraPosition(camera_id, pos_c_in_b_true);
   truth_engine->SetCameraAngularPosition(camera_id, ang_c_to_b_true);
 
@@ -89,7 +89,7 @@ TEST(test_fiducial_tracker, generate_message_matches_truth_geometry) {
   fiducial_params.logger = ekf_params.debug_logger;
   fiducial_params.camera_id = camera_id;
   fiducial_params.pos_f_in_l = Eigen::Vector3d{2.0, 1.0, 4.0};
-  fiducial_params.ang_f_to_l = EigVecToQuat(Eigen::Vector3d{-0.2, 0.4, 0.1});
+  fiducial_params.ang_f_to_l = EigVecToQuat(Eigen::Vector3d {-0.2, 0.4, 0.1});
 
   SimFiducialTracker::Parameters sim_params;
   sim_params.no_errors = true;

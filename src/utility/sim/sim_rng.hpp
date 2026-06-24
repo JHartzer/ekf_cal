@@ -51,6 +51,12 @@ public:
   static double UniRand(double min, double max);
 
   ///
+  /// @brief Exponential random number generator parameterized by rate
+  /// @param lambda Exponential rate parameter
+  ///
+  static double ExpRand(double lambda);
+
+  ///
   /// @brief Function to return normal random number
   /// @param mean Mean of normal distribution
   /// @param std_dev Standard deviation of normal distribution

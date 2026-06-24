@@ -1,5 +1,5 @@
 {
-    "name": "ROS2-env",
+    "name": "ekf_cal",
     "customizations": {
         "vscode": {
             "extensions": [

@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 #ifndef SENSORS__SIM__SIM_IMU_HPP_
 #define SENSORS__SIM__SIM_IMU_HPP_
 
@@ -61,6 +60,12 @@ public:
   /// @return Generated IMU messages
   ///
   std::vector<std::shared_ptr<SimImuMessage>> GenerateMessages() const;
+
+  ///
+  /// @brief Callback method for simulated IMU measurements
+  /// @param imu_message Simulated IMU measurement message
+  ///
+  void Callback(const SimImuMessage & imu_message);
 
 private:
   Eigen::Vector3d m_acc_error;

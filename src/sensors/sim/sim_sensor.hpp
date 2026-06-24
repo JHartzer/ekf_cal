@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 #ifndef SENSORS__SIM__SIM_SENSOR_HPP_
 #define SENSORS__SIM__SIM_SENSOR_HPP_
 
@@ -28,13 +27,21 @@
 class SimSensor
 {
 public:
+  struct TimingSample
+  {
+    double time_true {0.0};      ///< @brief True sensing time
+    double time_measured {0.0};  ///< @brief Sensor clock timestamp
+    double time_received {0.0};  ///< @brief Local receive timestamp
+  };
+
   ///
   /// @brief Sim IMU initialization parameters structure
   ///
   typedef struct Parameters
   {
     bool no_errors {false};        ///< @brief Perfect measurements flag
-    double time_error {0.0};       ///< @brief Time offset error
+    double time_jitter {0.0};      ///< @brief Exponential delay mean (1 / lambda)
+    double time_bias_error {0.0};  ///< @brief Std dev of zero-mean sensor time bias
   } Parameters;
 
   ///
@@ -47,18 +54,26 @@ public:
   /// @param m_rate Sensor rate
   /// @return List of sensor measurement times
   ///
-  std::vector<double> GenerateMeasurementTimes(double m_rate) const;
+  std::vector<TimingSample> GenerateMeasurementTimes(double m_rate) const;
 
   ///
-  /// @brief Apply errors, if necessary, to sensor measurement time
+  /// @brief Apply sensor time bias to true time
   /// @param true_time True measurement time
-  /// @return Time with error
+  /// @return Sensor clock timestamp
   ///
-  double ApplyTimeError(double true_time) const;
+  double ApplyTimeBias(double true_time) const;
+
+  ///
+  /// @brief Apply transmission delay, if necessary, to true time
+  /// @param true_time True measurement time
+  /// @return Time with positive-only delay
+  ///
+  double ApplyTimeDelay(double true_time) const;
 
 protected:
   bool m_no_errors {false};              ///< @brief Flag to remove measurement errors
-  double m_time_error {0.0};            ///< @brief Time offset error
+  double m_time_jitter {0.0};            ///< @brief Exponential delay mean (1 / lambda)
+  double m_time_bias {0.0};              ///< @brief Sampled constant sensor time bias
   std::shared_ptr<TruthEngine> m_truth;  ///< @brief Truth engine pointer
 };
 

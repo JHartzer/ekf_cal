@@ -42,9 +42,12 @@ TEST(test_ros_camera, constructor) {
 
 TEST(test_ros_camera, ros_camera_message) {
   auto image_message = std::make_shared<sensor_msgs::msg::Image>();
+  image_message->header.stamp.sec = 7;
+  image_message->header.stamp.nanosec = 890000000;
   image_message->encoding = "bgr8";
   RosCameraMessage ros_camera_message(image_message);
-  EXPECT_TRUE(true);
+  EXPECT_DOUBLE_EQ(ros_camera_message.time_measured, 7.89);
+  EXPECT_DOUBLE_EQ(ros_camera_message.time_received, 7.89);
 }
 
 TEST(test_ros_camera, ros_camera_callback) {

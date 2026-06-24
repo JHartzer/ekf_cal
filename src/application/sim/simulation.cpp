@@ -74,17 +74,22 @@ void LoadSensorParams(
   YAML::Node node,
   const std::string & name,
   const std::string & log_directory,
+  double measurement_time_reorder_window,
   std::shared_ptr<EKF> ekf,
-  std::shared_ptr<DebugLogger> debug_logger
+  std::shared_ptr<DebugLogger> debug_logger,
+  std::shared_ptr<Sensor::MeasurementScheduler> measurement_scheduler
 )
 {
   params.topic = node["topic"].as<std::string>("");
   params.rate = node["rate"].as<double>(1.0);
   params.data_log_rate = node["data_log_rate"].as<double>(0.0);
+  params.filter_sensor_time = node["filter_sensor_time"].as<bool>(true);
+  params.measurement_time_reorder_window = measurement_time_reorder_window;
   params.name = name;
   params.log_directory = log_directory;
   params.ekf = ekf;
   params.logger = debug_logger;
+  params.measurement_scheduler = measurement_scheduler;
 }
 
 void LoadSimSensorParams(
@@ -92,7 +97,8 @@ void LoadSimSensorParams(
   YAML::Node node)
 {
   params.no_errors = node["no_errors"].as<bool>(false);
-  params.time_error = node["time_error"].as<double>(0.0);
+  params.time_jitter = node["time_jitter"].as<double>(0.0);
+  params.time_bias_error = node["time_bias_error"].as<double>(0.0);
 }
 
 void LoadTrackerParams(
@@ -185,6 +191,8 @@ int main(int argc, char * argv[])
   // Logging parameters
   EKF::Parameters ekf_params;
   YAML::Node ros_params = root["/EkfCalNode"]["ros__parameters"];
+  double measurement_time_reorder_window =
+    ros_params["measurement_time_reorder_window"].as<double>(1.0);
   unsigned int debug_log_level = ros_params["debug_log_level"].as<unsigned int>(0);
   auto debug_logger = std::make_shared<DebugLogger>(debug_log_level, log_directory);
   debug_logger->Log(LogLevel::INFO, "EKF CAL Version: " + std::string(EKF_CAL_VERSION));
@@ -220,6 +228,8 @@ int main(int argc, char * argv[])
     ekf_params.augmenting_type = AugmentationType::NONE;
   }
   auto ekf = std::make_shared<EKF>(ekf_params);
+  auto measurement_scheduler =
+    std::make_shared<Sensor::MeasurementScheduler>(measurement_time_reorder_window);
 
   // Simulation parameters
   YAML::Node sim_params = ros_params["sim_params"];
@@ -296,7 +306,7 @@ int main(int argc, char * argv[])
     YAML::Node cam_node = root["/EkfCalNode"]["ros__parameters"]["camera"][camera_name];
     if (cam_node &&
       cam_node["fiducials"] &&
-      !cam_node["fiducials"].as<std::vector<std::string>>(std::vector<std::string>{}).empty())
+      !cam_node["fiducials"].as<std::vector<std::string>>(std::vector<std::string> {}).empty())
     {
       has_camera_fiducial = true;
       break;
@@ -339,7 +349,15 @@ int main(int argc, char * argv[])
     YAML::Node sim_node = imu_node["sim_params"];
 
     IMU::Parameters imu_params;
-    LoadSensorParams(imu_params, imu_node, imus[i], log_directory, ekf, debug_logger);
+    LoadSensorParams(
+      imu_params,
+      imu_node,
+      imus[i],
+      log_directory,
+      measurement_time_reorder_window,
+      ekf,
+      debug_logger,
+      measurement_scheduler);
     imu_params.is_extrinsic = imu_node["is_extrinsic"].as<bool>(false);
     imu_params.is_intrinsic = imu_node["is_intrinsic"].as<bool>(false);
     imu_params.variance.pos = imu_node["variance"]["pos"].as<double>(0.1);
@@ -458,7 +476,15 @@ int main(int argc, char * argv[])
     YAML::Node sim_node = cam_node["sim_params"];
 
     Camera::Parameters cam_params;
-    LoadSensorParams(cam_params, cam_node, cameras[i], log_directory, ekf, debug_logger);
+    LoadSensorParams(
+      cam_params,
+      cam_node,
+      cameras[i],
+      log_directory,
+      measurement_time_reorder_window,
+      ekf,
+      debug_logger,
+      measurement_scheduler);
     cam_params.variance.pos = cam_node["variance"]["pos"].as<double>(0.1);
     cam_params.variance.ang = cam_node["variance"]["ang"].as<double>(0.1);
     cam_params.pos_c_in_b = StdToEigVec(cam_node["pos_c_in_b"].as<std::vector<double>>(def_vec));
@@ -468,7 +494,7 @@ int main(int argc, char * argv[])
     cam_params.ang_stability = cam_node["ang_stability"].as<double>(1.0e-9);
     cam_params.tracker = cam_node["tracker"].as<std::string>("");
     cam_params.fiducials =
-      cam_node["fiducials"].as<std::vector<std::string>>(std::vector<std::string>{});
+      cam_node["fiducials"].as<std::vector<std::string>>(std::vector<std::string> {});
     cam_params.intrinsics.f_x = cam_node["intrinsics"]["f_x"].as<double>(2.5e-3);
     cam_params.intrinsics.f_y = cam_node["intrinsics"]["f_y"].as<double>(2.5e-3);
     cam_params.intrinsics.k_1 = cam_node["intrinsics"]["k_1"].as<double>(0.0);
@@ -525,7 +551,15 @@ int main(int argc, char * argv[])
     YAML::Node sim_node = gps_node["sim_params"];
 
     GPS::Parameters gps_params;
-    LoadSensorParams(gps_params, gps_node, gps_list[i], log_directory, ekf, debug_logger);
+    LoadSensorParams(
+      gps_params,
+      gps_node,
+      gps_list[i],
+      log_directory,
+      measurement_time_reorder_window,
+      ekf,
+      debug_logger,
+      measurement_scheduler);
     gps_params.variance.pos = gps_node["variance"]["pos"].as<double>(0.1);
     gps_params.pos_a_in_b = StdToEigVec(gps_node["pos_a_in_b"].as<std::vector<double>>(def_vec));
     gps_params.pos_stability = gps_node["pos_stability"].as<double>(0.0);
@@ -582,6 +616,8 @@ int main(int argc, char * argv[])
       }
     }
   }
+
+  measurement_scheduler->FlushAll();
   debug_logger->Log(LogLevel::INFO, "End Simulation");
 
   return 0;

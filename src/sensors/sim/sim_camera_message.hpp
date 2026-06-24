@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 #ifndef SENSORS__SIM__SIM_CAMERA_MESSAGE_HPP_
 #define SENSORS__SIM__SIM_CAMERA_MESSAGE_HPP_
 
@@ -35,6 +34,14 @@ public:
   /// @brief Define SimCameraMessage constructor with CameraMessage's
   ///
   using CameraMessage::CameraMessage;
+
+  /// @brief True sensing time
+  double time_true {0.0};
+
+  double GetTimeTrue() const override
+  {
+    return time_true;
+  }
 
   /// @brief Message frame ID
   unsigned int frame_id;

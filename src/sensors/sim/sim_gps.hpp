@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 #ifndef SENSORS__SIM__SIM_GPS_HPP_
 #define SENSORS__SIM__SIM_GPS_HPP_
 
@@ -59,6 +58,12 @@ public:
   /// @return Generated GPS messages
   ///
   std::vector<std::shared_ptr<SimGpsMessage>> GenerateMessages() const;
+
+  ///
+  /// @brief Callback method for simulated GPS measurements
+  /// @param gps_message Simulated GPS measurement message
+  ///
+  void Callback(const SimGpsMessage & gps_message);
 
 private:
   Eigen::Vector3d m_lla_error{1e-9, 1e-9, 1e-9};

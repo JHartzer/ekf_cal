@@ -305,7 +305,6 @@ bool ImuUpdater::ZeroAccelerationUpdate(
   return true;
 }
 
-/// TODO: The frames are not correct here
 Eigen::VectorXd ImuUpdater::PredictMeasurement(EKF & ekf) const
 {
   Eigen::Vector3d pos_i_in_b = ekf.m_state.imu_states[m_id].pos_i_in_b;
@@ -316,15 +315,16 @@ Eigen::VectorXd ImuUpdater::PredictMeasurement(EKF & ekf) const
 
   Eigen::VectorXd predicted_measurement(6);
 
-  Eigen::Vector3d imu_acc_b =
-    ekf.m_state.body_state.acc_b_in_l +
-    ekf.m_state.body_state.ang_acc_b_in_l.cross(pos_i_in_b) +
-    ekf.m_state.body_state.ang_vel_b_in_l.cross(
-    (ekf.m_state.body_state.ang_vel_b_in_l.cross(pos_i_in_b))) +
-    2 * ekf.m_state.body_state.ang_vel_b_in_l.cross(
-    ekf.m_state.body_state.vel_b_in_l);
+  Eigen::Vector3d body_acc_b = ang_b_to_l.conjugate() * ekf.m_state.body_state.acc_b_in_l;
+  Eigen::Vector3d body_ang_vel_b = ang_b_to_l.conjugate() * ekf.m_state.body_state.ang_vel_b_in_l;
+  Eigen::Vector3d body_ang_acc_b = ang_b_to_l.conjugate() * ekf.m_state.body_state.ang_acc_b_in_l;
 
-  Eigen::Vector3d imu_omg_b = ang_b_to_l.conjugate() * ekf.m_state.body_state.ang_vel_b_in_l;
+  Eigen::Vector3d imu_acc_b =
+    body_acc_b +
+    body_ang_acc_b.cross(pos_i_in_b) +
+    body_ang_vel_b.cross(body_ang_vel_b.cross(pos_i_in_b));
+
+  Eigen::Vector3d imu_omg_b = body_ang_vel_b;
 
   // Rotate measurements in place
   predicted_measurement.segment<3>(0) = acc_bias + ang_i_to_b.conjugate() * imu_acc_b;
@@ -338,51 +338,58 @@ Eigen::MatrixXd ImuUpdater::GetMeasurementJacobian(EKF & ekf) const
   Eigen::Vector3d pos_i_in_b = ekf.m_state.imu_states[m_id].pos_i_in_b;
   Eigen::Quaterniond ang_i_to_b = ekf.m_state.imu_states[m_id].ang_i_to_b;
   Eigen::Quaterniond ang_b_to_l = ekf.m_state.body_state.ang_b_to_l;
+  Eigen::Matrix3d rot_l_to_b = ang_b_to_l.conjugate().toRotationMatrix();
+  Eigen::Matrix3d rot_b_to_i = ang_i_to_b.conjugate().toRotationMatrix();
+  Eigen::Vector3d body_acc_b = rot_l_to_b * ekf.m_state.body_state.acc_b_in_l;
+  Eigen::Vector3d body_ang_vel_b = rot_l_to_b * ekf.m_state.body_state.ang_vel_b_in_l;
+  Eigen::Vector3d body_ang_acc_b = rot_l_to_b * ekf.m_state.body_state.ang_acc_b_in_l;
+  Eigen::Matrix3d omega_jacobian_b =
+    SkewSymmetric(body_ang_vel_b) * SkewSymmetric(pos_i_in_b).transpose() +
+    SkewSymmetric(body_ang_vel_b.cross(pos_i_in_b)).transpose();
+  Eigen::Matrix3d body_orientation_acc_jacobian =
+    SkewSymmetric(body_acc_b) -
+    SkewSymmetric(pos_i_in_b) * SkewSymmetric(body_ang_acc_b) +
+    omega_jacobian_b * SkewSymmetric(body_ang_vel_b);
+  Eigen::Vector3d imu_acc_i = rot_b_to_i * (
+    body_acc_b +
+    body_ang_acc_b.cross(pos_i_in_b) +
+    body_ang_vel_b.cross(body_ang_vel_b.cross(pos_i_in_b)));
+  Eigen::Vector3d imu_omg_i = rot_b_to_i * body_ang_vel_b;
 
   Eigen::MatrixXd measurement_jacobian = Eigen::MatrixXd::Zero(6, ekf.GetStateSize());
 
   // Body Acceleration
-  measurement_jacobian.block<3, 3>(0, 6) = ang_i_to_b.conjugate().toRotationMatrix() *
-    ang_b_to_l.conjugate().toRotationMatrix();
+  measurement_jacobian.block<3, 3>(0, 6) = rot_b_to_i * rot_l_to_b;
+
+  // Body Orientation
+  measurement_jacobian.block<3, 3>(0, 9) = rot_b_to_i * body_orientation_acc_jacobian;
 
   // Body Angular Velocity
-  measurement_jacobian.block<3, 3>(0, 12) = ang_i_to_b.conjugate().toRotationMatrix() * (
-    SkewSymmetric(ekf.m_state.body_state.ang_vel_b_in_l) *
-    SkewSymmetric(pos_i_in_b).transpose() +
-    SkewSymmetric(ekf.m_state.body_state.ang_vel_b_in_l.cross(pos_i_in_b)).transpose()
-  );
+  measurement_jacobian.block<3, 3>(0, 12) = rot_b_to_i * omega_jacobian_b * rot_l_to_b;
 
   // Body Angular Acceleration
-  measurement_jacobian.block<3, 3>(0, 15) = -ang_i_to_b.conjugate().toRotationMatrix() *
-    SkewSymmetric(pos_i_in_b);
+  measurement_jacobian.block<3, 3>(0, 15) = -rot_b_to_i * SkewSymmetric(pos_i_in_b) * rot_l_to_b;
+
+  // Body Orientation
+  measurement_jacobian.block<3, 3>(3, 9) = rot_b_to_i * SkewSymmetric(body_ang_vel_b);
 
   // Body Angular Velocity
-  measurement_jacobian.block<3, 3>(3, 12) = ang_i_to_b.conjugate().toRotationMatrix() *
-    ang_b_to_l.conjugate().toRotationMatrix();
+  measurement_jacobian.block<3, 3>(3, 12) = rot_b_to_i * rot_l_to_b;
 
   if (m_is_extrinsic) {
     unsigned int index_extrinsic = ekf.m_state.imu_states[m_id].index_extrinsic;
-    Eigen::Vector3d ang_vel_b_in_l = ekf.m_state.body_state.ang_vel_b_in_l;
-    Eigen::Vector3d ang_acc_b_in_l = ekf.m_state.body_state.ang_acc_b_in_l;
-
 
     // IMU Positional Offset
     measurement_jacobian.block<3, 3>(0, index_extrinsic + 0) =
-      ang_i_to_b.conjugate().toRotationMatrix() * (SkewSymmetric(ang_acc_b_in_l) +
-      SkewSymmetric(ang_vel_b_in_l) * SkewSymmetric(ang_vel_b_in_l)
+      rot_b_to_i * (SkewSymmetric(body_ang_acc_b) +
+      SkewSymmetric(body_ang_vel_b) * SkewSymmetric(body_ang_vel_b)
       );
 
     // IMU Angular Offset
-    measurement_jacobian.block<3, 3>(0, index_extrinsic + 3) = SkewSymmetric(
-      ang_i_to_b.conjugate() * (ang_acc_b_in_l.cross(pos_i_in_b) +
-      ang_vel_b_in_l.cross(ang_vel_b_in_l.cross(pos_i_in_b)) +
-      ang_b_to_l.conjugate() * ekf.m_state.body_state.acc_b_in_l
-      )
-    );
+    measurement_jacobian.block<3, 3>(0, index_extrinsic + 3) = SkewSymmetric(imu_acc_i);
 
     // IMU Angular Offset
-    measurement_jacobian.block<3, 3>(3, index_extrinsic + 3) = SkewSymmetric(
-      ang_i_to_b.conjugate() * ang_b_to_l.conjugate() * ang_vel_b_in_l);
+    measurement_jacobian.block<3, 3>(3, index_extrinsic + 3) = SkewSymmetric(imu_omg_i);
   }
 
   if (m_is_intrinsic) {

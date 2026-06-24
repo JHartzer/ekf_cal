@@ -50,20 +50,22 @@ SimGPS::SimGPS(SimGPS::Parameters params, std::shared_ptr<TruthEngine> truth_eng
 
 std::vector<std::shared_ptr<SimGpsMessage>> SimGPS::GenerateMessages() const
 {
-  std::vector<double> measurement_times = GenerateMeasurementTimes(m_rate);
+  std::vector<TimingSample> measurement_times = GenerateMeasurementTimes(m_rate);
 
   m_logger->Log(
     LogLevel::INFO, "Generating " + std::to_string(measurement_times.size()) + " GPS measurements");
 
   std::vector<std::shared_ptr<SimGpsMessage>> messages;
-  for (auto measurement_time : measurement_times) {
+  for (const auto & measurement_time : measurement_times) {
     auto sim_gps_msg = std::make_shared<SimGpsMessage>();
-    sim_gps_msg->time = measurement_time;
+    sim_gps_msg->time_true = measurement_time.time_true;
+    sim_gps_msg->time_measured = measurement_time.time_measured;
+    sim_gps_msg->time_received = measurement_time.time_received;
     sim_gps_msg->sensor_id = m_id;
     sim_gps_msg->sensor_type = SensorType::GPS;
 
-    Eigen::Vector3d pos_b_in_l = m_truth->GetBodyPosition(measurement_time);
-    Eigen::Quaterniond ang_b_to_l = m_truth->GetBodyAngularPosition(measurement_time);
+    Eigen::Vector3d pos_b_in_l = m_truth->GetBodyPosition(measurement_time.time_true);
+    Eigen::Quaterniond ang_b_to_l = m_truth->GetBodyAngularPosition(measurement_time.time_true);
     Eigen::Vector3d pos_a_in_b = m_truth->GetGpsPosition(m_id);
     Eigen::Vector3d pos_e_in_g = m_truth->GetLocalPosition();
     double ang_l_to_e = m_truth->GetLocalHeading();
@@ -83,4 +85,11 @@ std::vector<std::shared_ptr<SimGpsMessage>> SimGPS::GenerateMessages() const
     messages.push_back(sim_gps_msg);
   }
   return messages;
+}
+
+void SimGPS::Callback(const SimGpsMessage & gps_message)
+{
+  BufferMessage(
+    gps_message,
+    [this](const SimGpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }

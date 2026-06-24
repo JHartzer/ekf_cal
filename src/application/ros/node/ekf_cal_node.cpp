@@ -17,11 +17,12 @@
 
 #include <Eigen/Core>
 
-#include <algorithm>
+#include <chrono>
 #include <functional>
-#include <stdexcept>
+#include <map>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -34,6 +35,7 @@
 #include "ekf/constants.hpp"
 #include "ekf/ekf.hpp"
 #include "ekf/types.hpp"
+#include "infrastructure/debug_logger.hpp"
 #include "infrastructure/ekf_cal_version.hpp"
 #include "sensors/camera.hpp"
 #include "sensors/gps.hpp"
@@ -68,9 +70,9 @@ EkfCalNode::EkfCalNode()
   declare_parameter("process_noise.pos", 1.0e-2);
   declare_parameter("process_noise.vel", 1.0e-2);
   declare_parameter("process_noise.ang_pos", 1.0e-2);
-  declare_parameter("pos_b_in_l", std::vector<double>{0, 0, 0});
-  declare_parameter("ang_b_to_l", std::vector<double>{0, 0, 0, 0});
-  declare_parameter("pos_e_in_g", std::vector<double>{0, 0, 0});
+  declare_parameter("pos_b_in_l", std::vector<double> {0, 0, 0});
+  declare_parameter("ang_b_to_l", std::vector<double> {0, 0, 0, 0});
+  declare_parameter("pos_e_in_g", std::vector<double> {0, 0, 0});
   declare_parameter("ang_l_to_e", 0.0);
   declare_parameter("gps_init_type", 0);
   declare_parameter("gps_init_baseline_dist", 1.0);
@@ -81,13 +83,14 @@ EkfCalNode::EkfCalNode()
   declare_parameter("use_root_covariance", true);
   declare_parameter("use_first_estimate_jacobian", false);
   declare_parameter("use_rk4", false);
+  declare_parameter("measurement_time_reorder_window", 1.0);
 
   // Declare Sensor Lists
-  declare_parameter("imu_list", std::vector<std::string>{});
-  declare_parameter("camera_list", std::vector<std::string>{});
-  declare_parameter("tracker_list", std::vector<std::string>{});
-  declare_parameter("fiducial_list", std::vector<std::string>{});
-  declare_parameter("gps_list", std::vector<std::string>{});
+  declare_parameter("imu_list", std::vector<std::string> {});
+  declare_parameter("camera_list", std::vector<std::string> {});
+  declare_parameter("tracker_list", std::vector<std::string> {});
+  declare_parameter("fiducial_list", std::vector<std::string> {});
+  declare_parameter("gps_list", std::vector<std::string> {});
 
   m_state_pub_timer =
     create_wall_timer(std::chrono::seconds(1), std::bind(&EkfCalNode::PublishState, this));
@@ -132,6 +135,8 @@ void EkfCalNode::Initialize()
     get_parameter("use_first_estimate_jacobian").as_bool();
   ekf_params.use_rk4 = get_parameter("use_rk4").as_bool();
   ekf_params.imu_noise_scale_factor = get_parameter("imu_noise_scale_factor").as_double();
+  m_measurement_scheduler = std::make_shared<Sensor::MeasurementScheduler>(
+    get_parameter("measurement_time_reorder_window").as_double());
 
   // Load lists of sensors
   m_imu_list = get_parameter("imu_list").as_string_array();
@@ -171,6 +176,7 @@ void EkfCalNode::DeclareSensorParameters(const std::string & sensor_name)
   declare_parameter(sensor_name + ".topic", "");
   declare_parameter(sensor_name + ".rate", 1.0);
   declare_parameter(sensor_name + ".data_log_rate", 0.0);
+  declare_parameter(sensor_name + ".filter_sensor_time", true);
 }
 
 void EkfCalNode::LoadSensorParameters(
@@ -182,10 +188,14 @@ void EkfCalNode::LoadSensorParameters(
   params.topic = get_parameter(prefix + ".topic").as_string();
   params.rate = get_parameter(prefix + ".rate").as_double();
   params.data_log_rate = get_parameter(prefix + ".data_log_rate").as_double();
+  params.filter_sensor_time = get_parameter(prefix + ".filter_sensor_time").as_bool();
+  params.measurement_time_reorder_window =
+    get_parameter("measurement_time_reorder_window").as_double();
   params.name = name;
   params.log_directory = m_log_directory;
   params.ekf = m_ekf;
   params.logger = m_debug_logger;
+  params.measurement_scheduler = m_measurement_scheduler;
 }
 
 void EkfCalNode::LoadSensors()
@@ -242,10 +252,10 @@ void EkfCalNode::DeclareImuParameters(const std::string & imu_name)
   declare_parameter(imu_prefix + ".variance.ang", 0.1);
   declare_parameter(imu_prefix + ".variance.acc_bias", 1e-9);
   declare_parameter(imu_prefix + ".variance.gyr_bias", 1e-9);
-  declare_parameter(imu_prefix + ".pos_i_in_b", std::vector<double>{0, 0, 0});
-  declare_parameter(imu_prefix + ".ang_i_to_b", std::vector<double>{1, 0, 0, 0});
-  declare_parameter(imu_prefix + ".acc_bias", std::vector<double>{0, 0, 0});
-  declare_parameter(imu_prefix + ".omg_bias", std::vector<double>{0, 0, 0});
+  declare_parameter(imu_prefix + ".pos_i_in_b", std::vector<double> {0, 0, 0});
+  declare_parameter(imu_prefix + ".ang_i_to_b", std::vector<double> {1, 0, 0, 0});
+  declare_parameter(imu_prefix + ".acc_bias", std::vector<double> {0, 0, 0});
+  declare_parameter(imu_prefix + ".omg_bias", std::vector<double> {0, 0, 0});
   declare_parameter(imu_prefix + ".pos_stability", 1e-9);
   declare_parameter(imu_prefix + ".ang_stability", 1e-9);
   declare_parameter(imu_prefix + ".acc_bias_stability", 1e-9);
@@ -326,12 +336,12 @@ void EkfCalNode::DeclareCameraParameters(const std::string & camera_name)
   // Declare parameters
   std::string cam_prefix = "camera." + camera_name;
   DeclareSensorParameters(cam_prefix);
-  declare_parameter(cam_prefix + ".pos_c_in_b", std::vector<double>{0, 0, 0});
-  declare_parameter(cam_prefix + ".ang_c_to_b", std::vector<double>{1, 0, 0, 0});
+  declare_parameter(cam_prefix + ".pos_c_in_b", std::vector<double> {0, 0, 0});
+  declare_parameter(cam_prefix + ".ang_c_to_b", std::vector<double> {1, 0, 0, 0});
   declare_parameter(cam_prefix + ".variance.pos", 0.1);
   declare_parameter(cam_prefix + ".variance.ang", 0.1);
   declare_parameter(cam_prefix + ".tracker", "");
-  declare_parameter(cam_prefix + ".fiducials", std::vector<std::string>{});
+  declare_parameter(cam_prefix + ".fiducials", std::vector<std::string> {});
   declare_parameter(cam_prefix + ".pos_stability", 1e-9);
   declare_parameter(cam_prefix + ".ang_stability", 1e-9);
   declare_parameter(cam_prefix + ".is_extrinsic", false);
@@ -433,8 +443,8 @@ void EkfCalNode::DeclareFiducialParameters(const std::string & fid_name)
   declare_parameter(fiducial_prefix + ".border_bits", 2);
   declare_parameter(fiducial_prefix + ".separation_bits", 3);
   declare_parameter(fiducial_prefix + ".id", 0);
-  declare_parameter(fiducial_prefix + ".pos_f_in_l", std::vector<double>{0, 0, 0});
-  declare_parameter(fiducial_prefix + ".ang_f_to_l", std::vector<double>{1, 0, 0, 0});
+  declare_parameter(fiducial_prefix + ".pos_f_in_l", std::vector<double> {0, 0, 0});
+  declare_parameter(fiducial_prefix + ".ang_f_to_l", std::vector<double> {1, 0, 0, 0});
   declare_parameter(fiducial_prefix + ".variance.pos", 0.1);
   declare_parameter(fiducial_prefix + ".variance.ang", 0.1);
   declare_parameter(fiducial_prefix + ".min_track_length", 2);
@@ -491,7 +501,7 @@ void EkfCalNode::DeclareGpsParameters(const std::string & gps_name)
   // Declare parameters
   std::string gps_prefix = "gps." + gps_name;
   DeclareSensorParameters(gps_prefix);
-  declare_parameter(gps_prefix + ".pos_a_in_b", std::vector<double>{0, 0, 0});
+  declare_parameter(gps_prefix + ".pos_a_in_b", std::vector<double> {0, 0, 0});
   declare_parameter(gps_prefix + ".pos_stability", 1e-9);
   declare_parameter(gps_prefix + ".variance.pos", 0.1);
 }
@@ -623,6 +633,8 @@ void EkfCalNode::ImuCallback(const sensor_msgs::msg::Imu::SharedPtr msg, unsigne
   if (ros_imu_iter != m_map_imu.end()) {
     auto ros_imu_message = std::make_shared<RosImuMessage>(msg);
     ros_imu_message->sensor_id = imu_id;
+    ros_imu_message->time_received = GetCurrentRosTime();
+    OnImuMessageStamped(*ros_imu_message);
     ros_imu_iter->second->Callback(*ros_imu_message);
   } else {
     m_debug_logger->Log(LogLevel::WARN, "IMU ID Not Found: " + std::to_string(imu_id));
@@ -635,8 +647,11 @@ void EkfCalNode::CameraCallback(const sensor_msgs::msg::Image::SharedPtr msg, un
   if (ros_cam_iter != m_map_camera.end()) {
     auto ros_camera_message = std::make_shared<RosCameraMessage>(msg);
     ros_camera_message->sensor_id = cam_id;
-    ros_cam_iter->second->Callback(*ros_camera_message);
-    m_map_image_publishers[cam_id]->publish(*ros_cam_iter->second->GetRosImage().get());
+    ros_camera_message->time_received = GetCurrentRosTime();
+    OnCameraMessageStamped(*ros_camera_message);
+    if (ros_cam_iter->second->Callback(*ros_camera_message)) {
+      m_map_image_publishers[cam_id]->publish(*ros_cam_iter->second->GetRosImage().get());
+    }
   } else {
     m_debug_logger->Log(LogLevel::WARN, "Camera ID Not Found: " + std::to_string(cam_id));
   }
@@ -648,10 +663,59 @@ void EkfCalNode::GpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr msg, u
   if (ros_gps_iter != m_map_gps.end()) {
     auto ros_gps_message = std::make_shared<RosGpsMessage>(msg);
     ros_gps_message->sensor_id = gps_id;
+    ros_gps_message->time_received = GetCurrentRosTime();
+    OnGpsMessageStamped(*ros_gps_message);
     ros_gps_iter->second->Callback(*ros_gps_message);
   } else {
     m_debug_logger->Log(LogLevel::WARN, "GPS ID Not Found: " + std::to_string(gps_id));
   }
+}
+
+double EkfCalNode::GetCurrentRosTime() const
+{
+  rclcpp::Clock ros_clock(RCL_ROS_TIME);
+  return ros_clock.now().seconds();
+}
+
+void EkfCalNode::OnImuMessageStamped(const RosImuMessage &) const {}
+
+void EkfCalNode::OnCameraMessageStamped(const RosCameraMessage &) const {}
+
+void EkfCalNode::OnGpsMessageStamped(const RosGpsMessage &) const {}
+
+std::shared_ptr<EKF> EkfCalNode::GetEkf() const
+{
+  return m_ekf;
+}
+
+std::vector<unsigned int> EkfCalNode::GetImuIds() const
+{
+  std::vector<unsigned int> imu_ids;
+  imu_ids.reserve(m_map_imu.size());
+  for (const auto & imu_iter : m_map_imu) {
+    imu_ids.push_back(imu_iter.first);
+  }
+  return imu_ids;
+}
+
+std::vector<unsigned int> EkfCalNode::GetCameraIds() const
+{
+  std::vector<unsigned int> camera_ids;
+  camera_ids.reserve(m_map_camera.size());
+  for (const auto & camera_iter : m_map_camera) {
+    camera_ids.push_back(camera_iter.first);
+  }
+  return camera_ids;
+}
+
+std::vector<unsigned int> EkfCalNode::GetGpsIds() const
+{
+  std::vector<unsigned int> gps_ids;
+  gps_ids.reserve(m_map_gps.size());
+  for (const auto & gps_iter : m_map_gps) {
+    gps_ids.push_back(gps_iter.first);
+  }
+  return gps_ids;
 }
 
 void EkfCalNode::PublishState()

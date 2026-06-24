@@ -76,7 +76,9 @@ public:
   ///
   void Callback(const ImuMessage & imu_message);
 
-private:
+protected:
+  void ExecuteCallback(const ImuMessage & imu_message);
+
   bool m_is_extrinsic;
   bool m_is_intrinsic;
   std::shared_ptr<EKF> m_ekf;

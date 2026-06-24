@@ -69,22 +69,25 @@ SimIMU::SimIMU(SimIMU::Parameters params, std::shared_ptr<TruthEngine> truth_eng
 
 std::vector<std::shared_ptr<SimImuMessage>> SimIMU::GenerateMessages() const
 {
-  std::vector<double> measurement_times = GenerateMeasurementTimes(m_rate);
+  std::vector<TimingSample> measurement_times = GenerateMeasurementTimes(m_rate);
 
   m_logger->Log(
     LogLevel::INFO, "Generating " + std::to_string(measurement_times.size()) + " IMU measurements");
 
   std::vector<std::shared_ptr<SimImuMessage>> messages;
-  for (auto measurement_time : measurement_times) {
+  for (const auto & measurement_time : measurement_times) {
     auto sim_imu_msg = std::make_shared<SimImuMessage>();
-    sim_imu_msg->time = measurement_time;
+    sim_imu_msg->time_true = measurement_time.time_true;
+    sim_imu_msg->time_measured = measurement_time.time_measured;
+    sim_imu_msg->time_received = measurement_time.time_received;
     sim_imu_msg->sensor_id = m_id;
     sim_imu_msg->sensor_type = SensorType::IMU;
 
-    Eigen::Vector3d body_acc_l = m_truth->GetBodyAcceleration(measurement_time);
-    Eigen::Quaterniond body_b_to_l = m_truth->GetBodyAngularPosition(measurement_time);
-    Eigen::Vector3d body_ang_vel_l = m_truth->GetBodyAngularRate(measurement_time);
-    Eigen::Vector3d body_ang_acc_l = m_truth->GetBodyAngularAcceleration(measurement_time);
+    Eigen::Vector3d body_acc_l = m_truth->GetBodyAcceleration(measurement_time.time_true);
+    Eigen::Quaterniond body_b_to_l = m_truth->GetBodyAngularPosition(measurement_time.time_true);
+    Eigen::Vector3d body_ang_vel_l = m_truth->GetBodyAngularRate(measurement_time.time_true);
+    Eigen::Vector3d body_ang_acc_l =
+      m_truth->GetBodyAngularAcceleration(measurement_time.time_true);
     Eigen::Vector3d pos_i_in_b_true = m_truth->GetImuPosition(m_id);
     Eigen::Quaterniond ang_i_to_b_true = m_truth->GetImuAngularPosition(m_id);
     Eigen::Vector3d acc_bias_true = m_truth->GetImuAccelerometerBias(m_id);
@@ -113,4 +116,11 @@ std::vector<std::shared_ptr<SimImuMessage>> SimIMU::GenerateMessages() const
     messages.push_back(sim_imu_msg);
   }
   return messages;
+}
+
+void SimIMU::Callback(const SimImuMessage & imu_message)
+{
+  BufferMessage(
+    imu_message,
+    [this](const SimImuMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }

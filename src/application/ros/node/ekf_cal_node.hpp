@@ -36,8 +36,11 @@
 #include "sensors/gps.hpp"
 #include "sensors/imu.hpp"
 #include "sensors/ros/ros_camera.hpp"
+#include "sensors/ros/ros_camera_message.hpp"
 #include "sensors/ros/ros_gps.hpp"
+#include "sensors/ros/ros_gps_message.hpp"
 #include "sensors/ros/ros_imu.hpp"
+#include "sensors/ros/ros_imu_message.hpp"
 #include "sensors/sensor.hpp"
 #include "trackers/feature_tracker.hpp"
 #include "trackers/fiducial_tracker.hpp"
@@ -222,6 +225,54 @@ public:
   void GpsCallback(const sensor_msgs::msg::NavSatFix::SharedPtr msg, unsigned int id);
 
   ///
+  /// @brief Current ROS receipt time getter
+  /// @return Current ROS time in seconds
+  ///
+  virtual double GetCurrentRosTime() const;
+
+  ///
+  /// @brief IMU message stamp hook for testing
+  /// @param ros_imu_message Stamped ROS IMU message
+  ///
+  virtual void OnImuMessageStamped(const RosImuMessage & ros_imu_message) const;
+
+  ///
+  /// @brief Camera message stamp hook for testing
+  /// @param ros_camera_message Stamped ROS camera message
+  ///
+  virtual void OnCameraMessageStamped(const RosCameraMessage & ros_camera_message) const;
+
+  ///
+  /// @brief GPS message stamp hook for testing
+  /// @param ros_gps_message Stamped ROS GPS message
+  ///
+  virtual void OnGpsMessageStamped(const RosGpsMessage & ros_gps_message) const;
+
+  ///
+  /// @brief EKF getter method
+  /// @return EKF shared pointer
+  ///
+  std::shared_ptr<EKF> GetEkf() const;
+
+  ///
+  /// @brief Registered IMU ID getter method
+  /// @return Registered IMU IDs
+  ///
+  std::vector<unsigned int> GetImuIds() const;
+
+  ///
+  /// @brief Registered camera ID getter method
+  /// @return Registered camera IDs
+  ///
+  std::vector<unsigned int> GetCameraIds() const;
+
+  ///
+  /// @brief Registered GPS ID getter method
+  /// @return Registered GPS IDs
+  ///
+  std::vector<unsigned int> GetGpsIds() const;
+
+  ///
   /// @brief Register IMU sensor
   /// @param imu_ptr IMU sensor shared pointer
   /// @param topic Topic to subscribe
@@ -269,6 +320,7 @@ private:
 
   std::shared_ptr<EKF> m_ekf;
   std::shared_ptr<DebugLogger> m_debug_logger;
+  std::shared_ptr<Sensor::MeasurementScheduler> m_measurement_scheduler;
   DataLogger m_state_data_logger;
 
   std::map<unsigned int, std::shared_ptr<RosIMU>> m_map_imu{};
