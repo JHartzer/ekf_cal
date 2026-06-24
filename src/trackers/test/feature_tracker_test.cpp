@@ -23,13 +23,27 @@
 #include "ekf/types.hpp"
 #include "infrastructure/debug_logger.hpp"
 #include "sensors/camera_message.hpp"
-#define private public
-#define protected public
 #include "trackers/feature_tracker.hpp"
-#undef private
-#undef protected
 #include "sensors/imu.hpp"
 #include "sensors/camera.hpp"
+
+struct FeatureTrackerTestAccess
+{
+  static int GenerateFeatureID()
+  {
+    return FeatureTracker::GenerateFeatureID();
+  }
+
+  static unsigned int PrevFrameId(const FeatureTracker & tracker)
+  {
+    return tracker.m_prev_frame_id;
+  }
+
+  static std::vector<cv::KeyPoint> & PrevKeyPoints(FeatureTracker & tracker)
+  {
+    return tracker.m_prev_key_points;
+  }
+};
 
 TEST(test_feature_tracker, initialization) {
   EKF::Parameters ekf_params;
@@ -132,9 +146,9 @@ TEST(test_feature_tracker, track) {
 }
 
 TEST(test_feature_tracker, GenerateFeatureID) {
-  int id1 = FeatureTracker::GenerateFeatureID();
-  int id2 = FeatureTracker::GenerateFeatureID();
-  int id3 = FeatureTracker::GenerateFeatureID();
+  int id1 = FeatureTrackerTestAccess::GenerateFeatureID();
+  int id2 = FeatureTrackerTestAccess::GenerateFeatureID();
+  int id3 = FeatureTrackerTestAccess::GenerateFeatureID();
   EXPECT_EQ(id2, id1 + 1);
   EXPECT_EQ(id3, id2 + 1);
 }
@@ -246,7 +260,7 @@ TEST(test_feature_tracker, RANSAC) {
   FeatureTracker tracker{params};
 
   // Populate m_prev_key_points
-  tracker.m_prev_key_points.clear();
+  FeatureTrackerTestAccess::PrevKeyPoints(tracker).clear();
   std::vector<cv::KeyPoint> curr_key_points;
   std::vector<cv::DMatch> matches_in;
 
@@ -254,7 +268,8 @@ TEST(test_feature_tracker, RANSAC) {
   for (int i = 0; i < 11; ++i) {
     float x_prev = static_cast<float>(i % 3) * 50.0f;
     float y_prev = static_cast<float>(i / 3.0) * 50.0f;
-    tracker.m_prev_key_points.emplace_back(cv::Point2f(x_prev, y_prev), 1.0f);
+    FeatureTrackerTestAccess::PrevKeyPoints(tracker).emplace_back(
+      cv::Point2f(x_prev, y_prev), 1.0f);
 
     float x_curr, y_curr;
     if (i < 10) {
@@ -295,27 +310,27 @@ TEST(test_feature_tracker, DistanceTest) {
   params.camera_id = 1;
   FeatureTracker tracker{params};
 
-  tracker.m_prev_key_points.clear();
+  FeatureTrackerTestAccess::PrevKeyPoints(tracker).clear();
   std::vector<cv::KeyPoint> curr_key_points;
   std::vector<cv::DMatch> matches_in;
 
   // Match 0: dist = 10.0
-  tracker.m_prev_key_points.emplace_back(cv::Point2f(0.0f, 0.0f), 1.0f);
+  FeatureTrackerTestAccess::PrevKeyPoints(tracker).emplace_back(cv::Point2f(0.0f, 0.0f), 1.0f);
   curr_key_points.emplace_back(cv::Point2f(10.0f, 0.0f), 1.0f);
   matches_in.emplace_back(0, 0, 1.0f);
 
   // Match 1: dist = 10.0
-  tracker.m_prev_key_points.emplace_back(cv::Point2f(10.0f, 10.0f), 1.0f);
+  FeatureTrackerTestAccess::PrevKeyPoints(tracker).emplace_back(cv::Point2f(10.0f, 10.0f), 1.0f);
   curr_key_points.emplace_back(cv::Point2f(20.0f, 10.0f), 1.0f);
   matches_in.emplace_back(1, 1, 1.0f);
 
   // Match 2: dist = 10.0
-  tracker.m_prev_key_points.emplace_back(cv::Point2f(20.0f, 20.0f), 1.0f);
+  FeatureTrackerTestAccess::PrevKeyPoints(tracker).emplace_back(cv::Point2f(20.0f, 20.0f), 1.0f);
   curr_key_points.emplace_back(cv::Point2f(30.0f, 20.0f), 1.0f);
   matches_in.emplace_back(2, 2, 1.0f);
 
   // Match 3: dist = 100.0 (outlier)
-  tracker.m_prev_key_points.emplace_back(cv::Point2f(30.0f, 30.0f), 1.0f);
+  FeatureTrackerTestAccess::PrevKeyPoints(tracker).emplace_back(cv::Point2f(30.0f, 30.0f), 1.0f);
   curr_key_points.emplace_back(cv::Point2f(130.0f, 30.0f), 1.0f);
   matches_in.emplace_back(3, 3, 1.0f);
 
@@ -367,10 +382,10 @@ TEST(test_feature_tracker, TrackDirect) {
 
   feature_tracker.Track(0.0, 1, img_1, img_out_1);
 
-  EXPECT_EQ(feature_tracker.m_prev_frame_id, 1);
-  EXPECT_GT(feature_tracker.m_prev_key_points.size(), 0);
+  EXPECT_EQ(FeatureTrackerTestAccess::PrevFrameId(feature_tracker), 1);
+  EXPECT_GT(FeatureTrackerTestAccess::PrevKeyPoints(feature_tracker).size(), 0);
 
   feature_tracker.Track(1.0, 2, img_2, img_out_2);
 
-  EXPECT_EQ(feature_tracker.m_prev_frame_id, 2);
+  EXPECT_EQ(FeatureTrackerTestAccess::PrevFrameId(feature_tracker), 2);
 }

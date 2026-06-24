@@ -57,6 +57,8 @@ enum class Matcher
   FLANN
 };
 
+struct FeatureTrackerTestAccess;
+
 ///
 /// @class FeatureTracker
 /// @brief FeatureTracker Class
@@ -161,6 +163,8 @@ protected:
   MsckfUpdater m_msckf_updater;  ///< @brief MSCKF updater object
 
 private:
+  friend struct FeatureTrackerTestAccess;
+
   static cv::Ptr<cv::FeatureDetector> InitFeatureDetector(
     Detector detector,
     int threshold);
