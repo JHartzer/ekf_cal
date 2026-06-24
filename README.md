@@ -152,7 +152,7 @@ sed -i 's/--------|--------|--------|--------|--------/| | | | | |/' docs/softwa
 A performance [flamegraph](https://github.com/brendangregg/FlameGraph) can be generated using the following command
 
 ```bash
-cd docs/flamegraph/ && ./run_perf.sh
+./tools/generate-flamegraph.sh
 ```
 
 ## Documentation
