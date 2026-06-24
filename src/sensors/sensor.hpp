@@ -16,7 +16,9 @@
 #ifndef SENSORS__SENSOR_HPP_
 #define SENSORS__SENSOR_HPP_
 
-#include <algorithm>
+#include <cstdint>
+#include <functional>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -34,6 +36,41 @@
 class Sensor
 {
 public:
+  class MeasurementScheduler
+  {
+public:
+    explicit MeasurementScheduler(double measurement_time_reorder_window);
+
+    unsigned int Enqueue(
+      unsigned int sensor_id,
+      double time_used,
+      double time_received,
+      std::function<void()> execute_fn);
+    unsigned int FlushAll();
+    unsigned int FlushSensor(unsigned int sensor_id);
+    bool HasPending(unsigned int sensor_id) const;
+    double GetNextPendingTime(unsigned int sensor_id) const;
+    bool FlushNext(unsigned int sensor_id);
+
+private:
+    struct PendingMeasurement
+    {
+      std::uint64_t sequence_id {0};
+      unsigned int sensor_id {0};
+      double time_used {0.0};
+      double time_received {0.0};
+      std::function<void()> execute_fn;
+    };
+
+    void SortPending();
+    unsigned int ReleaseReadyMeasurements(bool flush_all);
+
+    double m_measurement_time_reorder_window {0.0};
+    double m_latest_time_received {-std::numeric_limits<double>::infinity()};
+    std::uint64_t m_next_sequence_id {0};
+    std::vector<PendingMeasurement> m_pending_measurements;
+  };
+
   ///
   /// @brief Sensor parameter structure
   ///
@@ -48,6 +85,7 @@ public:
     double measurement_time_reorder_window {1.0};  ///< @brief Reorder window in seconds
     std::shared_ptr<DebugLogger> logger;  ///< @brief Debug logger
     std::shared_ptr<EKF> ekf;             ///< @brief EKF to update
+    std::shared_ptr<MeasurementScheduler> measurement_scheduler;  ///< @brief Shared filter queue
   } Parameters;
 
   ///
@@ -99,6 +137,8 @@ public:
   ///
   virtual bool FlushNextMeasurement();
 
+  std::shared_ptr<MeasurementScheduler> GetMeasurementScheduler() const;
+
 protected:
   void InitializeTimingLogger(
     const std::string & log_prefix,
@@ -109,59 +149,30 @@ protected:
   template<typename MessageT, typename ExecuteFn>
   unsigned int BufferMessage(
     const MessageT & sensor_message,
-    std::vector<MessageT> & message_buffer,
     ExecuteFn execute_fn)
   {
     if (!m_filter_sensor_time) {
       MessageT immediate_message = sensor_message;
       immediate_message.time_used = immediate_message.time_measured;
+      RecordMeasurementExecution(immediate_message.time_used);
       execute_fn(immediate_message);
       return 1;
     }
 
-    UpdateTimeFilter(sensor_message);
-    message_buffer.push_back(sensor_message);
-    RefreshBufferedMessageTimes(message_buffer);
-    return ReleaseBufferedMessages(message_buffer, execute_fn, false);
+    MessageT buffered_message = sensor_message;
+    buffered_message.time_used = GetTimeUsed(sensor_message);
+    return m_measurement_scheduler->Enqueue(
+      m_id,
+      buffered_message.time_used,
+      buffered_message.time_received,
+      [this, execute_fn, buffered_message]() {
+        RecordMeasurementExecution(buffered_message.time_used);
+        execute_fn(buffered_message);
+      });
   }
 
-  template<typename MessageT, typename ExecuteFn>
-  unsigned int FlushBufferedMessages(
-    std::vector<MessageT> & message_buffer,
-    ExecuteFn execute_fn)
-  {
-    RefreshBufferedMessageTimes(message_buffer);
-    return ReleaseBufferedMessages(message_buffer, execute_fn, true);
-  }
-
-  template<typename MessageT>
-  bool HasBufferedMessages(const std::vector<MessageT> & message_buffer) const
-  {
-    return !message_buffer.empty();
-  }
-
-  template<typename MessageT>
-  double GetNextBufferedMessageTime(const std::vector<MessageT> & message_buffer) const
-  {
-    if (message_buffer.empty()) {
-      return 0.0;
-    }
-    return message_buffer.front().time_used;
-  }
-
-  template<typename MessageT, typename ExecuteFn>
-  bool FlushNextBufferedMessage(
-    std::vector<MessageT> & message_buffer,
-    ExecuteFn execute_fn)
-  {
-    if (message_buffer.empty()) {
-      return false;
-    }
-
-    execute_fn(message_buffer.front());
-    message_buffer.erase(message_buffer.begin());
-    return true;
-  }
+  std::uint64_t GetExecutionCount() const;
+  void RecordMeasurementExecution(double time_used);
 
   double m_rate;                          ///< @brief Sensor measurement rate
   unsigned int m_id;                      ///< @brief Sensor id
@@ -170,63 +181,18 @@ protected:
   bool m_is_initialized{false};           ///< @brief Sensor initialization flag
   bool m_filter_sensor_time {false};      ///< @brief Sensor time filter enable
   double m_measurement_time_reorder_window {1.0};  ///< @brief Reordering window
+  std::shared_ptr<MeasurementScheduler> m_measurement_scheduler;  ///< @brief Shared queue
   DataLogger m_timing_logger;             ///< @brief Timing observability logger
 
 private:
-  void UpdateTimeFilter(const SensorMessage & sensor_message);
-  double GetTimeUsed(const SensorMessage & sensor_message) const;
-
-  template<typename MessageT>
-  void RefreshBufferedMessageTimes(std::vector<MessageT> & message_buffer)
-  {
-    if (message_buffer.empty()) {
-      return;
-    }
-
-    for (auto & buffered_message : message_buffer) {
-      buffered_message.time_used = GetTimeUsed(buffered_message);
-    }
-
-    std::stable_sort(
-      message_buffer.begin(),
-      message_buffer.end(),
-      [](const MessageT & left, const MessageT & right) {
-        if (left.time_used == right.time_used) {
-          return left.time_received < right.time_received;
-        }
-        return left.time_used < right.time_used;
-      });
-  }
-
-  template<typename MessageT, typename ExecuteFn>
-  unsigned int ReleaseBufferedMessages(
-    std::vector<MessageT> & message_buffer,
-    ExecuteFn execute_fn,
-    bool flush_all)
-  {
-    if (message_buffer.empty()) {
-      return 0;
-    }
-
-    unsigned int executed_count = 0;
-    const double latest_time_used = message_buffer.back().time_used;
-    while (!message_buffer.empty()) {
-      if (!flush_all &&
-        (latest_time_used - message_buffer.front().time_used) < m_measurement_time_reorder_window)
-      {
-        break;
-      }
-
-      execute_fn(message_buffer.front());
-      message_buffer.erase(message_buffer.begin());
-      executed_count++;
-    }
-    return executed_count;
-  }
+  double GetTimeUsed(const SensorMessage & sensor_message);
 
   static unsigned int m_sensor_count;     ///< @brief Static sensor count
   bool m_min_offset_initialized {false};  ///< @brief Min offset initialized flag
   double m_min_offset {0.0};              ///< @brief Running minimum time offset
+  bool m_last_assigned_time_used_initialized {false};  ///< @brief Sensor time clamp initialized
+  double m_last_assigned_time_used {0.0};  ///< @brief Last adjusted sensor timestamp
+  std::uint64_t m_execution_count {0};    ///< @brief Executed measurement count
 };
 
 bool MessageCompare(std::shared_ptr<SensorMessage> l_msg, std::shared_ptr<SensorMessage> r_msg);

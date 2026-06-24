@@ -17,6 +17,7 @@
 
 #include <Eigen/Core>
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -55,10 +56,11 @@ Camera::Camera(Camera::Parameters cam_params)
 
 bool Camera::Callback(const CameraMessage & camera_message)
 {
-  return BufferMessage(
+  const std::uint64_t execution_count_before = GetExecutionCount();
+  BufferMessage(
     camera_message,
-    m_message_buffer,
-    [this](const CameraMessage & buffered_message) {ExecuteCallback(buffered_message);}) > 0;
+    [this](const CameraMessage & buffered_message) {ExecuteCallback(buffered_message);});
+  return GetExecutionCount() > execution_count_before;
 }
 
 void Camera::ExecuteCallback(const CameraMessage & camera_message)
@@ -98,30 +100,6 @@ void Camera::ExecuteCallback(const CameraMessage & camera_message)
     m_logger->Log(LogLevel::INFO, "Camera received empty image");
   }
   m_logger->Log(LogLevel::DEBUG, "Camera " + std::to_string(m_id) + " callback complete");
-}
-
-void Camera::Flush()
-{
-  FlushBufferedMessages(
-    m_message_buffer,
-    [this](const CameraMessage & buffered_message) {ExecuteCallback(buffered_message);});
-}
-
-bool Camera::HasBufferedMeasurements() const
-{
-  return HasBufferedMessages(m_message_buffer);
-}
-
-double Camera::GetNextBufferedMeasurementTime() const
-{
-  return GetNextBufferedMessageTime(m_message_buffer);
-}
-
-bool Camera::FlushNextMeasurement()
-{
-  return FlushNextBufferedMessage(
-    m_message_buffer,
-    [this](const CameraMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }
 
 /// @todo apply similar function to sensor/tracker IDs

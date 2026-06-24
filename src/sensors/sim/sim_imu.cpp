@@ -122,30 +122,5 @@ void SimIMU::Callback(const SimImuMessage & imu_message)
 {
   BufferMessage(
     imu_message,
-    m_message_buffer,
-    [this](const SimImuMessage & buffered_message) {ExecuteCallback(buffered_message);});
-}
-
-void SimIMU::Flush()
-{
-  FlushBufferedMessages(
-    m_message_buffer,
-    [this](const SimImuMessage & buffered_message) {ExecuteCallback(buffered_message);});
-}
-
-bool SimIMU::HasBufferedMeasurements() const
-{
-  return HasBufferedMessages(m_message_buffer);
-}
-
-double SimIMU::GetNextBufferedMeasurementTime() const
-{
-  return GetNextBufferedMessageTime(m_message_buffer);
-}
-
-bool SimIMU::FlushNextMeasurement()
-{
-  return FlushNextBufferedMessage(
-    m_message_buffer,
     [this](const SimImuMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }

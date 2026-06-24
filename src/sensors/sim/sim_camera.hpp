@@ -76,11 +76,6 @@ public:
   ///
   void Callback(const SimCameraMessage & sim_camera_message);
 
-  void Flush() override;
-  bool HasBufferedMeasurements() const override;
-  double GetNextBufferedMeasurementTime() const override;
-  bool FlushNextMeasurement() override;
-
   ///
   /// @brief Generate simulated IMU messages
   /// @return Generated camera messages
@@ -153,7 +148,6 @@ private:
 
   std::map<unsigned int, std::shared_ptr<SimFeatureTracker>> m_trackers;
   std::map<unsigned int, std::shared_ptr<SimFiducialTracker>> m_fiducials;
-  std::vector<SimCameraMessage> m_message_buffer;
 };
 
 

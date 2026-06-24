@@ -162,7 +162,7 @@ TEST(test_IMU, Callback_FilterSensorTime_ReordersWithinWindow) {
   EXPECT_DOUBLE_EQ(ekf->GetCurrentTime(), 1.0);
 
   imu.Callback(imu_message_2);
-  EXPECT_DOUBLE_EQ(ekf->GetCurrentTime(), 1.5);
+  EXPECT_DOUBLE_EQ(ekf->GetCurrentTime(), 1.0);
 
   imu.Flush();
   EXPECT_DOUBLE_EQ(ekf->GetCurrentTime(), 2.6);

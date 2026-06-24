@@ -184,7 +184,6 @@ void SimCamera::Callback(const SimCameraMessage & sim_camera_message)
 {
   BufferMessage(
     sim_camera_message,
-    m_message_buffer,
     [this](const SimCameraMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }
 
@@ -207,30 +206,6 @@ void SimCamera::ExecuteCallback(const SimCameraMessage & sim_camera_message)
         sim_camera_message.time_used, *feature_track_message);
     }
   }
-}
-
-void SimCamera::Flush()
-{
-  FlushBufferedMessages(
-    m_message_buffer,
-    [this](const SimCameraMessage & buffered_message) {ExecuteCallback(buffered_message);});
-}
-
-bool SimCamera::HasBufferedMeasurements() const
-{
-  return HasBufferedMessages(m_message_buffer);
-}
-
-double SimCamera::GetNextBufferedMeasurementTime() const
-{
-  return GetNextBufferedMessageTime(m_message_buffer);
-}
-
-bool SimCamera::FlushNextMeasurement()
-{
-  return FlushNextBufferedMessage(
-    m_message_buffer,
-    [this](const SimCameraMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }
 
 cv::Scalar SimCamera::GetTrackColor(unsigned int tracker_id, unsigned int feature_id)

@@ -50,7 +50,6 @@ void GPS::Callback(const GpsMessage & gps_message)
 {
   BufferMessage(
     gps_message,
-    m_message_buffer,
     [this](const GpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }
 
@@ -65,28 +64,4 @@ void GPS::ExecuteCallback(const GpsMessage & gps_message)
     *m_ekf, gps_message.time_used, gps_message.gps_lla, gps_message.pos_covariance);
 
   m_logger->Log(LogLevel::DEBUG, "GPS \"" + m_name + "\" callback complete");
-}
-
-void GPS::Flush()
-{
-  FlushBufferedMessages(
-    m_message_buffer,
-    [this](const GpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
-}
-
-bool GPS::HasBufferedMeasurements() const
-{
-  return HasBufferedMessages(m_message_buffer);
-}
-
-double GPS::GetNextBufferedMeasurementTime() const
-{
-  return GetNextBufferedMessageTime(m_message_buffer);
-}
-
-bool GPS::FlushNextMeasurement()
-{
-  return FlushNextBufferedMessage(
-    m_message_buffer,
-    [this](const GpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }

@@ -135,6 +135,8 @@ void EkfCalNode::Initialize()
     get_parameter("use_first_estimate_jacobian").as_bool();
   ekf_params.use_rk4 = get_parameter("use_rk4").as_bool();
   ekf_params.imu_noise_scale_factor = get_parameter("imu_noise_scale_factor").as_double();
+  m_measurement_scheduler = std::make_shared<Sensor::MeasurementScheduler>(
+    get_parameter("measurement_time_reorder_window").as_double());
 
   // Load lists of sensors
   m_imu_list = get_parameter("imu_list").as_string_array();
@@ -193,6 +195,7 @@ void EkfCalNode::LoadSensorParameters(
   params.log_directory = m_log_directory;
   params.ekf = m_ekf;
   params.logger = m_debug_logger;
+  params.measurement_scheduler = m_measurement_scheduler;
 }
 
 void EkfCalNode::LoadSensors()

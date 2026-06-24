@@ -20,7 +20,6 @@
 #include <Eigen/Geometry>
 
 #include <memory>
-#include <vector>
 
 #include "ekf/ekf.hpp"
 #include "ekf/update/imu_updater.hpp"
@@ -77,11 +76,6 @@ public:
   ///
   void Callback(const ImuMessage & imu_message);
 
-  void Flush() override;
-  bool HasBufferedMeasurements() const override;
-  double GetNextBufferedMeasurementTime() const override;
-  bool FlushNextMeasurement() override;
-
 protected:
   void ExecuteCallback(const ImuMessage & imu_message);
 
@@ -89,7 +83,6 @@ protected:
   bool m_is_intrinsic;
   std::shared_ptr<EKF> m_ekf;
   ImuUpdater m_imu_updater;
-  std::vector<ImuMessage> m_message_buffer;
 };
 
 #endif  // SENSORS__IMU_HPP_

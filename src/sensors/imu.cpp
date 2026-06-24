@@ -69,7 +69,6 @@ void IMU::Callback(const ImuMessage & imu_message)
 {
   BufferMessage(
     imu_message,
-    m_message_buffer,
     [this](const ImuMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }
 
@@ -87,28 +86,4 @@ void IMU::ExecuteCallback(const ImuMessage & imu_message)
     imu_message.angular_rate,
     imu_message.angular_rate_covariance);
   m_logger->Log(LogLevel::DEBUG, "IMU \"" + m_name + "\" callback complete");
-}
-
-void IMU::Flush()
-{
-  FlushBufferedMessages(
-    m_message_buffer,
-    [this](const ImuMessage & buffered_message) {ExecuteCallback(buffered_message);});
-}
-
-bool IMU::HasBufferedMeasurements() const
-{
-  return HasBufferedMessages(m_message_buffer);
-}
-
-double IMU::GetNextBufferedMeasurementTime() const
-{
-  return GetNextBufferedMessageTime(m_message_buffer);
-}
-
-bool IMU::FlushNextMeasurement()
-{
-  return FlushNextBufferedMessage(
-    m_message_buffer,
-    [this](const ImuMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }

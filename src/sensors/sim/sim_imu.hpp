@@ -67,11 +67,6 @@ public:
   ///
   void Callback(const SimImuMessage & imu_message);
 
-  void Flush() override;
-  bool HasBufferedMeasurements() const override;
-  double GetNextBufferedMeasurementTime() const override;
-  bool FlushNextMeasurement() override;
-
 private:
   Eigen::Vector3d m_acc_error;
   Eigen::Vector3d m_omg_error;
@@ -79,7 +74,6 @@ private:
   Eigen::Vector3d m_ang_error;
   Eigen::Vector3d m_acc_bias_error;
   Eigen::Vector3d m_omg_bias_error;
-  std::vector<SimImuMessage> m_message_buffer;
 };
 
 

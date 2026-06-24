@@ -91,30 +91,5 @@ void SimGPS::Callback(const SimGpsMessage & gps_message)
 {
   BufferMessage(
     gps_message,
-    m_message_buffer,
-    [this](const SimGpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
-}
-
-void SimGPS::Flush()
-{
-  FlushBufferedMessages(
-    m_message_buffer,
-    [this](const SimGpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
-}
-
-bool SimGPS::HasBufferedMeasurements() const
-{
-  return HasBufferedMessages(m_message_buffer);
-}
-
-double SimGPS::GetNextBufferedMeasurementTime() const
-{
-  return GetNextBufferedMessageTime(m_message_buffer);
-}
-
-bool SimGPS::FlushNextMeasurement()
-{
-  return FlushNextBufferedMessage(
-    m_message_buffer,
     [this](const SimGpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }

@@ -320,6 +320,7 @@ private:
 
   std::shared_ptr<EKF> m_ekf;
   std::shared_ptr<DebugLogger> m_debug_logger;
+  std::shared_ptr<Sensor::MeasurementScheduler> m_measurement_scheduler;
   DataLogger m_state_data_logger;
 
   std::map<unsigned int, std::shared_ptr<RosIMU>> m_map_imu{};

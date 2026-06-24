@@ -19,7 +19,6 @@
 #include <Eigen/Core>
 
 #include <memory>
-#include <vector>
 
 #include "ekf/ekf.hpp"
 #include "ekf/update/gps_updater.hpp"
@@ -65,17 +64,11 @@ public:
   ///
   void Callback(const GpsMessage & gps_message);
 
-  void Flush() override;
-  bool HasBufferedMeasurements() const override;
-  double GetNextBufferedMeasurementTime() const override;
-  bool FlushNextMeasurement() override;
-
 protected:
   void ExecuteCallback(const GpsMessage & gps_message);
 
   std::shared_ptr<EKF> m_ekf;
   GpsUpdater m_gps_updater;
-  std::vector<GpsMessage> m_message_buffer;
 };
 
 #endif  // SENSORS__GPS_HPP_

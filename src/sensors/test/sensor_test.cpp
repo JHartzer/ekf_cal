@@ -31,15 +31,20 @@
 class TestSensor : public Sensor
 {
 public:
-  explicit TestSensor(const Sensor::Parameters & params)
-  : Sensor(params) {}
+  explicit TestSensor(
+    const Sensor::Parameters & params,
+    std::vector<unsigned int> * execution_log = nullptr)
+  : Sensor(params), m_shared_execution_log(execution_log) {}
 
   void Record(const SensorMessage & sensor_message)
   {
     BufferMessage(
       sensor_message,
-      m_message_buffer,
       [this](const SensorMessage & buffered_message) {
+        m_execution_order.push_back(buffered_message.sensor_id);
+        if (m_shared_execution_log != nullptr) {
+          m_shared_execution_log->push_back(buffered_message.sensor_id);
+        }
         m_used_times.push_back(buffered_message.time_used);
         m_measured_times.push_back(buffered_message.time_measured);
       });
@@ -49,8 +54,11 @@ public:
   {
     BufferMessage(
       sensor_message,
-      m_sim_message_buffer,
       [this](const SimImuMessage & buffered_message) {
+        m_execution_order.push_back(buffered_message.sensor_id);
+        if (m_shared_execution_log != nullptr) {
+          m_shared_execution_log->push_back(buffered_message.sensor_id);
+        }
         m_used_times.push_back(buffered_message.time_used);
         m_alignment_errors.push_back(buffered_message.time_used - buffered_message.time_true);
       });
@@ -58,91 +66,16 @@ public:
 
   void FlushAll()
   {
-    FlushBufferedMessages(
-      m_message_buffer,
-      [this](const SensorMessage & buffered_message) {
-        m_used_times.push_back(buffered_message.time_used);
-        m_measured_times.push_back(buffered_message.time_measured);
-      });
-    FlushBufferedMessages(
-      m_sim_message_buffer,
-      [this](const SimImuMessage & buffered_message) {
-        m_used_times.push_back(buffered_message.time_used);
-        m_alignment_errors.push_back(buffered_message.time_used - buffered_message.time_true);
-      });
-  }
-
-  bool HasBufferedMeasurements() const override
-  {
-    return HasBufferedMessages(m_message_buffer) || HasBufferedMessages(m_sim_message_buffer);
-  }
-
-  double GetNextBufferedMeasurementTime() const override
-  {
-    if (HasBufferedMessages(m_message_buffer) && HasBufferedMessages(m_sim_message_buffer)) {
-      return std::min(
-        GetNextBufferedMessageTime(m_message_buffer),
-        GetNextBufferedMessageTime(m_sim_message_buffer));
-    }
-    if (HasBufferedMessages(m_message_buffer)) {
-      return GetNextBufferedMessageTime(m_message_buffer);
-    }
-    if (HasBufferedMessages(m_sim_message_buffer)) {
-      return GetNextBufferedMessageTime(m_sim_message_buffer);
-    }
-    return Sensor::GetNextBufferedMeasurementTime();
-  }
-
-  bool FlushNextMeasurement() override
-  {
-    if (HasBufferedMessages(m_message_buffer) && HasBufferedMessages(m_sim_message_buffer)) {
-      if (GetNextBufferedMessageTime(m_message_buffer) <=
-        GetNextBufferedMessageTime(m_sim_message_buffer))
-      {
-        return FlushNextBufferedMessage(
-          m_message_buffer,
-          [this](const SensorMessage & buffered_message) {
-            m_used_times.push_back(buffered_message.time_used);
-            m_measured_times.push_back(buffered_message.time_measured);
-          });
-      }
-
-      return FlushNextBufferedMessage(
-        m_sim_message_buffer,
-        [this](const SimImuMessage & buffered_message) {
-          m_used_times.push_back(buffered_message.time_used);
-          m_alignment_errors.push_back(buffered_message.time_used - buffered_message.time_true);
-        });
-    }
-
-    if (HasBufferedMessages(m_message_buffer)) {
-      return FlushNextBufferedMessage(
-        m_message_buffer,
-        [this](const SensorMessage & buffered_message) {
-          m_used_times.push_back(buffered_message.time_used);
-          m_measured_times.push_back(buffered_message.time_measured);
-        });
-    }
-
-    if (HasBufferedMessages(m_sim_message_buffer)) {
-      return FlushNextBufferedMessage(
-        m_sim_message_buffer,
-        [this](const SimImuMessage & buffered_message) {
-          m_used_times.push_back(buffered_message.time_used);
-          m_alignment_errors.push_back(buffered_message.time_used - buffered_message.time_true);
-        });
-    }
-
-    return false;
+    GetMeasurementScheduler()->FlushAll();
   }
 
   std::vector<double> m_used_times;
   std::vector<double> m_measured_times;
   std::vector<double> m_alignment_errors;
+  std::vector<unsigned int> m_execution_order;
 
 private:
-  std::vector<SensorMessage> m_message_buffer;
-  std::vector<SimImuMessage> m_sim_message_buffer;
+  std::vector<unsigned int> * m_shared_execution_log {nullptr};
 };
 
 
@@ -312,13 +245,13 @@ TEST(test_sensor, FlushNextMeasurementProcessesBufferedMessagesInTimeUsedOrder) 
   TestSensor sensor(sensor_params);
 
   SensorMessage message_1;
-  message_1.time_measured = 2.0;
-  message_1.time_received = 2.5;
+  message_1.time_measured = 1.0;
+  message_1.time_received = 1.2;
   sensor.Record(message_1);
 
   SensorMessage message_2;
-  message_2.time_measured = 1.0;
-  message_2.time_received = 1.2;
+  message_2.time_measured = 2.0;
+  message_2.time_received = 2.5;
   sensor.Record(message_2);
 
   ASSERT_TRUE(sensor.HasBufferedMeasurements());
@@ -333,4 +266,73 @@ TEST(test_sensor, FlushNextMeasurementProcessesBufferedMessagesInTimeUsedOrder) 
   EXPECT_DOUBLE_EQ(sensor.m_used_times[1], 2.2);
   EXPECT_FALSE(sensor.HasBufferedMeasurements());
   EXPECT_FALSE(sensor.FlushNextMeasurement());
+}
+
+TEST(test_sensor, FilterEnabled_PreservesPerSensorCausalityWhenDelayShrinks) {
+  Sensor::Parameters sensor_params;
+  sensor_params.logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  sensor_params.filter_sensor_time = true;
+  sensor_params.measurement_time_reorder_window = 0.0;
+  TestSensor sensor(sensor_params);
+
+  SensorMessage message_1;
+  message_1.time_measured = 1.0;
+  message_1.time_received = 5.0;
+  sensor.Record(message_1);
+
+  SensorMessage message_2;
+  message_2.time_measured = 1.5;
+  message_2.time_received = 5.01;
+  sensor.Record(message_2);
+
+  ASSERT_EQ(sensor.m_used_times.size(), 2U);
+  EXPECT_DOUBLE_EQ(sensor.m_used_times[0], 5.0);
+  EXPECT_DOUBLE_EQ(sensor.m_used_times[1], 5.01);
+  EXPECT_GE(sensor.m_used_times[1], sensor.m_used_times[0]);
+}
+
+TEST(test_sensor, SharedScheduler_ReordersAcrossSensors) {
+  auto logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  auto scheduler = std::make_shared<Sensor::MeasurementScheduler>(10.0);
+  std::vector<unsigned int> execution_log;
+
+  Sensor::Parameters sensor_1_params;
+  sensor_1_params.logger = logger;
+  sensor_1_params.filter_sensor_time = true;
+  sensor_1_params.measurement_time_reorder_window = 10.0;
+  sensor_1_params.measurement_scheduler = scheduler;
+  TestSensor sensor_1(sensor_1_params, &execution_log);
+
+  Sensor::Parameters sensor_2_params = sensor_1_params;
+  TestSensor sensor_2(sensor_2_params, &execution_log);
+
+  SensorMessage sensor_2_init_message;
+  sensor_2_init_message.sensor_id = sensor_2.GetId();
+  sensor_2_init_message.time_measured = 0.0;
+  sensor_2_init_message.time_received = 0.1;
+  sensor_2.Record(sensor_2_init_message);
+
+  SensorMessage slow_message;
+  slow_message.sensor_id = sensor_1.GetId();
+  slow_message.time_measured = 1.0;
+  slow_message.time_received = 5.0;
+  sensor_1.Record(slow_message);
+
+  SensorMessage fast_message;
+  fast_message.sensor_id = sensor_2.GetId();
+  fast_message.time_measured = 4.0;
+  fast_message.time_received = 5.1;
+  sensor_2.Record(fast_message);
+
+  scheduler->FlushAll();
+
+  ASSERT_EQ(execution_log.size(), 3U);
+  EXPECT_EQ(execution_log[0], sensor_2.GetId());
+  EXPECT_EQ(execution_log[1], sensor_2.GetId());
+  EXPECT_EQ(execution_log[2], sensor_1.GetId());
+  ASSERT_EQ(sensor_1.m_used_times.size(), 1U);
+  ASSERT_EQ(sensor_2.m_used_times.size(), 2U);
+  EXPECT_DOUBLE_EQ(sensor_1.m_used_times[0], 5.0);
+  EXPECT_DOUBLE_EQ(sensor_2.m_used_times[0], 0.1);
+  EXPECT_DOUBLE_EQ(sensor_2.m_used_times[1], 4.1);
 }

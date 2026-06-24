@@ -76,7 +76,8 @@ void LoadSensorParams(
   const std::string & log_directory,
   double measurement_time_reorder_window,
   std::shared_ptr<EKF> ekf,
-  std::shared_ptr<DebugLogger> debug_logger
+  std::shared_ptr<DebugLogger> debug_logger,
+  std::shared_ptr<Sensor::MeasurementScheduler> measurement_scheduler
 )
 {
   params.topic = node["topic"].as<std::string>("");
@@ -88,6 +89,7 @@ void LoadSensorParams(
   params.log_directory = log_directory;
   params.ekf = ekf;
   params.logger = debug_logger;
+  params.measurement_scheduler = measurement_scheduler;
 }
 
 void LoadSimSensorParams(
@@ -226,6 +228,8 @@ int main(int argc, char * argv[])
     ekf_params.augmenting_type = AugmentationType::NONE;
   }
   auto ekf = std::make_shared<EKF>(ekf_params);
+  auto measurement_scheduler =
+    std::make_shared<Sensor::MeasurementScheduler>(measurement_time_reorder_window);
 
   // Simulation parameters
   YAML::Node sim_params = ros_params["sim_params"];
@@ -352,7 +356,8 @@ int main(int argc, char * argv[])
       log_directory,
       measurement_time_reorder_window,
       ekf,
-      debug_logger);
+      debug_logger,
+      measurement_scheduler);
     imu_params.is_extrinsic = imu_node["is_extrinsic"].as<bool>(false);
     imu_params.is_intrinsic = imu_node["is_intrinsic"].as<bool>(false);
     imu_params.variance.pos = imu_node["variance"]["pos"].as<double>(0.1);
@@ -478,7 +483,8 @@ int main(int argc, char * argv[])
       log_directory,
       measurement_time_reorder_window,
       ekf,
-      debug_logger);
+      debug_logger,
+      measurement_scheduler);
     cam_params.variance.pos = cam_node["variance"]["pos"].as<double>(0.1);
     cam_params.variance.ang = cam_node["variance"]["ang"].as<double>(0.1);
     cam_params.pos_c_in_b = StdToEigVec(cam_node["pos_c_in_b"].as<std::vector<double>>(def_vec));
@@ -552,7 +558,8 @@ int main(int argc, char * argv[])
       log_directory,
       measurement_time_reorder_window,
       ekf,
-      debug_logger);
+      debug_logger,
+      measurement_scheduler);
     gps_params.variance.pos = gps_node["variance"]["pos"].as<double>(0.1);
     gps_params.pos_a_in_b = StdToEigVec(gps_node["pos_a_in_b"].as<std::vector<double>>(def_vec));
     gps_params.pos_stability = gps_node["pos_stability"].as<double>(0.0);
@@ -610,30 +617,7 @@ int main(int argc, char * argv[])
     }
   }
 
-  while (true) {
-    std::shared_ptr<Sensor> next_sensor;
-    double next_time_used = 0.0;
-    bool next_sensor_initialized = false;
-
-    for (auto & sensor_iter : sensor_map) {
-      if (!sensor_iter.second->HasBufferedMeasurements()) {
-        continue;
-      }
-
-      double candidate_time = sensor_iter.second->GetNextBufferedMeasurementTime();
-      if (!next_sensor_initialized || candidate_time < next_time_used) {
-        next_sensor = sensor_iter.second;
-        next_time_used = candidate_time;
-        next_sensor_initialized = true;
-      }
-    }
-
-    if (!next_sensor_initialized) {
-      break;
-    }
-
-    next_sensor->FlushNextMeasurement();
-  }
+  measurement_scheduler->FlushAll();
   debug_logger->Log(LogLevel::INFO, "End Simulation");
 
   return 0;
