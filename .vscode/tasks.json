@@ -6,7 +6,6 @@
             "detail": "Build ekf_cal package",
             "type": "shell",
             "command": "colcon build --symlink-install --packages-select ekf_cal --cmake-args -DCMAKE_BUILD_TYPE=Release",
-            "problemMatcher": "$gcc",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -32,7 +31,6 @@
             "type": "shell",
             "command": "colcon build --symlink-install --packages-select ekf_cal --cmake-args -DCMAKE_BUILD_TYPE=Debug",
             "group": "build",
-            "problemMatcher": "$gcc",
             "options": {
                 "cwd": "${workspaceFolder}/../../"
             }
