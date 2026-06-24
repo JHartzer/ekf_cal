@@ -609,8 +609,30 @@ int main(int argc, char * argv[])
       }
     }
   }
-  for (auto & sensor_iter : sensor_map) {
-    sensor_iter.second->Flush();
+
+  while (true) {
+    std::shared_ptr<Sensor> next_sensor;
+    double next_time_used = 0.0;
+    bool next_sensor_initialized = false;
+
+    for (auto & sensor_iter : sensor_map) {
+      if (!sensor_iter.second->HasBufferedMeasurements()) {
+        continue;
+      }
+
+      double candidate_time = sensor_iter.second->GetNextBufferedMeasurementTime();
+      if (!next_sensor_initialized || candidate_time < next_time_used) {
+        next_sensor = sensor_iter.second;
+        next_time_used = candidate_time;
+        next_sensor_initialized = true;
+      }
+    }
+
+    if (!next_sensor_initialized) {
+      break;
+    }
+
+    next_sensor->FlushNextMeasurement();
   }
   debug_logger->Log(LogLevel::INFO, "End Simulation");
 

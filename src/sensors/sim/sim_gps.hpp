@@ -66,6 +66,9 @@ public:
   void Callback(const SimGpsMessage & gps_message);
 
   void Flush() override;
+  bool HasBufferedMeasurements() const override;
+  double GetNextBufferedMeasurementTime() const override;
+  bool FlushNextMeasurement() override;
 
 private:
   Eigen::Vector3d m_lla_error{1e-9, 1e-9, 1e-9};

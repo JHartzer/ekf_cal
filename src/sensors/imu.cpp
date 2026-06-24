@@ -95,3 +95,20 @@ void IMU::Flush()
     m_message_buffer,
     [this](const ImuMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }
+
+bool IMU::HasBufferedMeasurements() const
+{
+  return HasBufferedMessages(m_message_buffer);
+}
+
+double IMU::GetNextBufferedMeasurementTime() const
+{
+  return GetNextBufferedMessageTime(m_message_buffer);
+}
+
+bool IMU::FlushNextMeasurement()
+{
+  return FlushNextBufferedMessage(
+    m_message_buffer,
+    [this](const ImuMessage & buffered_message) {ExecuteCallback(buffered_message);});
+}

@@ -72,6 +72,70 @@ public:
       });
   }
 
+  bool HasBufferedMeasurements() const override
+  {
+    return HasBufferedMessages(m_message_buffer) || HasBufferedMessages(m_sim_message_buffer);
+  }
+
+  double GetNextBufferedMeasurementTime() const override
+  {
+    if (HasBufferedMessages(m_message_buffer) && HasBufferedMessages(m_sim_message_buffer)) {
+      return std::min(
+        GetNextBufferedMessageTime(m_message_buffer),
+        GetNextBufferedMessageTime(m_sim_message_buffer));
+    }
+    if (HasBufferedMessages(m_message_buffer)) {
+      return GetNextBufferedMessageTime(m_message_buffer);
+    }
+    if (HasBufferedMessages(m_sim_message_buffer)) {
+      return GetNextBufferedMessageTime(m_sim_message_buffer);
+    }
+    return Sensor::GetNextBufferedMeasurementTime();
+  }
+
+  bool FlushNextMeasurement() override
+  {
+    if (HasBufferedMessages(m_message_buffer) && HasBufferedMessages(m_sim_message_buffer)) {
+      if (GetNextBufferedMessageTime(m_message_buffer) <=
+        GetNextBufferedMessageTime(m_sim_message_buffer))
+      {
+        return FlushNextBufferedMessage(
+          m_message_buffer,
+          [this](const SensorMessage & buffered_message) {
+            m_used_times.push_back(buffered_message.time_used);
+            m_measured_times.push_back(buffered_message.time_measured);
+          });
+      }
+
+      return FlushNextBufferedMessage(
+        m_sim_message_buffer,
+        [this](const SimImuMessage & buffered_message) {
+          m_used_times.push_back(buffered_message.time_used);
+          m_alignment_errors.push_back(buffered_message.time_used - buffered_message.time_true);
+        });
+    }
+
+    if (HasBufferedMessages(m_message_buffer)) {
+      return FlushNextBufferedMessage(
+        m_message_buffer,
+        [this](const SensorMessage & buffered_message) {
+          m_used_times.push_back(buffered_message.time_used);
+          m_measured_times.push_back(buffered_message.time_measured);
+        });
+    }
+
+    if (HasBufferedMessages(m_sim_message_buffer)) {
+      return FlushNextBufferedMessage(
+        m_sim_message_buffer,
+        [this](const SimImuMessage & buffered_message) {
+          m_used_times.push_back(buffered_message.time_used);
+          m_alignment_errors.push_back(buffered_message.time_used - buffered_message.time_true);
+        });
+    }
+
+    return false;
+  }
+
   std::vector<double> m_used_times;
   std::vector<double> m_measured_times;
   std::vector<double> m_alignment_errors;
@@ -238,4 +302,35 @@ TEST(test_sensor, SimAlignmentErrorConvergesTowardZeroWithSmallerDelays) {
   EXPECT_NEAR(sensor.m_alignment_errors[2], 0.1, 1e-12);
   EXPECT_GT(std::abs(sensor.m_alignment_errors[0]), std::abs(sensor.m_alignment_errors[1]));
   EXPECT_GT(std::abs(sensor.m_alignment_errors[1]), std::abs(sensor.m_alignment_errors[2]));
+}
+
+TEST(test_sensor, FlushNextMeasurementProcessesBufferedMessagesInTimeUsedOrder) {
+  Sensor::Parameters sensor_params;
+  sensor_params.logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  sensor_params.filter_sensor_time = true;
+  sensor_params.measurement_time_reorder_window = 10.0;
+  TestSensor sensor(sensor_params);
+
+  SensorMessage message_1;
+  message_1.time_measured = 2.0;
+  message_1.time_received = 2.5;
+  sensor.Record(message_1);
+
+  SensorMessage message_2;
+  message_2.time_measured = 1.0;
+  message_2.time_received = 1.2;
+  sensor.Record(message_2);
+
+  ASSERT_TRUE(sensor.HasBufferedMeasurements());
+  EXPECT_DOUBLE_EQ(sensor.GetNextBufferedMeasurementTime(), 1.2);
+  EXPECT_TRUE(sensor.FlushNextMeasurement());
+  ASSERT_EQ(sensor.m_used_times.size(), 1U);
+  EXPECT_DOUBLE_EQ(sensor.m_used_times[0], 1.2);
+  EXPECT_TRUE(sensor.HasBufferedMeasurements());
+  EXPECT_DOUBLE_EQ(sensor.GetNextBufferedMeasurementTime(), 2.2);
+  EXPECT_TRUE(sensor.FlushNextMeasurement());
+  ASSERT_EQ(sensor.m_used_times.size(), 2U);
+  EXPECT_DOUBLE_EQ(sensor.m_used_times[1], 2.2);
+  EXPECT_FALSE(sensor.HasBufferedMeasurements());
+  EXPECT_FALSE(sensor.FlushNextMeasurement());
 }

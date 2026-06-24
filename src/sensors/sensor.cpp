@@ -125,3 +125,18 @@ void Sensor::Callback(const SensorMessage sensor_message) const
 }
 
 void Sensor::Flush() {}
+
+bool Sensor::HasBufferedMeasurements() const
+{
+  return false;
+}
+
+double Sensor::GetNextBufferedMeasurementTime() const
+{
+  return 0.0;
+}
+
+bool Sensor::FlushNextMeasurement()
+{
+  return false;
+}

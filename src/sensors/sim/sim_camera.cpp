@@ -216,6 +216,23 @@ void SimCamera::Flush()
     [this](const SimCameraMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }
 
+bool SimCamera::HasBufferedMeasurements() const
+{
+  return HasBufferedMessages(m_message_buffer);
+}
+
+double SimCamera::GetNextBufferedMeasurementTime() const
+{
+  return GetNextBufferedMessageTime(m_message_buffer);
+}
+
+bool SimCamera::FlushNextMeasurement()
+{
+  return FlushNextBufferedMessage(
+    m_message_buffer,
+    [this](const SimCameraMessage & buffered_message) {ExecuteCallback(buffered_message);});
+}
+
 cv::Scalar SimCamera::GetTrackColor(unsigned int tracker_id, unsigned int feature_id)
 {
   unsigned int seed = tracker_id * 2654435761U + feature_id * 2246822519U;

@@ -107,6 +107,23 @@ void Camera::Flush()
     [this](const CameraMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }
 
+bool Camera::HasBufferedMeasurements() const
+{
+  return HasBufferedMessages(m_message_buffer);
+}
+
+double Camera::GetNextBufferedMeasurementTime() const
+{
+  return GetNextBufferedMessageTime(m_message_buffer);
+}
+
+bool Camera::FlushNextMeasurement()
+{
+  return FlushNextBufferedMessage(
+    m_message_buffer,
+    [this](const CameraMessage & buffered_message) {ExecuteCallback(buffered_message);});
+}
+
 /// @todo apply similar function to sensor/tracker IDs
 unsigned int Camera::GenerateFrameID()
 {

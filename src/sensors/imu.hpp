@@ -78,6 +78,9 @@ public:
   void Callback(const ImuMessage & imu_message);
 
   void Flush() override;
+  bool HasBufferedMeasurements() const override;
+  double GetNextBufferedMeasurementTime() const override;
+  bool FlushNextMeasurement() override;
 
 protected:
   void ExecuteCallback(const ImuMessage & imu_message);

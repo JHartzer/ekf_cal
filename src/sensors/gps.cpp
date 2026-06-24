@@ -73,3 +73,20 @@ void GPS::Flush()
     m_message_buffer,
     [this](const GpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
 }
+
+bool GPS::HasBufferedMeasurements() const
+{
+  return HasBufferedMessages(m_message_buffer);
+}
+
+double GPS::GetNextBufferedMeasurementTime() const
+{
+  return GetNextBufferedMessageTime(m_message_buffer);
+}
+
+bool GPS::FlushNextMeasurement()
+{
+  return FlushNextBufferedMessage(
+    m_message_buffer,
+    [this](const GpsMessage & buffered_message) {ExecuteCallback(buffered_message);});
+}

@@ -81,6 +81,24 @@ public:
   ///
   virtual void Flush();
 
+  ///
+  /// @brief Check whether buffered measurements remain
+  /// @return True when buffered measurements remain
+  ///
+  virtual bool HasBufferedMeasurements() const;
+
+  ///
+  /// @brief Get the next buffered measurement time used
+  /// @return Time used for the next buffered measurement
+  ///
+  virtual double GetNextBufferedMeasurementTime() const;
+
+  ///
+  /// @brief Flush the next buffered measurement only
+  /// @return True when a buffered measurement was processed
+  ///
+  virtual bool FlushNextMeasurement();
+
 protected:
   void InitializeTimingLogger(
     const std::string & log_prefix,
@@ -114,6 +132,35 @@ protected:
   {
     RefreshBufferedMessageTimes(message_buffer);
     return ReleaseBufferedMessages(message_buffer, execute_fn, true);
+  }
+
+  template<typename MessageT>
+  bool HasBufferedMessages(const std::vector<MessageT> & message_buffer) const
+  {
+    return !message_buffer.empty();
+  }
+
+  template<typename MessageT>
+  double GetNextBufferedMessageTime(const std::vector<MessageT> & message_buffer) const
+  {
+    if (message_buffer.empty()) {
+      return 0.0;
+    }
+    return message_buffer.front().time_used;
+  }
+
+  template<typename MessageT, typename ExecuteFn>
+  bool FlushNextBufferedMessage(
+    std::vector<MessageT> & message_buffer,
+    ExecuteFn execute_fn)
+  {
+    if (message_buffer.empty()) {
+      return false;
+    }
+
+    execute_fn(message_buffer.front());
+    message_buffer.erase(message_buffer.begin());
+    return true;
   }
 
   double m_rate;                          ///< @brief Sensor measurement rate

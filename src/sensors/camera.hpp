@@ -91,6 +91,9 @@ public:
   bool Callback(const CameraMessage & camera_message);
 
   void Flush() override;
+  bool HasBufferedMeasurements() const override;
+  double GetNextBufferedMeasurementTime() const override;
+  bool FlushNextMeasurement() override;
 
   cv::Mat m_out_img{0, 0, CV_8UC1};  ///< @brief Published output test image
 

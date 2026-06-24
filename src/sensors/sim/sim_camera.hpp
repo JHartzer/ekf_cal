@@ -77,6 +77,9 @@ public:
   void Callback(const SimCameraMessage & sim_camera_message);
 
   void Flush() override;
+  bool HasBufferedMeasurements() const override;
+  double GetNextBufferedMeasurementTime() const override;
+  bool FlushNextMeasurement() override;
 
   ///
   /// @brief Generate simulated IMU messages
