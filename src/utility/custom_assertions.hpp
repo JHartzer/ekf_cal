@@ -24,22 +24,22 @@
 #include <cmath>
 #include <cstdlib>
 
-static testing::AssertionResult EXPECT_EIGEN_NEAR(
+inline testing::AssertionResult EXPECT_EIGEN_NEAR(
   const Eigen::MatrixXd & mat1, const Eigen::MatrixXd & mat2, double precision)
 {
   for (unsigned int i = 0; i < mat1.rows(); ++i) {
     for (unsigned int j = 0; j < mat1.cols(); ++j) {
-      if (abs(mat1(i, j) - mat2(i, j)) > precision) {
+      if (std::abs(mat1(i, j) - mat2(i, j)) > precision) {
         return ::testing::AssertionFailure() << "mat1[" << i << "," << j <<
                "] (" << mat1(i, j) << ") != mat2[" << i << "," << j <<
-               "] (" << mat2(i, j) << ") Diff:" << abs(mat1(i, j) - mat2(i, j));
+               "] (" << mat2(i, j) << ") Diff:" << std::abs(mat1(i, j) - mat2(i, j));
       }
     }
   }
   return testing::AssertionSuccess();
 }
 
-testing::AssertionResult EXPECT_EIGEN_NEAR(
+inline testing::AssertionResult EXPECT_EIGEN_NEAR(
   const Eigen::Quaterniond & quat1,
   const Eigen::Quaterniond & quat2,
   double precision)
