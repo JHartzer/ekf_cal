@@ -9,6 +9,3 @@ Simulation:
     - Add data drops to input file
     - Add extrinsic step disturbance
     - Add IMU bias instability
-
-Test:
-    - NEES plotting need to be evaluated
