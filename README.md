@@ -141,12 +141,9 @@ colcon test --packages-select ekf_cal --pytest-with-coverage \
 colcon lcov-result --packages-select ekf_cal --filter '*_test.cpp' '*_main.cpp'
 ```
 
-The lines of code in the repository can be counted ([cloc](https://github.com/AlDanial/cloc)) using the following command
-
+For the local non-ROS coverage workflow, configure, build, run the coverage test suite, and generate the HTML report with:
 ```bash
-echo 'Count Lines of Code {#cloc}\n============' > docs/software/cloc.md && \
-cloc src eval --md | tail -n +4 >> docs/software/cloc.md && \
-sed -i 's/--------|--------|--------|--------|--------/| | | | | |/' docs/software/cloc.md
+./tools/report-coverage.sh
 ```
 
 A performance [flamegraph](https://github.com/brendangregg/FlameGraph) can be generated using the following command
@@ -159,13 +156,12 @@ A performance [flamegraph](https://github.com/brendangregg/FlameGraph) can be ge
 
 Documentation can be generated using the following command:
 ```bash
-doxygen .doxyfile
+./tools/build-docs.sh
 ```
 
-<!-- @TODO: The \prescript macro causes conflicts with this command -->
-A single pdf can be generated of the documentation using the following command
+The JOSS paper can be built with:
 ```bash
-doxygen .doxyfile && cd docs/doxygen/latex && make
+./tools/build-joss-paper.sh
 ```
 
 ## Citation
