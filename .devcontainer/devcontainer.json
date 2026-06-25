@@ -14,7 +14,6 @@
                 "ms-python.python",
                 "ms-python.vscode-python-envs",
                 "streetsidesoftware.code-spell-checker",
-                "twxs.cmake",
                 "zachflower.uncrustify"
             ]
         }
