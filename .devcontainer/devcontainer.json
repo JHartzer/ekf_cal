@@ -4,6 +4,8 @@
         "vscode": {
             "extensions": [
                 "fabiospampinato.vscode-todo-plus",
+                "kylinideteam.cmake-intellisence",
+                "kylinideteam.kylin-cmake-tools",
                 "llvm-vs-code-extensions.vscode-clangd",
                 "mhutchie.git-graph",
                 "ms-python.autopep8",
@@ -11,7 +13,6 @@
                 "ms-python.flake8",
                 "ms-python.python",
                 "ms-python.vscode-python-envs",
-                "ms-vscode.cmake-tools",
                 "streetsidesoftware.code-spell-checker",
                 "twxs.cmake",
                 "zachflower.uncrustify"

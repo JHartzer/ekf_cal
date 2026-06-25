@@ -1,6 +1,6 @@
 {
     "[cpp]": {
-        "editor.defaultFormatter": "zachflower.uncrustify",
+        "editor.defaultFormatter": "benjarvis.uncrustify",
         "editor.detectIndentation": false,
         "editor.insertSpaces": true,
         "editor.semanticHighlighting.enabled": true,
@@ -280,10 +280,6 @@
     "flake8.args": [
         "--ignore=CNL100",
         "--max-line-length=100"
-    ],
-    "python.analysis.extraPaths": [
-        "/opt/venv/lib/python3.12/site-packages",
-        "/opt/ros/jazzy/lib/python3.12/site-packages"
     ],
     "python.autoComplete.extraPaths": [
         "/opt/venv/lib/python3.12/site-packages",
