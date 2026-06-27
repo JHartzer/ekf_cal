@@ -23,6 +23,24 @@
 #include "ekf/constants.hpp"
 #include "utility/type_helper.hpp"
 
+const char * ToString(SensorType sensor_type)
+{
+  switch (sensor_type) {
+    case SensorType::Sensor:
+      return "Sensor";
+    case SensorType::IMU:
+      return "IMU";
+    case SensorType::Camera:
+      return "Camera";
+    case SensorType::Tracker:
+      return "Tracker";
+    case SensorType::GPS:
+      return "GPS";
+    default:
+      return "Sensor";
+  }
+}
+
 BodyState & operator+=(BodyState & l_body_state, const BodyState & r_body_state)
 {
   l_body_state.pos_b_in_l += r_body_state.pos_b_in_l;

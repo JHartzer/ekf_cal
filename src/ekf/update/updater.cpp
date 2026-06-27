@@ -21,17 +21,18 @@
 #include "infrastructure/debug_logger.hpp"
 #include "utility/math_helper.hpp"
 
-Updater::Updater(unsigned int sensor_id, std::shared_ptr<DebugLogger> logger)
-: m_id(sensor_id), m_logger(logger) {}
-
+Updater::Updater(
+  unsigned int sensor_id,
+  std::shared_ptr<DebugLogger> logger,
+  SensorType sensor_type)
+: m_id(sensor_id), m_logger(logger), m_sensor_type(sensor_type) {}
 
 bool Updater::KalmanUpdate(
   EKF & ekf,
   const Eigen::MatrixXd & jacobian,
   const Eigen::VectorXd & residual,
-  const Eigen::MatrixXd & measurement_noise,
-  const std::string & sensor_name
-)
+  const Eigen::MatrixXd & measurement_noise
+) const
 {
   double chi2_threshold = ekf.GetChi2Threshold();
   Eigen::MatrixXd S;
@@ -47,12 +48,12 @@ bool Updater::KalmanUpdate(
     S = jacobian * ekf.m_cov * jacobian.transpose() + observation_noise;
   }
 
-  if (sensor_name != "IMU" && chi2_threshold > 0.0) {
+  if (m_sensor_type != SensorType::IMU && chi2_threshold > 0.0) {
     double mahalanobis_dist_sq = residual.dot(S.ldlt().solve(residual));
     if (mahalanobis_dist_sq > chi2_threshold) {
       if (ekf.GetDebugLogger()) {
         std::stringstream msg;
-        msg << sensor_name << " measurement rejected! Mahalanobis distance squared: "
+        msg << ToString(m_sensor_type) << " measurement rejected! Mahalanobis distance squared: "
             << mahalanobis_dist_sq << " exceeds threshold: " << chi2_threshold;
         ekf.GetDebugLogger()->Log(LogLevel::INFO, msg.str());
       }

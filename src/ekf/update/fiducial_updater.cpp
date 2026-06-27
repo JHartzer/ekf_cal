@@ -46,7 +46,7 @@ FiducialUpdater::FiducialUpdater(
   double data_log_rate,
   std::shared_ptr<DebugLogger> logger
 )
-: Updater(fiducial_id, logger),
+: Updater(fiducial_id, logger, SensorType::Camera),
   m_is_fid_extrinsic(is_fid_extrinsic),
   m_is_cam_extrinsic(is_cam_extrinsic),
   m_fiducial_logger(
@@ -178,7 +178,7 @@ void FiducialUpdater::UpdateEKF(
   meas_noise.block<3, 3>(3, 3) = board_detection.ang_error.asDiagonal();
 
   // Apply Kalman update
-  KalmanUpdate(ekf, jacobian, res, meas_noise, "Fiducial");
+  KalmanUpdate(ekf, jacobian, res, meas_noise);
 
   auto t_end = std::chrono::high_resolution_clock::now();
   auto t_execution = std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_start);

@@ -126,7 +126,8 @@ TEST(test_updater, root_covariance) {
   Eigen::MatrixXd measurement_noise = Eigen::MatrixXd::Identity(1, 1);
   measurement_noise(0, 0) = 0.04;
 
-  Updater::KalmanUpdate(ekf, jacobian, residual, measurement_noise);
+  Updater updater(0, logger);
+  updater.KalmanUpdate(ekf, jacobian, residual, measurement_noise);
 
   EXPECT_NEAR(ekf.m_state.body_state.pos_b_in_l[0], 0.0, 1.0);
 }

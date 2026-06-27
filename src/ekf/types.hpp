@@ -28,11 +28,14 @@
 
 enum class SensorType
 {
+  Sensor,
   IMU,
   Camera,
   Tracker,
   GPS
 };
+
+const char * ToString(SensorType sensor_type);
 
 enum class AugmentationType
 {

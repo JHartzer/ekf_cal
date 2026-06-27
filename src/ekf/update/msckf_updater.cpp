@@ -47,7 +47,7 @@ MsckfUpdater::MsckfUpdater(
   double max_feat_dist,
   std::shared_ptr<DebugLogger> logger
 )
-: Updater(cam_id, logger),
+: Updater(cam_id, logger, SensorType::Camera),
   m_is_cam_extrinsic(is_extrinsic),
   m_msckf_logger(log_file_directory, "msckf_" + std::to_string(cam_id)),
   m_triangulation_logger(log_file_directory, "triangulation_" + std::to_string(cam_id))
@@ -388,7 +388,7 @@ void MsckfUpdater::UpdateEKF(
   Eigen::MatrixXd meas_noise = px_error * px_error *
     Eigen::MatrixXd::Identity(res_x.rows(), res_x.rows());
 
-  KalmanUpdate(ekf, H_x, res_x, meas_noise, "MSCKF");
+  KalmanUpdate(ekf, H_x, res_x, meas_noise);
 
   auto t_end = std::chrono::high_resolution_clock::now();
   auto t_execution = std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_start);

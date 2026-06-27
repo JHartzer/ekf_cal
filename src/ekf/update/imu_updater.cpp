@@ -43,7 +43,7 @@ ImuUpdater::ImuUpdater(
   double data_log_rate,
   std::shared_ptr<DebugLogger> logger
 )
-: Updater(imu_id, logger),
+: Updater(imu_id, logger, SensorType::IMU),
   m_is_extrinsic(is_extrinsic),
   m_is_intrinsic(is_intrinsic),
   m_data_logger(log_file_directory, "imu_" + std::to_string(imu_id))
@@ -120,7 +120,7 @@ void ImuUpdater::UpdateEKF(
     meas_noise.block<3, 3>(3, 3) = angular_rate_covariance;
 
     // Apply Kalman update
-    KalmanUpdate(ekf, jacobian, resid, meas_noise, "IMU");
+    KalmanUpdate(ekf, jacobian, resid, meas_noise);
   }
 
   auto t_end = std::chrono::high_resolution_clock::now();
@@ -247,7 +247,7 @@ bool ImuUpdater::ZeroAccelerationUpdate(
 
   // Apply Kalman update
   // Eigen::Quaterniond ang_b_to_l_pre = ekf.m_state.body_state.ang_b_to_l;
-  KalmanUpdate(ekf, jacobian, resid, meas_noise, "IMU");
+  KalmanUpdate(ekf, jacobian, resid, meas_noise);
 
   ekf.m_state.body_state.acc_b_in_l = g_gravity;
   ekf.m_state.body_state.ang_vel_b_in_l = Eigen::Vector3d::Zero();
@@ -432,6 +432,6 @@ void ImuUpdater::AngularUpdate(
     meas_noise.block<3, 3>(0, 0) = angular_rate_covariance;
 
     // Apply Kalman update
-    KalmanUpdate(ekf, jacobian, resid, meas_noise, "IMU");
+    KalmanUpdate(ekf, jacobian, resid, meas_noise);
   }
 }

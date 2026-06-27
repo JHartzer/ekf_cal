@@ -41,7 +41,7 @@ GpsUpdater::GpsUpdater(
   double data_log_rate,
   std::shared_ptr<DebugLogger> logger
 )
-: Updater(gps_id, logger),
+: Updater(gps_id, logger, SensorType::GPS),
   m_is_extrinsic(is_extrinsic),
   m_data_logger(log_file_directory, "gps_" + std::to_string(gps_id))
 {
@@ -122,7 +122,7 @@ void GpsUpdater::UpdateEKF(
     Eigen::Vector3d pos_a_in_l_hat = PredictMeasurement(ekf);
     residual = pos_a_in_l - pos_a_in_l_hat;
     Eigen::MatrixXd jacobian = GetMeasurementJacobian(ekf);
-    KalmanUpdate(ekf, jacobian, residual, pos_covariance, "GPS");
+    KalmanUpdate(ekf, jacobian, residual, pos_covariance);
 
     m_logger->Log(LogLevel::INFO, "GPS Updater Update");
   }
@@ -183,6 +183,6 @@ void GpsUpdater::MultiUpdateEKF(EKF & ekf)
 
   Eigen::MatrixXd meas_noise = Eigen::MatrixXd::Identity(resid.rows(), resid.rows());
 
-  KalmanUpdate(ekf, jacobian, resid, meas_noise, "GPS");
+  KalmanUpdate(ekf, jacobian, resid, meas_noise);
   m_logger->Log(LogLevel::INFO, "GPS Updater Update");
 }
