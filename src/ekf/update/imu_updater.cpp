@@ -247,7 +247,7 @@ bool ImuUpdater::ZeroAccelerationUpdate(
 
   // Apply Kalman update
   // Eigen::Quaterniond ang_b_to_l_pre = ekf.m_state.body_state.ang_b_to_l;
-  KalmanUpdate(ekf, jacobian, resid, meas_noise);
+  KalmanUpdate(ekf, jacobian, resid, meas_noise, "IMU");
 
   ekf.m_state.body_state.acc_b_in_l = g_gravity;
   ekf.m_state.body_state.ang_vel_b_in_l = Eigen::Vector3d::Zero();

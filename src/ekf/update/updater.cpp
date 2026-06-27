@@ -47,7 +47,7 @@ bool Updater::KalmanUpdate(
     S = jacobian * ekf.m_cov * jacobian.transpose() + observation_noise;
   }
 
-  if (chi2_threshold > 0.0) {
+  if (sensor_name != "IMU" && chi2_threshold > 0.0) {
     double mahalanobis_dist_sq = residual.dot(S.ldlt().solve(residual));
     if (mahalanobis_dist_sq > chi2_threshold) {
       if (ekf.GetDebugLogger()) {

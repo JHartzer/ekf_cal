@@ -324,6 +324,50 @@ TEST(test_imu_updater, motion_and_root_cov) {
     ekf, 2.0, dynamic_acc, acceleration_cov, dynamic_gyro, angular_rate_cov);
 }
 
+TEST(test_imu_updater, chi2_threshold_does_not_block_imu_motion) {
+  auto logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  EKF::Parameters ekf_params;
+  ekf_params.debug_logger = logger;
+  ekf_params.chi2_threshold = 1.0e-6;
+  EKF ekf(ekf_params);
+
+  BodyState body_state;
+  ekf.Initialize(0.0, body_state);
+
+  ImuState imu_state;
+  imu_state.SetIsIntrinsic(true);
+  imu_state.SetIsExtrinsic(true);
+  ekf.RegisterIMU(0, imu_state, Eigen::MatrixXd::Identity(12, 12));
+
+  ImuUpdater imu_updater(0, true, true, "", 0.0, logger);
+
+  Eigen::Matrix3d acceleration_cov = Eigen::Matrix3d::Identity() * 1e-3;
+  Eigen::Matrix3d angular_rate_cov = Eigen::Matrix3d::Identity() * 1e-3;
+
+  imu_updater.UpdateEKF(
+    ekf,
+    1.0,
+    g_gravity,
+    acceleration_cov,
+    Eigen::Vector3d::Zero(),
+    angular_rate_cov);
+
+  ASSERT_TRUE(ekf.IsGravityInitialized());
+
+  imu_updater.UpdateEKF(
+    ekf,
+    2.0,
+    g_gravity + Eigen::Vector3d(50.0, 50.0, 50.0),
+    acceleration_cov,
+    Eigen::Vector3d(10.0, 10.0, 10.0),
+    angular_rate_cov);
+
+  State state = ekf.m_state;
+  EXPECT_GT(state.body_state.pos_b_in_l.norm(), 1.0);
+  EXPECT_GT(state.body_state.vel_b_in_l.norm(), 1.0);
+  EXPECT_GT(state.body_state.ang_vel_b_in_l.norm(), 1.0);
+}
+
 TEST(test_imu_updater, reduced_state_shortcut_and_override) {
   auto logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
 
