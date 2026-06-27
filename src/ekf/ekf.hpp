@@ -400,10 +400,12 @@ public:
   State m_state;
 
   /// @brief EKF covariance
-  Eigen::MatrixXd m_cov = Eigen::MatrixXd::Identity(g_body_state_size, g_body_state_size) * 1e-2;
+  Eigen::MatrixXd m_cov = Eigen::MatrixXd::Identity(
+    g_body_state_full_size,
+    g_body_state_full_size) * 1e-2;
 
 private:
-  unsigned int m_state_size{g_body_state_size};
+  unsigned int m_state_size{g_body_state_full_size};
   unsigned int m_imu_state_size{0};
   unsigned int m_gps_state_size{0};
   unsigned int m_cam_state_size{0};
@@ -413,8 +415,10 @@ private:
   double m_reference_time {0};
   bool m_time_initialized {false};
   unsigned int m_max_track_length{20};
-  Eigen::MatrixXd m_process_noise {Eigen::MatrixXd::Zero(g_body_state_size, g_body_state_size)};
-  Eigen::VectorXd m_body_process_noise {Eigen::VectorXd::Zero(g_body_state_size)};
+  Eigen::MatrixXd m_process_noise {Eigen::MatrixXd::Zero(
+      g_body_state_full_size,
+      g_body_state_full_size)};
+  Eigen::VectorXd m_body_process_noise {Eigen::VectorXd::Zero(g_body_state_full_size)};
   std::shared_ptr<DebugLogger> m_debug_logger;
   DataLogger m_data_logger;
   DataLogger m_augmentation_logger;

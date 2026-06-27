@@ -335,7 +335,7 @@ TEST(test_imu_updater, reduced_state_shortcut_and_override) {
     EKF ekf(ekf_params);
 
     BodyState body_state;
-    body_state.size = 9;
+    body_state.size = g_body_state_min_size;
     body_state.vel_b_in_l = Eigen::Vector3d::Ones();
     ekf.Initialize(0.0, body_state);
 
@@ -354,7 +354,7 @@ TEST(test_imu_updater, reduced_state_shortcut_and_override) {
     imu_updater.UpdateEKF(
       ekf, 1.0, acceleration, acceleration_cov, angular_rate, angular_rate_cov);
 
-    EXPECT_EQ(ekf.GetStateSize(), 9);
+    EXPECT_EQ(ekf.GetStateSize(), g_body_state_min_size);
   }
 
   // 2. Test override (override_reduced_state = true -> EKF keeps 18 states)
@@ -365,7 +365,7 @@ TEST(test_imu_updater, reduced_state_shortcut_and_override) {
     EKF ekf(ekf_params);
 
     BodyState body_state;
-    body_state.size = 18;
+    body_state.size = g_body_state_full_size;
     body_state.vel_b_in_l = Eigen::Vector3d::Ones();
     ekf.Initialize(0.0, body_state);
 
@@ -384,6 +384,6 @@ TEST(test_imu_updater, reduced_state_shortcut_and_override) {
     imu_updater.UpdateEKF(
       ekf, 1.0, acceleration, acceleration_cov, angular_rate, angular_rate_cov);
 
-    EXPECT_EQ(ekf.GetStateSize(), 18);
+    EXPECT_EQ(ekf.GetStateSize(), g_body_state_full_size);
   }
 }

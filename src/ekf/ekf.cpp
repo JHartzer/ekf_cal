@@ -59,7 +59,8 @@ EKF::EKF(Parameters params)
   m_use_first_estimate_jacobian(params.use_first_estimate_jacobian),
   m_use_rk4(params.use_rk4)
 {
-  m_state.body_state.size = params.use_reduced_state ? 9 : 18;
+  m_state.body_state.size =
+    params.use_reduced_state ? g_body_state_min_size : g_body_state_full_size;
   m_state_size = m_state.body_state.size;
   m_cov = Eigen::MatrixXd::Identity(m_state_size, m_state_size) * 1e-2;
   m_process_noise = Eigen::MatrixXd::Zero(m_state_size, m_state_size);
@@ -73,7 +74,7 @@ EKF::EKF(Parameters params)
   body_header << EnumerateHeader("body_ang_pos", 4);
   body_header << EnumerateHeader("body_ang_vel", 3);
   body_header << EnumerateHeader("body_ang_acc", 3);
-  body_header << EnumerateHeader("body_cov", g_body_state_size);
+  body_header << EnumerateHeader("body_cov", g_body_state_full_size);
   body_header << ",state_size";
   body_header << EnumerateHeader("duration", 1);
 
@@ -107,7 +108,7 @@ Eigen::MatrixXd EKF::GetStateTransition(double delta_time)
   Eigen::MatrixXd state_transition =
     Eigen::MatrixXd::Identity(body_size, body_size);
 
-  if (body_size == 18) {
+  if (body_size == g_body_state_full_size) {
     Eigen::Matrix3d rot_l_to_b = m_state.body_state.ang_b_to_l.conjugate().toRotationMatrix();
     state_transition.block<3, 3>(0, 3) = Eigen::Matrix3d::Identity() * delta_time;
     state_transition.block<3, 3>(3, 6) = Eigen::Matrix3d::Identity() * delta_time;
@@ -130,7 +131,7 @@ void EKF::LogBodyStateIfNeeded(int execution_count)
     if (m_use_root_covariance) {
       body_cov_diag = body_cov_diag.cwiseProduct(body_cov_diag);
     }
-    Eigen::VectorXd body_cov = Eigen::VectorXd::Zero(g_body_state_size);
+    Eigen::VectorXd body_cov = Eigen::VectorXd::Zero(g_body_state_full_size);
     body_cov.segment(0, body_size) = body_cov_diag;
     msg << m_current_time;
     msg << VectorToCommaString(m_state.body_state.pos_b_in_l);
@@ -258,7 +259,7 @@ unsigned int EKF::GetStateSize() const
 
 unsigned int EKF::GetOrientationStateIndex() const
 {
-  return m_state.body_state.size == 9 ? 6 : 9;
+  return m_state.body_state.size == g_body_state_min_size ? 6 : 9;
 }
 
 ImuState EKF::GetImuState(unsigned int imu_id)

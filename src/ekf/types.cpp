@@ -28,7 +28,7 @@ BodyState & operator+=(BodyState & l_body_state, const BodyState & r_body_state)
   l_body_state.pos_b_in_l += r_body_state.pos_b_in_l;
   l_body_state.vel_b_in_l += r_body_state.vel_b_in_l;
   l_body_state.ang_b_to_l = r_body_state.ang_b_to_l * l_body_state.ang_b_to_l;
-  if (l_body_state.size == 18) {
+  if (l_body_state.size == g_body_state_full_size) {
     l_body_state.acc_b_in_l += r_body_state.acc_b_in_l;
     l_body_state.ang_vel_b_in_l += r_body_state.ang_vel_b_in_l;
     l_body_state.ang_acc_b_in_l += r_body_state.ang_acc_b_in_l;
@@ -41,7 +41,7 @@ BodyState & operator+=(BodyState & l_body_state, const Eigen::VectorXd & r_vecto
 {
   l_body_state.pos_b_in_l += r_vector.segment<3>(0);
   l_body_state.vel_b_in_l += r_vector.segment<3>(3);
-  if (l_body_state.size == 18) {
+  if (l_body_state.size == g_body_state_full_size) {
     l_body_state.acc_b_in_l += r_vector.segment<3>(6);
     l_body_state.ang_b_to_l = l_body_state.ang_b_to_l * RotVecToQuat(r_vector.segment<3>(9));
     l_body_state.ang_vel_b_in_l += r_vector.segment<3>(12);
@@ -229,7 +229,7 @@ Eigen::VectorXd BodyState::ToVector() const
 
   out_vec.segment<3>(0) = pos_b_in_l;
   out_vec.segment<3>(3) = vel_b_in_l;
-  if (size == 18) {
+  if (size == g_body_state_full_size) {
     out_vec.segment<3>(6) = acc_b_in_l;
     out_vec.segment<3>(9) = QuatToRotVec(ang_b_to_l);
     out_vec.segment<3>(12) = ang_vel_b_in_l;
@@ -301,7 +301,7 @@ void BodyState::SetState(const Eigen::VectorXd & state)
 {
   pos_b_in_l = state.segment<3>(0);
   vel_b_in_l = state.segment<3>(3);
-  if (size == 18) {
+  if (size == g_body_state_full_size) {
     acc_b_in_l = state.segment<3>(6);
     ang_b_to_l = RotVecToQuat(state.segment<3>(9));
     ang_vel_b_in_l = state.segment<3>(12);

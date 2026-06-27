@@ -138,7 +138,7 @@ void EkfCalNode::Initialize()
   ekf_params.augmenting_pos_error = get_parameter("augmenting_pos_error").as_double();
   ekf_params.augmenting_ang_error = get_parameter("augmenting_ang_error").as_double();
 
-  unsigned int body_size = use_reduced_state ? 9 : 18;
+  unsigned int body_size = use_reduced_state ? g_body_state_min_size : g_body_state_full_size;
   ekf_params.process_noise = LoadProcessNoise(body_size);
 
   ekf_params.pos_b_in_l = StdToEigVec(get_parameter("pos_b_in_l").as_double_array());

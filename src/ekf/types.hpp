@@ -103,7 +103,7 @@ public:
   Eigen::Quaterniond ang_b_to_l{1.0, 0.0, 0.0, 0.0};  ///< @brief Body orientation
   Eigen::Vector3d ang_vel_b_in_l{0.0, 0.0, 0.0};      ///< @brief Body angular velocity
   Eigen::Vector3d ang_acc_b_in_l{0.0, 0.0, 0.0};      ///< @brief Body angular acceleration
-  unsigned int size{g_body_state_size};               ///< @brief State size
+  unsigned int size{g_body_state_full_size};          ///< @brief State size
   unsigned int index{0};                              ///< @brief State index
 };
 

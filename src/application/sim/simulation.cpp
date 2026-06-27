@@ -220,7 +220,7 @@ int main(int argc, char * argv[])
   ekf_params.augmenting_pos_error = ros_params["augmenting_pos_error"].as<double>(0.1);
   ekf_params.augmenting_ang_error = ros_params["augmenting_ang_error"].as<double>(0.1);
 
-  unsigned int body_size = use_reduced_state ? 9 : 18;
+  unsigned int body_size = use_reduced_state ? g_body_state_min_size : g_body_state_full_size;
   ekf_params.process_noise = LoadProcessNoise(ros_params["process_noise"], body_size);
 
   ekf_params.pos_b_in_l = StdToEigVec(ros_params["pos_b_in_l"].as<std::vector<double>>(def_vec));
@@ -316,7 +316,7 @@ int main(int argc, char * argv[])
   auto ang_b_to_l_err =
     StdToEigVec(sim_params["ang_b_to_l_error"].as<std::vector<double>>(def_vec));
   BodyState initial_state;
-  initial_state.size = use_reduced_state ? 9 : 18;
+  initial_state.size = use_reduced_state ? g_body_state_min_size : g_body_state_full_size;
   bool has_gps = !gps_list.empty();
   bool has_camera_fiducial = false;
   for (const auto & camera_name : cameras) {

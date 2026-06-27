@@ -101,7 +101,7 @@ void ImuUpdater::UpdateEKF(
   Eigen::Vector3d omg_bias = ekf.m_state.imu_states[m_id].omg_bias;
   Eigen::VectorXd resid = Eigen::VectorXd::Zero(6);
 
-  if (ekf.m_state.body_state.size == 9) {
+  if (ekf.m_state.body_state.size == g_body_state_min_size) {
     ekf.m_state.body_state.acc_b_in_l = ang_b_to_l * ang_i_to_b * (acceleration - acc_bias);
     ekf.m_state.body_state.ang_vel_b_in_l = ang_b_to_l * ang_i_to_b * (angular_rate - omg_bias);
     ekf.m_state.body_state.ang_acc_b_in_l = Eigen::Vector3d::Zero();
@@ -413,7 +413,7 @@ void ImuUpdater::AngularUpdate(
   Eigen::Quaterniond ang_i_to_b = ekf.m_state.imu_states[m_id].ang_i_to_b;
   Eigen::Vector3d omg_bias = ekf.m_state.imu_states[m_id].omg_bias;
 
-  if (ekf.m_state.body_state.size == 9) {
+  if (ekf.m_state.body_state.size == g_body_state_min_size) {
     ekf.m_state.body_state.ang_vel_b_in_l = ang_b_to_l * ang_i_to_b * (angular_rate - omg_bias);
     ekf.m_state.body_state.ang_acc_b_in_l = Eigen::Vector3d::Zero();
   } else {

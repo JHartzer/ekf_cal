@@ -351,12 +351,12 @@ TEST(test_EKF, ReducedState9State) {
   ekf_params.use_rk4 = true;
   auto ekf = std::make_shared<EKF>(ekf_params);
 
-  EXPECT_EQ(ekf->GetStateSize(), 9);
+  EXPECT_EQ(ekf->GetStateSize(), g_body_state_min_size);
   EXPECT_EQ(ekf->GetOrientationStateIndex(), 6);
-  EXPECT_EQ(ekf->m_state.body_state.size, 9);
+  EXPECT_EQ(ekf->m_state.body_state.size, g_body_state_min_size);
 
   BodyState body_state_init;
-  body_state_init.size = 9;
+  body_state_init.size = g_body_state_min_size;
   body_state_init.pos_b_in_l = Eigen::Vector3d::Zero();
   body_state_init.vel_b_in_l = Eigen::Vector3d(1.0, 2.0, 3.0);
   body_state_init.ang_b_to_l = Eigen::Quaterniond::Identity();
