@@ -4,9 +4,7 @@ Package Features:
         - Trace of the State Covariance Matrix
     - Play rosbag through as fast as possible given yaml
         - Use time-coordinator node
-    - Does the yaml schema actually match current settings
     - Regression script that runs every regression and then compares the stats to threshold values -> pass / fail
-    - Use loop pools for python evaluation scripts
 
 Simulation:
     - Add data drops to input file

@@ -43,6 +43,22 @@
                                 }
                             }
                         },
+                        "pos_b_in_l": {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            },
+                            "minItems": 3,
+                            "maxItems": 3
+                        },
+                        "ang_b_to_l": {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            },
+                            "minItems": 3,
+                            "maxItems": 3
+                        },
                         "pos_e_in_g": {
                             "type": "array",
                             "items": {
@@ -66,8 +82,23 @@
                         "gps_init_ang_thresh": {
                             "type": "number"
                         },
+                        "motion_detection_chi_squared": {
+                            "type": "number"
+                        },
                         "use_root_covariance": {
                             "type": "boolean"
+                        },
+                        "use_first_estimate_jacobian": {
+                            "type": "boolean"
+                        },
+                        "use_rk4": {
+                            "type": "boolean"
+                        },
+                        "measurement_time_reorder_window": {
+                            "type": "number"
+                        },
+                        "chi2_threshold": {
+                            "type": "number"
                         },
                         "sim_params": {
                             "type": "object",
@@ -83,6 +114,12 @@
                                 },
                                 "run_number": {
                                     "type": "number"
+                                },
+                                "room_size": {
+                                    "type": "number"
+                                },
+                                "generate_video": {
+                                    "type": "boolean"
                                 },
                                 "stationary_time": {
                                     "type": "number"
@@ -188,31 +225,46 @@
                             }
                         },
                         "imu_list": {
-                            "type": "array",
+                            "type": [
+                                "array",
+                                "null"
+                            ],
                             "items": {
                                 "type": "string"
                             }
                         },
                         "camera_list": {
-                            "type": "array",
+                            "type": [
+                                "array",
+                                "null"
+                            ],
                             "items": {
                                 "type": "string"
                             }
                         },
                         "tracker_list": {
-                            "type": "array",
+                            "type": [
+                                "array",
+                                "null"
+                            ],
                             "items": {
                                 "type": "string"
                             }
                         },
                         "fiducial_list": {
-                            "type": "array",
+                            "type": [
+                                "array",
+                                "null"
+                            ],
                             "items": {
                                 "type": "string"
                             }
                         },
                         "gps_list": {
-                            "type": "array",
+                            "type": [
+                                "array",
+                                "null"
+                            ],
                             "items": {
                                 "type": "string"
                             }
@@ -236,12 +288,21 @@
                                             "type": "string"
                                         },
                                         "variance": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "number"
-                                            },
-                                            "minItems": 6,
-                                            "maxItems": 12
+                                            "type": "object",
+                                            "properties": {
+                                                "pos": {
+                                                    "type": "number"
+                                                },
+                                                "ang": {
+                                                    "type": "number"
+                                                },
+                                                "acc_bias": {
+                                                    "type": "number"
+                                                },
+                                                "gyr_bias": {
+                                                    "type": "number"
+                                                }
+                                            }
                                         },
                                         "pos_i_in_b": {
                                             "type": "array",
@@ -290,13 +351,19 @@
                                         "data_log_rate": {
                                             "type": "number"
                                         },
+                                        "filter_sensor_time": {
+                                            "type": "boolean"
+                                        },
                                         "sim_params": {
                                             "type": "object",
                                             "properties": {
                                                 "no_errors": {
                                                     "type": "boolean"
                                                 },
-                                                "time_error": {
+                                                "time_bias_error": {
+                                                    "type": "number"
+                                                },
+                                                "time_jitter": {
                                                     "type": "number"
                                                 },
                                                 "pos_error": {
@@ -385,18 +452,24 @@
                                             "type": "boolean"
                                         },
                                         "variance": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "number"
-                                            },
-                                            "minItems": 6,
-                                            "maxItems": 6
+                                            "type": "object",
+                                            "properties": {
+                                                "pos": {
+                                                    "type": "number"
+                                                },
+                                                "ang": {
+                                                    "type": "number"
+                                                }
+                                            }
                                         },
                                         "tracker": {
                                             "type": "string"
                                         },
-                                        "fiducial": {
-                                            "type": "string"
+                                        "fiducials": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
                                         },
                                         "pos_stability": {
                                             "type": "number"
@@ -406,6 +479,9 @@
                                         },
                                         "data_log_rate": {
                                             "type": "number"
+                                        },
+                                        "filter_sensor_time": {
+                                            "type": "boolean"
                                         },
                                         "intrinsics": {
                                             "type": "object",
@@ -445,7 +521,10 @@
                                                 "no_errors": {
                                                     "type": "boolean"
                                                 },
-                                                "time_error": {
+                                                "time_bias_error": {
+                                                    "type": "number"
+                                                },
+                                                "time_jitter": {
                                                     "type": "number"
                                                 },
                                                 "pos_error": {
@@ -510,6 +589,9 @@
                                         "min_feature_distance": {
                                             "type": "number"
                                         },
+                                        "max_feature_distance": {
+                                            "type": "number"
+                                        },
                                         "min_track_length": {
                                             "type": "number",
                                             "minimum": 2
@@ -521,13 +603,16 @@
                                         "sim_params": {
                                             "type": "object",
                                             "properties": {
+                                                "no_errors": {
+                                                    "type": "boolean"
+                                                },
                                                 "feature_count": {
                                                     "type": "number",
                                                     "minimum": 0.0
                                                 },
-                                                "room_size": {
+                                                "detection_rate": {
                                                     "type": "number",
-                                                    "minimum": 1.0
+                                                    "minimum": 0.0
                                                 }
                                             }
                                         }
@@ -539,12 +624,14 @@
                             "type": "object",
                             "patternProperties": {
                                 "^.*$": {
+                                    "type": "object",
                                     "properties": {
                                         "fiducial_type": {
                                             "type": "number",
                                             "enum": [
                                                 0,
-                                                1
+                                                1,
+                                                2
                                             ]
                                         },
                                         "squares_x": {
@@ -560,6 +647,15 @@
                                             "type": "number"
                                         },
                                         "id": {
+                                            "type": "number"
+                                        },
+                                        "starting_id": {
+                                            "type": "number"
+                                        },
+                                        "border_bits": {
+                                            "type": "number"
+                                        },
+                                        "separation_bits": {
                                             "type": "number"
                                         },
                                         "pos_f_in_l": {
@@ -579,12 +675,15 @@
                                             "maxItems": 4
                                         },
                                         "variance": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "number"
-                                            },
-                                            "minItems": 6,
-                                            "maxItems": 6
+                                            "type": "object",
+                                            "properties": {
+                                                "pos": {
+                                                    "type": "number"
+                                                },
+                                                "ang": {
+                                                    "type": "number"
+                                                }
+                                            }
                                         },
                                         "min_track_length": {
                                             "type": "number"
@@ -598,6 +697,9 @@
                                         "sim_params": {
                                             "type": "object",
                                             "properties": {
+                                                "no_errors": {
+                                                    "type": "boolean"
+                                                },
                                                 "pos_error": {
                                                     "type": "array",
                                                     "items": {
@@ -640,6 +742,7 @@
                             "type": "object",
                             "patternProperties": {
                                 "^.*$": {
+                                    "type": "object",
                                     "properties": {
                                         "rate": {
                                             "type": "number"
@@ -656,17 +759,20 @@
                                             "maxItems": 3
                                         },
                                         "variance": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "number"
-                                            },
-                                            "minItems": 3,
-                                            "maxItems": 3
+                                            "type": "object",
+                                            "properties": {
+                                                "pos": {
+                                                    "type": "number"
+                                                }
+                                            }
                                         },
                                         "data_log_rate": {
                                             "type": "number"
                                         },
                                         "is_extrinsic": {
+                                            "type": "boolean"
+                                        },
+                                        "filter_sensor_time": {
                                             "type": "boolean"
                                         },
                                         "sim_params": {
@@ -675,7 +781,10 @@
                                                 "no_errors": {
                                                     "type": "boolean"
                                                 },
-                                                "time_error": {
+                                                "time_bias_error": {
+                                                    "type": "number"
+                                                },
+                                                "time_jitter": {
                                                     "type": "number"
                                                 },
                                                 "lla_error": {
@@ -686,7 +795,7 @@
                                                     "minItems": 3,
                                                     "maxItems": 3
                                                 },
-                                                "pos_a_in_b_error": {
+                                                "pos_a_in_b_err": {
                                                     "type": "array",
                                                     "items": {
                                                         "type": "number"
