@@ -949,7 +949,6 @@ def save_stats_to_hdf5(data_dirs, stats):
                 print(f'Warning: Failed to save statistics to {h5_path}: {e}')
 
 
-# TODO(jhartzer): Split for loop into thread pool
 def calc_sim_stats(config_sets, args):
     """Top level function to plot simulation results from sets of config files."""
     for config_set in config_sets:

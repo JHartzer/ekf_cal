@@ -45,7 +45,6 @@ from tab_msckf import tab_msckf
 from utilities import find_and_read_data_frames, generate_mc_lists, parse_yaml
 
 
-# TODO(jhartzer): Split for loop into thread pool
 def plot_sim_results(config_sets, args):
     """Top level function to plot simulation results from sets of config files."""
     for config_set in config_sets:
