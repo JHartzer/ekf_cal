@@ -101,7 +101,7 @@ void ImuUpdater::UpdateEKF(
   Eigen::Vector3d omg_bias = ekf.m_state.imu_states[m_id].omg_bias;
   Eigen::VectorXd resid = Eigen::VectorXd::Zero(6);
 
-  if (ekf.m_state.imu_states.size() == 1) {
+  if (ekf.m_state.body_state.size == 9) {
     ekf.m_state.body_state.acc_b_in_l = ang_b_to_l * ang_i_to_b * (acceleration - acc_bias);
     ekf.m_state.body_state.ang_vel_b_in_l = ang_b_to_l * ang_i_to_b * (angular_rate - omg_bias);
     ekf.m_state.body_state.ang_acc_b_in_l = Eigen::Vector3d::Zero();
@@ -166,7 +166,9 @@ Eigen::MatrixXd ImuUpdater::GetZeroAccelerationJacobian(EKF & ekf) const
 
   jacobian.block<3, 3>(
     0,
-    9) = -SkewSymmetric(ang_i_to_b.conjugate() * ang_b_to_l.conjugate() * g_gravity) *
+    ekf.GetOrientationStateIndex()) = -SkewSymmetric(
+    ang_i_to_b.conjugate() *
+    ang_b_to_l.conjugate() * g_gravity) *
     QuaternionJacobian(ang_b_to_l).transpose();
 
   if (m_is_extrinsic) {
@@ -411,7 +413,7 @@ void ImuUpdater::AngularUpdate(
   Eigen::Quaterniond ang_i_to_b = ekf.m_state.imu_states[m_id].ang_i_to_b;
   Eigen::Vector3d omg_bias = ekf.m_state.imu_states[m_id].omg_bias;
 
-  if (ekf.m_state.imu_states.size() == 1) {
+  if (ekf.m_state.body_state.size == 9) {
     ekf.m_state.body_state.ang_vel_b_in_l = ang_b_to_l * ang_i_to_b * (angular_rate - omg_bias);
     ekf.m_state.body_state.ang_acc_b_in_l = Eigen::Vector3d::Zero();
   } else {

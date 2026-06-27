@@ -110,6 +110,24 @@ void EkfCalNode::Initialize()
   m_state_data_logger.DefineHeader("");
   m_debug_logger->Log(LogLevel::INFO, "EKF CAL Version: " + std::string(EKF_CAL_VERSION));
   m_debug_logger->Log(LogLevel::INFO, "Log Directory: " + m_log_directory);
+
+  // Load lists of sensors
+  m_imu_list = get_parameter("imu_list").as_string_array();
+  m_camera_list = get_parameter("camera_list").as_string_array();
+  m_tracker_list = get_parameter("tracker_list").as_string_array();
+  m_fiducial_list = get_parameter("fiducial_list").as_string_array();
+  m_gps_list = get_parameter("gps_list").as_string_array();
+
+  bool use_reduced_state = false;
+  if (m_imu_list.size() == 1) {
+    std::string imu_prefix = "imu." + m_imu_list[0];
+    if (!has_parameter(imu_prefix + ".override_reduced_state")) {
+      declare_parameter(imu_prefix + ".override_reduced_state", false);
+    }
+    bool override_reduced_state = get_parameter(imu_prefix + ".override_reduced_state").as_bool();
+    use_reduced_state = !override_reduced_state;
+  }
+
   EKF::Parameters ekf_params;
   ekf_params.debug_logger = m_debug_logger;
   ekf_params.data_log_rate = data_log_rate;
@@ -119,7 +137,10 @@ void EkfCalNode::Initialize()
   ekf_params.augmenting_delta_time = get_parameter("augmenting_delta_time").as_double();
   ekf_params.augmenting_pos_error = get_parameter("augmenting_pos_error").as_double();
   ekf_params.augmenting_ang_error = get_parameter("augmenting_ang_error").as_double();
-  ekf_params.process_noise = LoadProcessNoise();
+
+  unsigned int body_size = use_reduced_state ? 9 : 18;
+  ekf_params.process_noise = LoadProcessNoise(body_size);
+
   ekf_params.pos_b_in_l = StdToEigVec(get_parameter("pos_b_in_l").as_double_array());
   ekf_params.ang_b_to_l = StdToEigQuat(get_parameter("ang_b_to_l").as_double_array());
   ekf_params.pos_e_in_g = StdToEigVec(get_parameter("pos_e_in_g").as_double_array());
@@ -135,15 +156,9 @@ void EkfCalNode::Initialize()
     get_parameter("use_first_estimate_jacobian").as_bool();
   ekf_params.use_rk4 = get_parameter("use_rk4").as_bool();
   ekf_params.imu_noise_scale_factor = get_parameter("imu_noise_scale_factor").as_double();
+  ekf_params.use_reduced_state = use_reduced_state;
   m_measurement_scheduler = std::make_shared<Sensor::MeasurementScheduler>(
     get_parameter("measurement_time_reorder_window").as_double());
-
-  // Load lists of sensors
-  m_imu_list = get_parameter("imu_list").as_string_array();
-  m_camera_list = get_parameter("camera_list").as_string_array();
-  m_tracker_list = get_parameter("tracker_list").as_string_array();
-  m_fiducial_list = get_parameter("fiducial_list").as_string_array();
-  m_gps_list = get_parameter("gps_list").as_string_array();
 
   if (m_tracker_list.empty()) {
     ekf_params.augmenting_type = AugmentationType::NONE;
@@ -248,6 +263,7 @@ void EkfCalNode::DeclareImuParameters(const std::string & imu_name)
   DeclareSensorParameters(imu_prefix);
   declare_parameter(imu_prefix + ".is_extrinsic", false);
   declare_parameter(imu_prefix + ".is_intrinsic", false);
+  declare_parameter(imu_prefix + ".override_reduced_state", false);
   declare_parameter(imu_prefix + ".variance.pos", 0.1);
   declare_parameter(imu_prefix + ".variance.ang", 0.1);
   declare_parameter(imu_prefix + ".variance.acc_bias", 1e-9);
@@ -268,6 +284,7 @@ IMU::Parameters EkfCalNode::GetImuParameters(const std::string & imu_name)
   std::string imu_prefix = "imu." + imu_name;
   bool is_extrinsic = get_parameter(imu_prefix + ".is_extrinsic").as_bool();
   bool is_intrinsic = get_parameter(imu_prefix + ".is_intrinsic").as_bool();
+  bool override_reduced_state = get_parameter(imu_prefix + ".override_reduced_state").as_bool();
   double pos_var = get_parameter(imu_prefix + ".variance.pos").as_double();
   double ang_var = get_parameter(imu_prefix + ".variance.ang").as_double();
   double acc_bias_var = get_parameter(imu_prefix + ".variance.acc_bias").as_double();
@@ -286,6 +303,7 @@ IMU::Parameters EkfCalNode::GetImuParameters(const std::string & imu_name)
   LoadSensorParameters(imu_params, imu_prefix, imu_name);
   imu_params.is_extrinsic = is_extrinsic;
   imu_params.is_intrinsic = is_intrinsic;
+  imu_params.override_reduced_state = override_reduced_state;
   imu_params.variance.pos = pos_var;
   imu_params.variance.ang = ang_var;
   imu_params.variance.acc_bias = acc_bias_var;
@@ -744,13 +762,13 @@ void EkfCalNode::PublishState()
   // m_state_data_logger.Log(msg.str());
 }
 
-Eigen::VectorXd EkfCalNode::LoadProcessNoise()
+Eigen::VectorXd EkfCalNode::LoadProcessNoise(unsigned int body_size)
 {
   double pos_noise = get_parameter("process_noise.pos").as_double();
   double vel_noise = get_parameter("process_noise.vel").as_double();
   double ang_pos_noise = get_parameter("process_noise.ang_pos").as_double();
 
-  Eigen::VectorXd process_noise(g_body_state_size);
+  Eigen::VectorXd process_noise(body_size);
   process_noise.segment<3>(0) = Eigen::Vector3d::Ones() * pos_noise;
   process_noise.segment<3>(3) = Eigen::Vector3d::Ones() * vel_noise;
   process_noise.segment<3>(6) = Eigen::Vector3d::Ones() * ang_pos_noise;

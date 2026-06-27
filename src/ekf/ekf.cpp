@@ -59,6 +59,12 @@ EKF::EKF(Parameters params)
   m_use_first_estimate_jacobian(params.use_first_estimate_jacobian),
   m_use_rk4(params.use_rk4)
 {
+  m_state.body_state.size = params.use_reduced_state ? 9 : 18;
+  m_state_size = m_state.body_state.size;
+  m_cov = Eigen::MatrixXd::Identity(m_state_size, m_state_size) * 1e-2;
+  m_process_noise = Eigen::MatrixXd::Zero(m_state_size, m_state_size);
+  m_body_process_noise = Eigen::VectorXd::Zero(m_state_size);
+
   std::stringstream body_header;
   body_header << "time";
   body_header << EnumerateHeader("body_pos", 3);
@@ -82,7 +88,11 @@ EKF::EKF(Parameters params)
   m_augmentation_logger.DefineHeader(aug_header.str());
   if (m_data_log_rate != 0.0) {m_augmentation_logger.EnableLogging();}
 
-  SetBodyProcessNoise(params.process_noise);
+  Eigen::VectorXd p_noise = params.process_noise;
+  if (p_noise.size() != m_state_size) {
+    p_noise = Eigen::VectorXd::Ones(m_state_size);
+  }
+  SetBodyProcessNoise(p_noise);
 
   m_is_lla_initialized = (params.gps_init_type == GpsInitType::CONSTANT);
 
@@ -93,16 +103,21 @@ EKF::EKF(Parameters params)
 
 Eigen::MatrixXd EKF::GetStateTransition(double delta_time)
 {
+  unsigned int body_size = m_state.body_state.size;
   Eigen::MatrixXd state_transition =
-    Eigen::MatrixXd::Identity(g_body_state_size, g_body_state_size);
-  Eigen::Matrix3d rot_l_to_b = m_state.body_state.ang_b_to_l.conjugate().toRotationMatrix();
+    Eigen::MatrixXd::Identity(body_size, body_size);
 
-  state_transition.block<3, 3>(0, 3) = Eigen::Matrix3d::Identity() * delta_time;
-  state_transition.block<3, 3>(3, 6) = Eigen::Matrix3d::Identity() * delta_time;
-  state_transition.block<3, 3>(0, 6) = Eigen::Matrix3d::Identity() * (delta_time * delta_time);
-  state_transition.block<3, 3>(9, 12) = rot_l_to_b * delta_time;
-  state_transition.block<3, 3>(12, 15) = Eigen::Matrix3d::Identity() * delta_time;
-  state_transition.block<3, 3>(9, 15) = rot_l_to_b * (delta_time * delta_time);
+  if (body_size == 18) {
+    Eigen::Matrix3d rot_l_to_b = m_state.body_state.ang_b_to_l.conjugate().toRotationMatrix();
+    state_transition.block<3, 3>(0, 3) = Eigen::Matrix3d::Identity() * delta_time;
+    state_transition.block<3, 3>(3, 6) = Eigen::Matrix3d::Identity() * delta_time;
+    state_transition.block<3, 3>(0, 6) = Eigen::Matrix3d::Identity() * (delta_time * delta_time);
+    state_transition.block<3, 3>(9, 12) = rot_l_to_b * delta_time;
+    state_transition.block<3, 3>(12, 15) = Eigen::Matrix3d::Identity() * delta_time;
+    state_transition.block<3, 3>(9, 15) = rot_l_to_b * (delta_time * delta_time);
+  } else {
+    state_transition.block<3, 3>(0, 3) = Eigen::Matrix3d::Identity() * delta_time;
+  }
   return state_transition;
 }
 
@@ -110,10 +125,13 @@ void EKF::LogBodyStateIfNeeded(int execution_count)
 {
   if (m_data_log_rate != 0.0) {
     std::stringstream msg;
-    Eigen::VectorXd body_cov = m_cov.block<g_body_state_size, g_body_state_size>(0, 0).diagonal();
+    unsigned int body_size = m_state.body_state.size;
+    Eigen::VectorXd body_cov_diag = m_cov.block(0, 0, body_size, body_size).diagonal();
     if (m_use_root_covariance) {
-      body_cov = body_cov.cwiseProduct(body_cov);
+      body_cov_diag = body_cov_diag.cwiseProduct(body_cov_diag);
     }
+    Eigen::VectorXd body_cov = Eigen::VectorXd::Zero(g_body_state_size);
+    body_cov.segment(0, body_size) = body_cov_diag;
     msg << m_current_time;
     msg << VectorToCommaString(m_state.body_state.pos_b_in_l);
     msg << VectorToCommaString(m_state.body_state.vel_b_in_l);
@@ -202,24 +220,25 @@ void EKF::PredictModel(double local_time)
     m_state.body_state.ang_vel_b_in_l += delta_time * m_state.body_state.ang_acc_b_in_l;
 
     Eigen::MatrixXd state_transition = GetStateTransition(delta_time);
-    unsigned int alt_size = m_state_size - g_body_state_size;
+    unsigned int body_size = m_state.body_state.size;
+    unsigned int alt_size = m_state_size - body_size;
 
     if (m_use_root_covariance) {
-      m_cov.block(0, 0, m_state_size, g_body_state_size) =
-        m_cov.block(0, 0, m_state_size, g_body_state_size) * state_transition.transpose();
+      m_cov.block(0, 0, m_state_size, body_size) =
+        m_cov.block(0, 0, m_state_size, body_size) * state_transition.transpose();
 
       m_cov = QR_r(m_cov, m_process_noise * std::sqrt(delta_time));
     } else {
       m_cov.diagonal() += m_process_noise.diagonal() * delta_time;
-      m_cov.block<g_body_state_size, g_body_state_size>(0, 0) =
-        state_transition * (m_cov.block<g_body_state_size, g_body_state_size>(0, 0)) *
+      m_cov.block(0, 0, body_size, body_size) =
+        state_transition * (m_cov.block(0, 0, body_size, body_size)) *
         state_transition.transpose();
-      m_cov.block(0, g_body_state_size, g_body_state_size, alt_size) =
-        state_transition * m_cov.block(0, g_body_state_size, g_body_state_size, alt_size);
-      m_cov.block(g_body_state_size, 0, alt_size, g_body_state_size) =
+      m_cov.block(0, body_size, body_size, alt_size) =
+        state_transition * m_cov.block(0, body_size, body_size, alt_size);
+      m_cov.block(body_size, 0, alt_size, body_size) =
         m_cov.block(
-        g_body_state_size, 0, alt_size,
-        g_body_state_size) * state_transition.transpose();
+        body_size, 0, alt_size,
+        body_size) * state_transition.transpose();
     }
   }
   m_current_time = local_time;
@@ -235,6 +254,11 @@ void EKF::PredictModel(double local_time)
 unsigned int EKF::GetStateSize() const
 {
   return m_state_size;
+}
+
+unsigned int EKF::GetOrientationStateIndex() const
+{
+  return m_state.body_state.size == 9 ? 6 : 9;
 }
 
 ImuState EKF::GetImuState(unsigned int imu_id)
@@ -291,7 +315,9 @@ void EKF::Initialize(double initial_time, const BodyState & body_state_init)
 {
   m_current_time = initial_time;
   m_time_initialized = true;
+  unsigned int original_size = m_state.body_state.size;
   m_state.body_state = body_state_init;
+  m_state.body_state.size = original_size;
 }
 
 void EKF::RegisterIMU(
@@ -307,7 +333,7 @@ void EKF::RegisterIMU(
     return;
   }
 
-  unsigned int imu_state_end = g_body_state_size + GetImuStateSize();
+  unsigned int imu_state_end = m_state.body_state.size + GetImuStateSize();
 
   m_state.imu_states[imu_id] = imu_state;
   if (imu_state.GetIsExtrinsic() || imu_state.GetIsIntrinsic()) {
@@ -343,7 +369,7 @@ void EKF::RegisterGPS(
     return;
   }
 
-  unsigned int gps_state_end = g_body_state_size + GetImuStateSize() + GetGpsStateSize();
+  unsigned int gps_state_end = m_state.body_state.size + GetImuStateSize() + GetGpsStateSize();
   m_state.gps_states[gps_id] = gps_state;
   if (gps_state.GetIsExtrinsic()) {
     m_cov = InsertInMatrix(
@@ -376,7 +402,7 @@ void EKF::RegisterCamera(
   m_max_track_duration = m_max_frame_period * (m_max_track_length + 1);
   m_min_aug_period = std::min(m_min_aug_period, 1 / cam_state.rate);
 
-  unsigned int cam_state_end = g_body_state_size +
+  unsigned int cam_state_end = m_state.body_state.size +
     GetImuStateSize() + GetGpsStateSize() + GetCamStateSize();
 
   if (m_primary_camera_id == 0) {
@@ -431,6 +457,7 @@ Eigen::MatrixXd EKF::AugmentCovariance(const Eigen::MatrixXd & in_cov, unsigned 
   auto out_cols = static_cast<unsigned int>(in_cov.cols() + g_aug_state_size);
 
   Eigen::MatrixXd out_cov = Eigen::MatrixXd::Zero(out_rows, out_cols);
+  unsigned int ori_idx = GetOrientationStateIndex();
 
   if (m_use_root_covariance) {
     // Left
@@ -438,7 +465,7 @@ Eigen::MatrixXd EKF::AugmentCovariance(const Eigen::MatrixXd & in_cov, unsigned 
 
     // Middle
     out_cov.block(0, index, in_rows, 3) = in_cov.block(0, 0, in_rows, 3);
-    out_cov.block(0, index + 3, in_rows, 3) = in_cov.block(0, 9, in_rows, 3);
+    out_cov.block(0, index + 3, in_rows, 3) = in_cov.block(0, ori_idx, in_rows, 3);
 
     // Right
     out_cov.block(0, index + g_aug_state_size, in_rows, in_cols - index) =
@@ -462,17 +489,17 @@ Eigen::MatrixXd EKF::AugmentCovariance(const Eigen::MatrixXd & in_cov, unsigned 
 
     // Top Middle
     out_cov.block(0, index + 0, index, 3) = in_cov.block(0, 0, index, 3);
-    out_cov.block(0, index + 3, index, 3) = in_cov.block(0, 9, index, 3);
+    out_cov.block(0, index + 3, index, 3) = in_cov.block(0, ori_idx, index, 3);
 
     // Bottom Middle
     out_cov.block(index + g_aug_state_size, index + 0, in_rows - index, 3) =
       in_cov.block(index, 0, in_rows - index, 3);
     out_cov.block(index + g_aug_state_size, index + 3, in_rows - index, 3) =
-      in_cov.block(index, 9, in_rows - index, 3);
+      in_cov.block(index, ori_idx, in_rows - index, 3);
 
     // Middle rows
     out_cov.block(index + 0, 0, 3, out_cols) = out_cov.block(0, 0, 3, out_cols);
-    out_cov.block(index + 3, 0, 3, out_cols) = out_cov.block(9, 0, 3, out_cols);
+    out_cov.block(index + 3, 0, 3, out_cols) = out_cov.block(ori_idx, 0, 3, out_cols);
   }
 
   return out_cov;
@@ -734,10 +761,11 @@ void EKF::RefreshIndices()
 {
   unsigned int current_index{0};
   m_state.body_state.index = current_index;
-  current_index += g_body_state_size;
+  unsigned int body_size = m_state.body_state.size;
+  current_index += body_size;
 
   m_process_noise = Eigen::MatrixXd::Zero(m_state_size, m_state_size);
-  m_process_noise.block<g_body_state_size, g_body_state_size>(0, 0) =
+  m_process_noise.block(0, 0, body_size, body_size) =
     m_body_process_noise.asDiagonal();
 
   m_imu_state_start = current_index;

@@ -39,6 +39,7 @@ IMU::IMU(IMU::Parameters params)
   ImuState imu_state;
   imu_state.SetIsExtrinsic(params.is_extrinsic);
   imu_state.SetIsIntrinsic(params.is_intrinsic);
+  imu_state.override_reduced_state = params.override_reduced_state;
   imu_state.pos_stability = params.pos_stability;
   imu_state.ang_stability = params.ang_stability;
   imu_state.acc_bias_stability = params.acc_bias_stability;

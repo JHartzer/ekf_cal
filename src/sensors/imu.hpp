@@ -51,6 +51,7 @@ public:
   {
     bool is_extrinsic{false};                    ///< @brief Extrinsic calibration
     bool is_intrinsic{false};                    ///< @brief Intrinsic calibration
+    bool override_reduced_state{false};          ///< @brief Override reduced-state filter and keep IMU as measurement update
     Eigen::Vector3d pos_i_in_b {0, 0, 0};        ///< @brief Position offset vector
     Eigen::Quaterniond ang_i_to_b {1, 0, 0, 0};  ///< @brief Angular offset quaternion
     Eigen::Vector3d acc_bias {0, 0, 0};          ///< @brief Accelerometer bias vector

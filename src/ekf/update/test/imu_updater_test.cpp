@@ -323,3 +323,67 @@ TEST(test_imu_updater, motion_and_root_cov) {
   imu_updater.UpdateEKF(
     ekf, 2.0, dynamic_acc, acceleration_cov, dynamic_gyro, angular_rate_cov);
 }
+
+TEST(test_imu_updater, reduced_state_shortcut_and_override) {
+  auto logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+
+  // 1. Test shortcut (use_reduced_state = true)
+  {
+    EKF::Parameters ekf_params;
+    ekf_params.debug_logger = logger;
+    ekf_params.use_reduced_state = true;
+    EKF ekf(ekf_params);
+
+    BodyState body_state;
+    body_state.size = 9;
+    body_state.vel_b_in_l = Eigen::Vector3d::Ones();
+    ekf.Initialize(0.0, body_state);
+
+    ImuState imu_state;
+    imu_state.override_reduced_state = false;
+    Eigen::MatrixXd imu_cov = Eigen::MatrixXd::Identity(6, 6);
+    ekf.RegisterIMU(0, imu_state, imu_cov);
+
+    ImuUpdater imu_updater(0, false, false, "", 0.0, logger);
+
+    Eigen::Vector3d acceleration = g_gravity;
+    Eigen::Matrix3d acceleration_cov = Eigen::Matrix3d::Identity() * 1e-3;
+    Eigen::Vector3d angular_rate = Eigen::Vector3d::Zero();
+    Eigen::Matrix3d angular_rate_cov = Eigen::Matrix3d::Identity() * 1e-3;
+
+    imu_updater.UpdateEKF(
+      ekf, 1.0, acceleration, acceleration_cov, angular_rate, angular_rate_cov);
+
+    EXPECT_EQ(ekf.GetStateSize(), 9);
+  }
+
+  // 2. Test override (override_reduced_state = true -> EKF keeps 18 states)
+  {
+    EKF::Parameters ekf_params;
+    ekf_params.debug_logger = logger;
+    ekf_params.use_reduced_state = false;
+    EKF ekf(ekf_params);
+
+    BodyState body_state;
+    body_state.size = 18;
+    body_state.vel_b_in_l = Eigen::Vector3d::Ones();
+    ekf.Initialize(0.0, body_state);
+
+    ImuState imu_state;
+    imu_state.override_reduced_state = true;
+    Eigen::MatrixXd imu_cov = Eigen::MatrixXd::Identity(6, 6);
+    ekf.RegisterIMU(0, imu_state, imu_cov);
+
+    ImuUpdater imu_updater(0, false, false, "", 0.0, logger);
+
+    Eigen::Vector3d acceleration = g_gravity;
+    Eigen::Matrix3d acceleration_cov = Eigen::Matrix3d::Identity() * 1e-3;
+    Eigen::Vector3d angular_rate = Eigen::Vector3d::Zero();
+    Eigen::Matrix3d angular_rate_cov = Eigen::Matrix3d::Identity() * 1e-3;
+
+    imu_updater.UpdateEKF(
+      ekf, 1.0, acceleration, acceleration_cov, angular_rate, angular_rate_cov);
+
+    EXPECT_EQ(ekf.GetStateSize(), 18);
+  }
+}

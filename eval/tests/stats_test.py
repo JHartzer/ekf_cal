@@ -200,3 +200,41 @@ def test_calc_errors_for_single_run_uses_logged_covariance_as_variance_for_body_
     _, _, run_errors = stats._calc_errors_for_single_run(run_args)
 
     np.testing.assert_allclose(run_errors['body_nees'][:, 1], 1.0)
+
+
+def test_calc_errors_for_single_run_uses_logged_covariance_as_variance_for_reduced_body_nees():
+    body_truth = _df({
+        'time': [0.0, 1.0],
+        'body_pos_0': [0.0, 0.0], 'body_pos_1': [0.0, 0.0], 'body_pos_2': [0.0, 0.0],
+        'body_vel_0': [0.0, 0.0], 'body_vel_1': [0.0, 0.0], 'body_vel_2': [0.0, 0.0],
+        'body_acc_0': [0.0, 0.0], 'body_acc_1': [0.0, 0.0], 'body_acc_2': [0.0, 0.0],
+        'body_ang_pos_0': [1.0, 1.0], 'body_ang_pos_1': [0.0, 0.0],
+        'body_ang_pos_2': [0.0, 0.0], 'body_ang_pos_3': [0.0, 0.0],
+        'body_ang_vel_0': [0.0, 0.0], 'body_ang_vel_1': [0.0, 0.0], 'body_ang_vel_2': [0.0, 0.0],
+        'body_ang_acc_0': [0.0, 0.0], 'body_ang_acc_1': [0.0, 0.0], 'body_ang_acc_2': [0.0, 0.0],
+    })
+    body_state = body_truth.copy()
+    body_state['body_pos_0'] = [2.0, 2.0]
+    for idx in range(9):
+        body_state[f'body_cov_{idx}'] = 4.0
+    for idx in range(9, 18):
+        body_state[f'body_cov_{idx}'] = 0.0
+
+    run_args = (
+        0,
+        'run_dir',
+        body_state,
+        body_truth,
+        {},
+        {},
+        {},
+        {},
+        None,
+        None,
+        {},
+        {},
+    )
+
+    _, _, run_errors = stats._calc_errors_for_single_run(run_args)
+
+    np.testing.assert_allclose(run_errors['body_nees'][:, 1], 1.0)

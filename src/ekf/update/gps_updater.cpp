@@ -70,7 +70,9 @@ Eigen::MatrixXd GpsUpdater::GetMeasurementJacobian(EKF & ekf)
 
   Eigen::MatrixXd measurement_jacobian = Eigen::MatrixXd::Zero(3, ekf.GetStateSize());
   measurement_jacobian.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity(3, 3);
-  measurement_jacobian.block<3, 3>(0, 9) = -ang_b_to_l.toRotationMatrix() *
+  measurement_jacobian.block<3, 3>(
+    0,
+    ekf.GetOrientationStateIndex()) = -ang_b_to_l.toRotationMatrix() *
     SkewSymmetric(m_pos_a_in_b) * QuaternionJacobian(ang_b_to_l);
 
   if (m_is_extrinsic) {

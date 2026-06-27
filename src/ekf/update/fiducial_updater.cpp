@@ -103,9 +103,9 @@ Eigen::MatrixXd FiducialUpdater::GetMeasurementJacobian(EKF & ekf)
 
   jacobian.block<3, 3>(0, 0) = -rot_l_to_c;
 
-  jacobian.block<3, 3>(0, 9) = rot_b_to_c * SkewSymmetric(pos_f_in_b);
+  jacobian.block<3, 3>(0, ekf.GetOrientationStateIndex()) = rot_b_to_c * SkewSymmetric(pos_f_in_b);
 
-  jacobian.block<3, 3>(3, 9) = -rot_b_to_c;
+  jacobian.block<3, 3>(3, ekf.GetOrientationStateIndex()) = -rot_b_to_c;
 
   if (m_is_cam_extrinsic) {
     unsigned int cam_index = ekf.m_state.cam_states[m_camera_id].index;

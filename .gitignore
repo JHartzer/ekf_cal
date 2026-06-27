@@ -3,7 +3,8 @@ build/
 install/
 log/
 
-# Python Cache Files
+# Python Files
+.venv/
 *.pyc
 */__pycache__/
 

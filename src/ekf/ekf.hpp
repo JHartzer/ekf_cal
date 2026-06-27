@@ -50,7 +50,7 @@ public:
     double augmenting_pos_error{0.1};                           ///< @brief Augmenting pos error
     double augmenting_ang_error{0.1};                           ///< @brief Augmenting ang error
     /// @brief Process noise
-    Eigen::VectorXd process_noise{Eigen::VectorXd::Ones(g_body_state_size)};
+    Eigen::VectorXd process_noise;
     Eigen::Vector3d pos_b_in_l{Eigen::Vector3d::Zero()};        ///< @brief Body local position
     Eigen::Quaterniond ang_b_to_l {1, 0, 0, 0};                 ///< @brief Body local orientation
     Eigen::Vector3d pos_e_in_g {Eigen::Vector3d::Zero()};       ///< @brief Local frame position
@@ -64,6 +64,7 @@ public:
     bool use_root_covariance{false};  ///< @brief Flag to use the square-root form of Kalman filter
     bool use_first_estimate_jacobian{false};  ///< @brief Flag to use first estimate Jacobians
     bool use_rk4{false};                      ///< @brief Flag to use RK4 orientation propagation
+    bool use_reduced_state{false};            ///< @brief Flag to use 9-state reduced-state filter
   } Parameters;
 
   ///
@@ -77,6 +78,12 @@ public:
   /// @return State size
   ///
   unsigned int GetStateSize() const;
+
+  ///
+  /// @brief Getter for orientation state start index
+  /// @return Orientation state index
+  ///
+  unsigned int GetOrientationStateIndex() const;
 
   ///
   /// @brief Get IMU sensor state

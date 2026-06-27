@@ -156,6 +156,7 @@ public:
   double ang_stability {1e-9};                        ///< @brief Extrinsic orientation stability
   double acc_bias_stability {1e-9};                   ///< @brief Accelerometer bias stability
   double omg_bias_stability {1e-9};                   ///< @brief Gyroscope bias stability
+  bool override_reduced_state{false};                 ///< @brief Override reduced-state filter flag
   Eigen::Vector3d pos_i_in_b{0.0, 0.0, 0.0};          ///< @brief Position
   Eigen::Quaterniond ang_i_to_b{1.0, 0.0, 0.0, 0.0};  ///< @brief Orientation
   Eigen::Vector3d acc_bias{0.0, 0.0, 0.0};            ///< @brief Acceleration bias

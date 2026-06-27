@@ -108,7 +108,7 @@ public:
   /// @brief Load process noise
   /// @return Process noise vector
   ///
-  Eigen::VectorXd LoadProcessNoise();
+  Eigen::VectorXd LoadProcessNoise(unsigned int body_size);
 
   ///
   /// @brief Function for loading IMU parameters
