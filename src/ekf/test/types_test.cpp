@@ -324,7 +324,7 @@ TEST(test_ekf_types, body_state_plus_equals_vector) {
   left_state.ang_vel_b_in_l = Eigen::Vector3d::Ones() * 4.0;
   left_state.ang_acc_b_in_l = Eigen::Vector3d::Ones() * 5.0;
 
-  Eigen::VectorXd right_vector(g_body_state_size);
+  Eigen::VectorXd right_vector(g_body_state_full_size);
   right_vector(0) = 1.0;
   right_vector(1) = 1.0;
   right_vector(2) = 1.0;
@@ -483,7 +483,7 @@ TEST(test_ekf_types, body_state_to_vector) {
 
   Eigen::VectorXd state_vector = body_state.ToVector();
 
-  EXPECT_EQ(state_vector.size(), g_body_state_size);
+  EXPECT_EQ(state_vector.size(), g_body_state_full_size);
 
   EXPECT_EQ(state_vector(0), 1.0);
   EXPECT_EQ(state_vector(1), 1.0);
@@ -737,7 +737,7 @@ TEST(test_ekf_types, state_to_vector) {
 TEST(test_ekf_types, state_get_state_size) {
   State state;
 
-  unsigned int expected_size {g_body_state_size};
+  unsigned int expected_size {g_body_state_full_size};
   EXPECT_EQ(state.GetStateSize(), expected_size);
 
   ImuState imu_state;
@@ -764,7 +764,7 @@ TEST(test_ekf_types, state_get_state_size) {
 
 TEST(test_ekf_types, set_body_state) {
   BodyState body_state;
-  Eigen::VectorXd body_state_vec(g_body_state_size);
+  Eigen::VectorXd body_state_vec(g_body_state_full_size);
   body_state_vec.segment<3>(0) = Eigen::Vector3d::Ones() * 1.0;
   body_state_vec.segment<3>(3) = Eigen::Vector3d::Ones() * 2.0;
   body_state_vec.segment<3>(6) = Eigen::Vector3d::Ones() * 3.0;

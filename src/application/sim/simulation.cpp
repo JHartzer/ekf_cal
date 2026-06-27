@@ -133,7 +133,7 @@ void ValidateFiducialIds(
   }
 }
 
-Eigen::VectorXd LoadProcessNoise(YAML::Node process_noise_node)
+Eigen::VectorXd LoadProcessNoise(YAML::Node process_noise_node, unsigned int body_size)
 {
   double pos_noise = process_noise_node["pos"].as<double>(1.0e-2);
   double vel_noise = process_noise_node["vel"].as<double>(1.0e-2);
@@ -142,13 +142,17 @@ Eigen::VectorXd LoadProcessNoise(YAML::Node process_noise_node)
   double ang_vel_noise = process_noise_node["ang_vel"].as<double>(1.0e-2);
   double ang_acc_noise = process_noise_node["ang_acc"].as<double>(1.0e-2);
 
-  Eigen::VectorXd process_noise(g_body_state_size);
+  Eigen::VectorXd process_noise(body_size);
   process_noise.segment<3>(0) = Eigen::Vector3d::Ones() * pos_noise;
   process_noise.segment<3>(3) = Eigen::Vector3d::Ones() * vel_noise;
-  process_noise.segment<3>(6) = Eigen::Vector3d::Ones() * acc_noise;
-  process_noise.segment<3>(9) = Eigen::Vector3d::Ones() * ang_pos_noise;
-  process_noise.segment<3>(12) = Eigen::Vector3d::Ones() * ang_vel_noise;
-  process_noise.segment<3>(15) = Eigen::Vector3d::Ones() * ang_acc_noise;
+  if (body_size == 18) {
+    process_noise.segment<3>(6) = Eigen::Vector3d::Ones() * acc_noise;
+    process_noise.segment<3>(9) = Eigen::Vector3d::Ones() * ang_pos_noise;
+    process_noise.segment<3>(12) = Eigen::Vector3d::Ones() * ang_vel_noise;
+    process_noise.segment<3>(15) = Eigen::Vector3d::Ones() * ang_acc_noise;
+  } else {
+    process_noise.segment<3>(6) = Eigen::Vector3d::Ones() * ang_pos_noise;
+  }
 
   return process_noise;
 }
@@ -198,6 +202,14 @@ int main(int argc, char * argv[])
   debug_logger->Log(LogLevel::INFO, "EKF CAL Version: " + std::string(EKF_CAL_VERSION));
 
   // EKF parameters
+  bool use_reduced_state = false;
+  if (imus.size() == 1) {
+    YAML::Node imu_node = ros_params["imu"][imus[0]];
+    bool override_reduced_state = imu_node["override_reduced_state"].as<bool>(false);
+    use_reduced_state = !override_reduced_state;
+  }
+
+  // EKF parameters
   double data_log_rate = ros_params["data_log_rate"].as<double>(0.0);
   ekf_params.debug_logger = debug_logger;
   ekf_params.data_log_rate = data_log_rate;
@@ -207,7 +219,10 @@ int main(int argc, char * argv[])
   ekf_params.augmenting_delta_time = ros_params["augmenting_delta_time"].as<double>(1.0);
   ekf_params.augmenting_pos_error = ros_params["augmenting_pos_error"].as<double>(0.1);
   ekf_params.augmenting_ang_error = ros_params["augmenting_ang_error"].as<double>(0.1);
-  ekf_params.process_noise = LoadProcessNoise(ros_params["process_noise"]);
+
+  unsigned int body_size = use_reduced_state ? g_body_state_min_size : g_body_state_full_size;
+  ekf_params.process_noise = LoadProcessNoise(ros_params["process_noise"], body_size);
+
   ekf_params.pos_b_in_l = StdToEigVec(ros_params["pos_b_in_l"].as<std::vector<double>>(def_vec));
   ekf_params.ang_b_to_l = StdToEigQuat(ros_params["ang_b_to_l"].as<std::vector<double>>(def_quat));
   ekf_params.pos_e_in_g = StdToEigVec(ros_params["pos_e_in_g"].as<std::vector<double>>(def_vec));
@@ -224,6 +239,7 @@ int main(int argc, char * argv[])
   ekf_params.use_first_estimate_jacobian =
     ros_params["use_first_estimate_jacobian"].as<bool>(false);
   ekf_params.use_rk4 = ros_params["use_rk4"].as<bool>(false);
+  ekf_params.use_reduced_state = use_reduced_state;
   if (trackers.empty()) {
     ekf_params.augmenting_type = AugmentationType::NONE;
   }
@@ -300,6 +316,7 @@ int main(int argc, char * argv[])
   auto ang_b_to_l_err =
     StdToEigVec(sim_params["ang_b_to_l_error"].as<std::vector<double>>(def_vec));
   BodyState initial_state;
+  initial_state.size = use_reduced_state ? g_body_state_min_size : g_body_state_full_size;
   bool has_gps = !gps_list.empty();
   bool has_camera_fiducial = false;
   for (const auto & camera_name : cameras) {
@@ -360,6 +377,7 @@ int main(int argc, char * argv[])
       measurement_scheduler);
     imu_params.is_extrinsic = imu_node["is_extrinsic"].as<bool>(false);
     imu_params.is_intrinsic = imu_node["is_intrinsic"].as<bool>(false);
+    imu_params.override_reduced_state = imu_node["override_reduced_state"].as<bool>(false);
     imu_params.variance.pos = imu_node["variance"]["pos"].as<double>(0.1);
     imu_params.variance.ang = imu_node["variance"]["ang"].as<double>(0.1);
     imu_params.variance.acc_bias = imu_node["variance"]["acc_bias"].as<double>(0.0);

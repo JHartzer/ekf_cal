@@ -27,10 +27,12 @@ BodyState & operator+=(BodyState & l_body_state, const BodyState & r_body_state)
 {
   l_body_state.pos_b_in_l += r_body_state.pos_b_in_l;
   l_body_state.vel_b_in_l += r_body_state.vel_b_in_l;
-  l_body_state.acc_b_in_l += r_body_state.acc_b_in_l;
   l_body_state.ang_b_to_l = r_body_state.ang_b_to_l * l_body_state.ang_b_to_l;
-  l_body_state.ang_vel_b_in_l += r_body_state.ang_vel_b_in_l;
-  l_body_state.ang_acc_b_in_l += r_body_state.ang_acc_b_in_l;
+  if (l_body_state.size == g_body_state_full_size) {
+    l_body_state.acc_b_in_l += r_body_state.acc_b_in_l;
+    l_body_state.ang_vel_b_in_l += r_body_state.ang_vel_b_in_l;
+    l_body_state.ang_acc_b_in_l += r_body_state.ang_acc_b_in_l;
+  }
 
   return l_body_state;
 }
@@ -39,10 +41,14 @@ BodyState & operator+=(BodyState & l_body_state, const Eigen::VectorXd & r_vecto
 {
   l_body_state.pos_b_in_l += r_vector.segment<3>(0);
   l_body_state.vel_b_in_l += r_vector.segment<3>(3);
-  l_body_state.acc_b_in_l += r_vector.segment<3>(6);
-  l_body_state.ang_b_to_l = l_body_state.ang_b_to_l * RotVecToQuat(r_vector.segment<3>(9));
-  l_body_state.ang_vel_b_in_l += r_vector.segment<3>(12);
-  l_body_state.ang_acc_b_in_l += r_vector.segment<3>(15);
+  if (l_body_state.size == g_body_state_full_size) {
+    l_body_state.acc_b_in_l += r_vector.segment<3>(6);
+    l_body_state.ang_b_to_l = l_body_state.ang_b_to_l * RotVecToQuat(r_vector.segment<3>(9));
+    l_body_state.ang_vel_b_in_l += r_vector.segment<3>(12);
+    l_body_state.ang_acc_b_in_l += r_vector.segment<3>(15);
+  } else {
+    l_body_state.ang_b_to_l = l_body_state.ang_b_to_l * RotVecToQuat(r_vector.segment<3>(6));
+  }
 
   return l_body_state;
 }
@@ -93,10 +99,10 @@ State & operator+=(State & l_state, State & r_state)
 
 State & operator+=(State & l_state, const Eigen::VectorXd & r_vector)
 {
-  Eigen::VectorXd r_body_state = r_vector.segment<g_body_state_size>(0);
+  Eigen::VectorXd r_body_state = r_vector.segment(0, l_state.body_state.size);
   l_state.body_state += r_body_state;
 
-  unsigned int idx = g_body_state_size;
+  unsigned int idx = l_state.body_state.size;
   for (auto & imu_iter : l_state.imu_states) {
     if (imu_iter.second.GetIsExtrinsic()) {
       imu_iter.second.pos_i_in_b += r_vector.segment<3>(idx + 0);
@@ -219,14 +225,18 @@ std::vector<AugState> & operator+=(
 
 Eigen::VectorXd BodyState::ToVector() const
 {
-  Eigen::VectorXd out_vec = Eigen::VectorXd::Zero(g_body_state_size);
+  Eigen::VectorXd out_vec = Eigen::VectorXd::Zero(size);
 
   out_vec.segment<3>(0) = pos_b_in_l;
   out_vec.segment<3>(3) = vel_b_in_l;
-  out_vec.segment<3>(6) = acc_b_in_l;
-  out_vec.segment<3>(9) = QuatToRotVec(ang_b_to_l);
-  out_vec.segment<3>(12) = ang_vel_b_in_l;
-  out_vec.segment<3>(15) = ang_acc_b_in_l;
+  if (size == g_body_state_full_size) {
+    out_vec.segment<3>(6) = acc_b_in_l;
+    out_vec.segment<3>(9) = QuatToRotVec(ang_b_to_l);
+    out_vec.segment<3>(12) = ang_vel_b_in_l;
+    out_vec.segment<3>(15) = ang_acc_b_in_l;
+  } else {
+    out_vec.segment<3>(6) = QuatToRotVec(ang_b_to_l);
+  }
 
   return out_vec;
 }
@@ -291,10 +301,14 @@ void BodyState::SetState(const Eigen::VectorXd & state)
 {
   pos_b_in_l = state.segment<3>(0);
   vel_b_in_l = state.segment<3>(3);
-  acc_b_in_l = state.segment<3>(6);
-  ang_b_to_l = RotVecToQuat(state.segment<3>(9));
-  ang_vel_b_in_l = state.segment<3>(12);
-  ang_acc_b_in_l = state.segment<3>(15);
+  if (size == g_body_state_full_size) {
+    acc_b_in_l = state.segment<3>(6);
+    ang_b_to_l = RotVecToQuat(state.segment<3>(9));
+    ang_vel_b_in_l = state.segment<3>(12);
+    ang_acc_b_in_l = state.segment<3>(15);
+  } else {
+    ang_b_to_l = RotVecToQuat(state.segment<3>(6));
+  }
 }
 
 
@@ -302,8 +316,8 @@ Eigen::VectorXd State::ToVector() const
 {
   Eigen::VectorXd out_vec = Eigen::VectorXd::Zero(GetStateSize());
 
-  out_vec.segment<g_body_state_size>(0) = body_state.ToVector();
-  unsigned int idx = g_body_state_size;
+  out_vec.segment(0, body_state.size) = body_state.ToVector();
+  unsigned int idx = body_state.size;
 
   for (auto const & imu_iter : imu_states) {
     if (imu_iter.second.GetIsExtrinsic() || imu_iter.second.GetIsExtrinsic()) {
@@ -347,8 +361,8 @@ Eigen::VectorXd State::ToVector() const
 void State::SetState(const Eigen::VectorXd & state)
 {
   unsigned int idx = 0;
-  body_state.SetState(state.segment<g_body_state_size>(idx));
-  idx += g_body_state_size;
+  body_state.SetState(state.segment(idx, body_state.size));
+  idx += body_state.size;
 
   for (auto & imu_iter : imu_states) {
     if (imu_iter.second.GetIsExtrinsic()) {
@@ -385,7 +399,7 @@ void State::SetState(const Eigen::VectorXd & state)
 
 unsigned int State::GetStateSize() const
 {
-  unsigned int state_size = g_body_state_size;
+  unsigned int state_size = body_state.size;
 
   for (auto const & imu_iter : imu_states) {
     if (imu_iter.second.GetIsExtrinsic()) {

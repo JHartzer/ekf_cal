@@ -16,6 +16,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
+import numpy as np
 from bokeh.layouts import layout
 from bokeh.models import Range1d, Spacer, TabPanel
 from bokeh.plotting import figure
@@ -243,9 +244,15 @@ class tab_body:
                      y_axis_label='Acceleration [m/s/s]', title='Body Acceleration Covariance')
         for body_df in self.body_state_dfs:
             time = body_df['time']
-            cov_x = body_df['body_cov_6']
-            cov_y = body_df['body_cov_7']
-            cov_z = body_df['body_cov_8']
+            is_reduced = (body_df['body_cov_9'] == 0.0).all()
+            if is_reduced:
+                cov_x = np.zeros_like(time)
+                cov_y = np.zeros_like(time)
+                cov_z = np.zeros_like(time)
+            else:
+                cov_x = body_df['body_cov_6']
+                cov_y = body_df['body_cov_7']
+                cov_z = body_df['body_cov_8']
             fig.line(time, cov_x, alpha=self.alpha, color=self.colors[0], legend_label='X')
             fig.line(time, cov_y, alpha=self.alpha, color=self.colors[1], legend_label='Y')
             fig.line(time, cov_z, alpha=self.alpha, color=self.colors[2], legend_label='Z')
@@ -257,9 +264,15 @@ class tab_body:
                      y_axis_label='Angle [rad]', title='Body Angular Covariance')
         for body_df in self.body_state_dfs:
             time = body_df['time']
-            cov_x = body_df['body_cov_9']
-            cov_y = body_df['body_cov_10']
-            cov_z = body_df['body_cov_11']
+            is_reduced = (body_df['body_cov_9'] == 0.0).all()
+            if is_reduced:
+                cov_x = body_df['body_cov_6']
+                cov_y = body_df['body_cov_7']
+                cov_z = body_df['body_cov_8']
+            else:
+                cov_x = body_df['body_cov_9']
+                cov_y = body_df['body_cov_10']
+                cov_z = body_df['body_cov_11']
             fig.line(time, cov_x, alpha=self.alpha, color=self.colors[0], legend_label='X')
             fig.line(time, cov_y, alpha=self.alpha, color=self.colors[1], legend_label='Y')
             fig.line(time, cov_z, alpha=self.alpha, color=self.colors[2], legend_label='Z')
@@ -303,9 +316,15 @@ class tab_body:
         for err_df in body_nees_list:
             fig.line(err_df['time'], err_df['nees'], alpha=self.alpha, color=self.colors[0])
 
-        fig.hspan(y=chi2.ppf(0.025, df=18), line_color='red')
-        fig.hspan(y=chi2.ppf(0.975, df=18), line_color='red')
-        fig.y_range = Range1d(0, 40)
+        df = 18
+        if self.body_state_dfs:
+            is_reduced = (self.body_state_dfs[0]['body_cov_9'] == 0.0).all()
+            if is_reduced:
+                df = 9
+
+        fig.hspan(y=chi2.ppf(0.025, df=df), line_color='red')
+        fig.hspan(y=chi2.ppf(0.975, df=df), line_color='red')
+        fig.y_range = Range1d(0, 2 * df + 4)
 
         return fig
 
@@ -390,6 +409,10 @@ class tab_body:
 
     def get_tab(self):
         """Generate the Bokeh TabPanel containing all body state plots."""
+        is_reduced = False
+        if self.body_state_dfs:
+            is_reduced = (self.body_state_dfs[0]['body_cov_9'] == 0.0).all()
+
         layout_plots = [
             [
                 self.plot_body_pos(),
@@ -413,21 +436,20 @@ class tab_body:
             ],
             [
                 self.plot_body_vel_cov(),
-                self.plot_body_ang_vel_cov()
+                Spacer() if is_reduced else self.plot_body_ang_vel_cov()
             ],
             [
                 self.plot_body_acc(),
-                self.plot_body_ang_acc()
+                Spacer() if is_reduced else self.plot_body_ang_acc()
             ],
             [
                 self.plot_body_err_acc(),
-                self.plot_body_err_ang_acc()
-            ],
-            [
-                self.plot_body_acc_cov(),
-                self.plot_body_ang_acc_cov()
+                Spacer() if is_reduced else self.plot_body_err_ang_acc()
             ]
         ]
+
+        if not is_reduced:
+            layout_plots.append([self.plot_body_acc_cov(), self.plot_body_ang_acc_cov()])
 
         if self.aug_state_dfs:
             layout_plots.append([self.plot_aug_pos(), self.plot_aug_ang()])

@@ -343,3 +343,34 @@ TEST(test_EKF, AttemptGpsInitializationSignedHeading) {
   EXPECT_NEAR(ekf->GetReferenceAngle(), heading, 1e-3);
   EXPECT_TRUE(EXPECT_EIGEN_NEAR(ekf->GetReferenceLLA(), ref_lla, 1e-3));
 }
+
+TEST(test_EKF, ReducedState9State) {
+  EKF::Parameters ekf_params;
+  ekf_params.debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  ekf_params.use_reduced_state = true;
+  ekf_params.use_rk4 = true;
+  auto ekf = std::make_shared<EKF>(ekf_params);
+
+  EXPECT_EQ(ekf->GetStateSize(), g_body_state_min_size);
+  EXPECT_EQ(ekf->GetOrientationStateIndex(), 6);
+  EXPECT_EQ(ekf->m_state.body_state.size, g_body_state_min_size);
+
+  BodyState body_state_init;
+  body_state_init.size = g_body_state_min_size;
+  body_state_init.pos_b_in_l = Eigen::Vector3d::Zero();
+  body_state_init.vel_b_in_l = Eigen::Vector3d(1.0, 2.0, 3.0);
+  body_state_init.ang_b_to_l = Eigen::Quaterniond::Identity();
+
+  ekf->Initialize(0.0, body_state_init);
+  ekf->InitializeGravity();
+
+  ekf->m_state.body_state.acc_b_in_l = Eigen::Vector3d(0.0, 0.0, 9.80665);
+  ekf->m_state.body_state.ang_vel_b_in_l = Eigen::Vector3d(0.1, 0.2, 0.3);
+
+  ekf->PredictModel(1.0);
+
+  EXPECT_NEAR(ekf->m_state.body_state.pos_b_in_l.x(), 1.0, 1e-6);
+  EXPECT_NEAR(ekf->m_state.body_state.pos_b_in_l.y(), 2.0, 1e-6);
+  EXPECT_NEAR(ekf->m_state.body_state.pos_b_in_l.z(), 3.0, 1e-6);
+  EXPECT_FALSE(ekf->m_state.body_state.ang_b_to_l.isApprox(Eigen::Quaterniond::Identity(), 1e-4));
+}

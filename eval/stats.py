@@ -400,7 +400,6 @@ def _calc_errors_for_single_run(run_args):
         run_errors['body_ang_err'] = np.column_stack((est_time, err_ax, err_ay, err_az))
 
         # Calculate Body NEES
-        cov_cols = [body_state[f'body_cov_{j}'].to_numpy() for j in range(18)]
         err_pos = run_errors['body_pos_err'][:, 1:]
         err_vel = run_errors['body_vel_err'][:, 1:]
         err_acc = run_errors['body_acc_err'][:, 1:]
@@ -408,7 +407,17 @@ def _calc_errors_for_single_run(run_args):
         err_ang_vel = run_errors['body_ang_vel_err'][:, 1:]
         err_ang_acc = run_errors['body_ang_acc_err'][:, 1:]
 
-        err_all = np.column_stack((err_pos, err_vel, err_acc, err_ang, err_ang_vel, err_ang_acc))
+        is_reduced = (body_state['body_cov_9'] == 0.0).all()
+        if is_reduced:
+            # 9-state NEES: position (0..2), velocity (3..5), orientation (6..8)
+            cov_cols = [body_state[f'body_cov_{j}'].to_numpy() for j in range(9)]
+            err_all = np.column_stack((err_pos, err_vel, err_ang))
+        else:
+            # 18-state NEES
+            cov_cols = [body_state[f'body_cov_{j}'].to_numpy() for j in range(18)]
+            err_all = np.column_stack(
+                (err_pos, err_vel, err_acc, err_ang, err_ang_vel, err_ang_acc))
+
         body_nees = diagonal_nees(err_all, cov_cols)
         run_errors['body_nees'] = np.column_stack((est_time, body_nees))
 
