@@ -52,8 +52,6 @@
 /// @todo Option to publish visualization messages
 /// @todo Create generic callback that can be used to store and sort measurements
 /// @todo TF2 Publishing Flag
-/// @todo Option to publish health metrics
-/// @todo Option to publish visualization messages
 /// @todo debug issue with future extrapolation in RVIZ
 ///
 class EkfCalNode : public rclcpp::Node

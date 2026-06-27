@@ -1,10 +1,23 @@
 Package Features:
     - Implement filter status output
+        - Normalized Innovation Squared: follows a chi^2 distribution
+        - Trace of the State Covariance Matrix
     - Outlier rejection by gating / Mahalanobis distance
     - Play rosbag through as fast as possible given yaml
         - Use time-coordinator node
+    - Reduce state with single IMU
+    - Does the yaml schema actually match current settings
+    - Regression script that runs every regression and then compares the stats to threshold values -> pass / fail
+    - Use loop pools for python evaluation scripts
 
 Simulation:
     - Add data drops to input file
     - Add extrinsic step disturbance
     - Add IMU bias instability
+
+Visualization:
+    - rviz / tf2 / lichtblick output for visualization
+        - Room walls
+        - sensor positions
+        - fiducial positions
+    - real-time simulated camera feeds
