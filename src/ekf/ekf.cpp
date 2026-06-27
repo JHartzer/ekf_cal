@@ -55,6 +55,7 @@ EKF::EKF(Parameters params)
   m_augmenting_ang_error(params.augmenting_ang_error),
   m_motion_detection_chi_squared(params.motion_detection_chi_squared),
   m_imu_noise_scale_factor(params.imu_noise_scale_factor),
+  m_chi2_threshold(params.chi2_threshold),
   m_use_root_covariance(params.use_root_covariance),
   m_use_first_estimate_jacobian(params.use_first_estimate_jacobian),
   m_use_rk4(params.use_rk4)

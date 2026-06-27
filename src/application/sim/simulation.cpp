@@ -240,6 +240,7 @@ int main(int argc, char * argv[])
     ros_params["use_first_estimate_jacobian"].as<bool>(false);
   ekf_params.use_rk4 = ros_params["use_rk4"].as<bool>(false);
   ekf_params.use_reduced_state = use_reduced_state;
+  ekf_params.chi2_threshold = ros_params["chi2_threshold"].as<double>(25.0);
   if (trackers.empty()) {
     ekf_params.augmenting_type = AugmentationType::NONE;
   }

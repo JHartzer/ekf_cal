@@ -120,7 +120,7 @@ void ImuUpdater::UpdateEKF(
     meas_noise.block<3, 3>(3, 3) = angular_rate_covariance;
 
     // Apply Kalman update
-    KalmanUpdate(ekf, jacobian, resid, meas_noise);
+    KalmanUpdate(ekf, jacobian, resid, meas_noise, "IMU");
   }
 
   auto t_end = std::chrono::high_resolution_clock::now();
@@ -432,6 +432,6 @@ void ImuUpdater::AngularUpdate(
     meas_noise.block<3, 3>(0, 0) = angular_rate_covariance;
 
     // Apply Kalman update
-    KalmanUpdate(ekf, jacobian, resid, meas_noise);
+    KalmanUpdate(ekf, jacobian, resid, meas_noise, "IMU");
   }
 }

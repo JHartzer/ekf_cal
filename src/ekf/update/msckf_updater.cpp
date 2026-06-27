@@ -365,8 +365,6 @@ void MsckfUpdater::UpdateEKF(
 
     ApplyLeftNullspace(H_f, H_c, res_f);
 
-    /// @todo Chi^2 distance check
-
     // Append Jacobian and residual
     H_x.block(ct_meas, 0, H_c.rows(), H_c.cols()) = H_c;
     res_x.block(ct_meas, 0, res_f.rows(), 1) = res_f;
@@ -390,7 +388,7 @@ void MsckfUpdater::UpdateEKF(
   Eigen::MatrixXd meas_noise = px_error * px_error *
     Eigen::MatrixXd::Identity(res_x.rows(), res_x.rows());
 
-  KalmanUpdate(ekf, H_x, res_x, meas_noise);
+  KalmanUpdate(ekf, H_x, res_x, meas_noise, "MSCKF");
 
   auto t_end = std::chrono::high_resolution_clock::now();
   auto t_execution = std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_start);

@@ -147,3 +147,42 @@ TEST(test_gps_updater, multi_update) {
   // Perform MultiUpdateEKF
   gps_updater.MultiUpdateEKF(ekf);
 }
+
+TEST(test_gps_updater, chi2_rejection) {
+  double time_init{0.0};
+  BodyState body_state;
+  body_state.pos_b_in_l = Eigen::Vector3d{0, 0, 0};
+  body_state.vel_b_in_l = Eigen::Vector3d{0, 0, 0};
+
+  auto debug_logger = std::make_shared<DebugLogger>(LogLevel::DEBUG, "");
+  EKF::Parameters ekf_params;
+  ekf_params.debug_logger = debug_logger;
+  ekf_params.gps_init_type = GpsInitType::CONSTANT;
+  ekf_params.chi2_threshold = 5.0; // Set low threshold for rejection
+  auto ekf = std::make_shared<EKF>(ekf_params);
+  ekf->Initialize(time_init, body_state);
+
+  unsigned int gps_id{0};
+  bool is_extrinsic{false};
+
+  GpsState gps_state;
+  gps_state.SetIsExtrinsic(is_extrinsic);
+  Eigen::Matrix3d gps_cov = Eigen::Matrix3d::Zero(3, 3);
+  ekf->RegisterGPS(gps_id, gps_state, gps_cov);
+
+  GpsUpdater gps_updater(gps_id, is_extrinsic, "", 0.0, debug_logger);
+  Eigen::Matrix3d pos_cov = Eigen::Matrix3d::Identity() * 1e-9;
+
+  double time = time_init + 1;
+  Eigen::Vector3d ref_lla{0, 0, 0};
+  Eigen::Vector3d antenna_enu{1, 1, 1}; // Big innovation
+  Eigen::Vector3d gps_lla = enu_to_lla(antenna_enu, ref_lla);
+
+  gps_updater.UpdateEKF(*ekf, time, gps_lla, pos_cov);
+
+  // Rejection should prevent position update
+  State state = ekf->m_state;
+  EXPECT_NEAR(state.body_state.pos_b_in_l[0], 0.0, 1e-2);
+  EXPECT_NEAR(state.body_state.pos_b_in_l[1], 0.0, 1e-2);
+  EXPECT_NEAR(state.body_state.pos_b_in_l[2], 0.0, 1e-2);
+}

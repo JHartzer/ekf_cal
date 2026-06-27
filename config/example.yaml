@@ -37,6 +37,7 @@
         use_first_estimate_jacobian: true     # Flag to utilize the first estimate Jacobian
         use_rk4:                     true     # Flag to use the RK4 estimate of orientation
         measurement_time_reorder_window: 1.0  # Sliding window [s] for reordering filtered measurements
+        chi2_threshold: 25.0                  # Chi-squared rejection threshold
 
         sim_params:
             seed: 1                           # Seed to provide to random number generator

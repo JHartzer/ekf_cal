@@ -35,11 +35,12 @@ public:
   ///
   explicit Updater(unsigned int sensor_id, std::shared_ptr<DebugLogger> logger);
 
-  static void KalmanUpdate(
+  static bool KalmanUpdate(
     EKF & ekf,
     const Eigen::MatrixXd & jacobian,
     const Eigen::VectorXd & residual,
-    const Eigen::MatrixXd & measurement_noise_input);
+    const Eigen::MatrixXd & measurement_noise_input,
+    const std::string & sensor_name = "Sensor");
 
 protected:
   unsigned int m_id;                      ///< @brief Associated sensor ID

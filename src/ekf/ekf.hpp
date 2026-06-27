@@ -65,6 +65,7 @@ public:
     bool use_first_estimate_jacobian{false};  ///< @brief Flag to use first estimate Jacobians
     bool use_rk4{false};                      ///< @brief Flag to use RK4 orientation propagation
     bool use_reduced_state{false};            ///< @brief Flag to use 9-state reduced-state filter
+    double chi2_threshold{-1.0};              ///< @brief Chi-squared rejection threshold
   } Parameters;
 
   ///
@@ -277,6 +278,14 @@ public:
   bool IsGravityInitialized() const;
 
   ///
+  /// @brief Getter for EKF debug logger
+  /// @return EKF debug logger
+  ///
+  std::shared_ptr<DebugLogger> GetDebugLogger() const {return m_debug_logger;}
+
+  double GetChi2Threshold() const {return m_chi2_threshold;}
+
+  ///
   /// @brief Function to initialize gravity angle
   ///
   void InitializeGravity();
@@ -450,6 +459,7 @@ private:
   bool m_is_gravity_initialized{false};
   double m_motion_detection_chi_squared{1.0};
   double m_imu_noise_scale_factor{100.0};
+  double m_chi2_threshold{-1.0};
 
   bool m_use_root_covariance{true};
   bool m_use_first_estimate_jacobian{false};

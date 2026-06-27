@@ -25,28 +25,48 @@ Updater::Updater(unsigned int sensor_id, std::shared_ptr<DebugLogger> logger)
 : m_id(sensor_id), m_logger(logger) {}
 
 
-void Updater::KalmanUpdate(
+bool Updater::KalmanUpdate(
   EKF & ekf,
   const Eigen::MatrixXd & jacobian,
   const Eigen::VectorXd & residual,
-  const Eigen::MatrixXd & measurement_noise
+  const Eigen::MatrixXd & measurement_noise,
+  const std::string & sensor_name
 )
 {
-  // Calculate Kalman gain
-  Eigen::MatrixXd innovation;
-  Eigen::MatrixXd gain;
+  double chi2_threshold = ekf.GetChi2Threshold();
+  Eigen::MatrixXd S;
   Eigen::MatrixXd observation_noise;
 
   if (ekf.GetUseRootCovariance()) {
+    Eigen::MatrixXd innovation;
     observation_noise = measurement_noise.cwiseSqrt();
     innovation = QR_r(ekf.m_cov * jacobian.transpose(), observation_noise);
-    Eigen::MatrixXd rhs = jacobian * ekf.m_cov.transpose() * ekf.m_cov;
-    Eigen::MatrixXd S_root = innovation.transpose() * innovation;
-    gain = S_root.ldlt().solve(rhs).transpose();
+    S = innovation.transpose() * innovation;
   } else {
     observation_noise = measurement_noise;
-    innovation = jacobian * ekf.m_cov * jacobian.transpose() + observation_noise;
-    gain = innovation.ldlt().solve(jacobian * ekf.m_cov).transpose();
+    S = jacobian * ekf.m_cov * jacobian.transpose() + observation_noise;
+  }
+
+  if (chi2_threshold > 0.0) {
+    double mahalanobis_dist_sq = residual.dot(S.ldlt().solve(residual));
+    if (mahalanobis_dist_sq > chi2_threshold) {
+      if (ekf.GetDebugLogger()) {
+        std::stringstream msg;
+        msg << sensor_name << " measurement rejected! Mahalanobis distance squared: "
+            << mahalanobis_dist_sq << " exceeds threshold: " << chi2_threshold;
+        ekf.GetDebugLogger()->Log(LogLevel::INFO, msg.str());
+      }
+      return false;
+    }
+  }
+
+  // Calculate Kalman gain
+  Eigen::MatrixXd gain;
+  if (ekf.GetUseRootCovariance()) {
+    Eigen::MatrixXd rhs = jacobian * ekf.m_cov.transpose() * ekf.m_cov;
+    gain = S.ldlt().solve(rhs).transpose();
+  } else {
+    gain = S.ldlt().solve(jacobian * ekf.m_cov).transpose();
   }
 
   Eigen::VectorXd update = gain * residual;
@@ -64,4 +84,5 @@ void Updater::KalmanUpdate(
       (Eigen::MatrixXd::Identity(rows, cols) - gain * jacobian).transpose() +
       gain * observation_noise * gain.transpose();
   }
+  return true;
 }

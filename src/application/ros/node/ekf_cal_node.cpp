@@ -80,6 +80,7 @@ EkfCalNode::EkfCalNode()
   declare_parameter("gps_init_ang_thresh", 1.0);
   declare_parameter("motion_detection_chi_squared", 1.0);
   declare_parameter("imu_noise_scale_factor", 100.0);
+  declare_parameter("chi2_threshold", 25.0);
   declare_parameter("use_root_covariance", true);
   declare_parameter("use_first_estimate_jacobian", false);
   declare_parameter("use_rk4", false);
@@ -157,6 +158,7 @@ void EkfCalNode::Initialize()
   ekf_params.use_rk4 = get_parameter("use_rk4").as_bool();
   ekf_params.imu_noise_scale_factor = get_parameter("imu_noise_scale_factor").as_double();
   ekf_params.use_reduced_state = use_reduced_state;
+  ekf_params.chi2_threshold = get_parameter("chi2_threshold").as_double();
   m_measurement_scheduler = std::make_shared<Sensor::MeasurementScheduler>(
     get_parameter("measurement_time_reorder_window").as_double());
 

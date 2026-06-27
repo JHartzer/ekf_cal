@@ -173,14 +173,12 @@ void FiducialUpdater::UpdateEKF(
 
   Eigen::MatrixXd jacobian = GetMeasurementJacobian(ekf);
 
-  /// @todo Chi^2 distance check
-
   Eigen::MatrixXd meas_noise = Eigen::MatrixXd::Zero(res.rows(), res.rows());
   meas_noise.block<3, 3>(0, 0) = board_detection.pos_error.asDiagonal();
   meas_noise.block<3, 3>(3, 3) = board_detection.ang_error.asDiagonal();
 
   // Apply Kalman update
-  KalmanUpdate(ekf, jacobian, res, meas_noise);
+  KalmanUpdate(ekf, jacobian, res, meas_noise, "Fiducial");
 
   auto t_end = std::chrono::high_resolution_clock::now();
   auto t_execution = std::chrono::duration_cast<std::chrono::microseconds>(t_end - t_start);

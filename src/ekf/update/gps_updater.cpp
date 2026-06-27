@@ -122,7 +122,7 @@ void GpsUpdater::UpdateEKF(
     Eigen::Vector3d pos_a_in_l_hat = PredictMeasurement(ekf);
     residual = pos_a_in_l - pos_a_in_l_hat;
     Eigen::MatrixXd jacobian = GetMeasurementJacobian(ekf);
-    KalmanUpdate(ekf, jacobian, residual, pos_covariance);
+    KalmanUpdate(ekf, jacobian, residual, pos_covariance, "GPS");
 
     m_logger->Log(LogLevel::INFO, "GPS Updater Update");
   }
@@ -183,6 +183,6 @@ void GpsUpdater::MultiUpdateEKF(EKF & ekf)
 
   Eigen::MatrixXd meas_noise = Eigen::MatrixXd::Identity(resid.rows(), resid.rows());
 
-  KalmanUpdate(ekf, jacobian, resid, meas_noise);
+  KalmanUpdate(ekf, jacobian, resid, meas_noise, "GPS");
   m_logger->Log(LogLevel::INFO, "GPS Updater Update");
 }
